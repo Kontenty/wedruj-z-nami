@@ -1,8 +1,10 @@
-# UX & UI Specification - Katalog Obiektów Krajoznawczych Polski
+# UX & UI Specification — Sightseeing Objects Catalog of Poland
 
-Dokument przekłada PRD oraz ustalenia projektowe na specyfikację UX/UI możliwą do bezpośredniego wykorzystania przez frontend developera lub narzędzie do generowania interfejsów.
+> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "news" = *aktualności*; "news listing" = *lista wpisów*
 
-Zakres obejmuje publiczną aplikację webową, katalog z mapą, strony obiektów, stronę główną, sekcję Aktualności oraz prosty CMS dla zespołu redakcyjnego.
+This document translates the PRD and design decisions into a UX/UI specification ready for direct use by a frontend developer or interface generation tool.
+
+The scope covers a public web application, a map-first catalog, object pages, a homepage, a News section, and a simple CMS for the editorial team.
 
 ---
 
@@ -13,109 +15,109 @@ Zakres obejmuje publiczną aplikację webową, katalog z mapą, strony obiektów
 ```text
 Public
 /
-  Strona główna
+  Homepage
 
 /katalog
-  Katalog obiektów z mapą, filtrami i listą wyników
+  Object catalog with map, filters, and result list
 
 /obiekty/[slug]
-  Strona szczegółowa obiektu
+  Object detail page
 
 /aktualnosci
-  Lista wpisów redakcyjnych
+  Article listing page
 
 /aktualnosci/[slug]
-  Szczegół wpisu
+  Article detail page
 
 /kontakt
-  Opcjonalna strona kontaktowa albo sekcja kontaktowa dostępna z footer/nav
+  Optional contact page or contact section accessible from footer/nav
 
 CMS
 /cms/login
-  Logowanie redaktora
+  Editor login
 
 /cms
-  Dashboard CMS
+  CMS Dashboard
 
 /cms/obiekty
-  Lista obiektów
+  Object listing
 
-/cms/obiekty/nowy
-  Dodawanie obiektu
+/cms/obiekty/new
+  Add object
 
 /cms/obiekty/[id]
-  Edycja obiektu
+  Edit object
 
 /cms/aktualnosci
-  Lista wpisów
+  Article listing
 
-/cms/aktualnosci/nowy
-  Dodawanie wpisu
+/cms/aktualnosci/new
+  Add article
 
 /cms/aktualnosci/[id]
-  Edycja wpisu
+  Edit article
 ```
 
 ### Content Grouping & Component Organization
 
-Publiczna aplikacja powinna mieć trzy główne obszary:
+The public application should have three main areas:
 
-- **Odkrywanie obiektów:** katalog, mapa, wyszukiwarka, filtry, strony szczegółowe.
-- **Kontekst projektu:** strona główna, opis celu, wartości dla turystów i nauczycieli.
-- **Treści redakcyjne:** Aktualności, artykuły, wejścia do katalogu/mapy.
+- **Object Discovery:** catalog, map, search, filters, detail pages.
+- **Project Context:** homepage, purpose description, value for tourists and teachers.
+- **Editorial Content:** News, articles, entry points to catalog/map.
 
-CMS powinien pozostać prosty i operacyjny:
+The CMS should remain simple and operational:
 
-- **Obiekty:** lista, dodawanie, edycja, publikacja/unpublish, media, lokalizacja.
-- **Aktualności:** lista, dodawanie, edycja, publikacja/unpublish, Markdown.
+- **Objects:** list, add, edit, publish/unpublish, media, location.
+- **News:** list, add, edit, publish/unpublish, Markdown.
 
 ### Navigation Structure & Patterns
 
-Główna nawigacja publiczna:
+Main public navigation:
 
-- Logo/nazwa projektu
-- Mapa
-- Katalog
-- Aktualności
-- Kontakt
+- Logo / project name
+- Map
+- Catalog
+- News
+- Contact
 
-Preferowany model:
+Preferred model:
 
-- CTA na stronie głównej prowadzi przede wszystkim do widoku mapy/katalogu.
-- Link "Mapa" może prowadzić do `/katalog` z mapą jako aktywnym punktem wejścia.
-- Link "Katalog" prowadzi do tego samego widoku, ale z nastawieniem na filtrowanie i wyniki.
+- CTA on the homepage leads primarily to the map/catalog view.
+- "Map" link may lead to `/katalog` with the map as the active entry point.
+- "Catalog" link leads to the same view, but oriented toward filtering and results.
 
 CMS:
 
-- Sidebar lub górna nawigacja z sekcjami: Obiekty, Aktualności.
-- Widoczny status publikacji przy każdym rekordzie.
-- Akcja "Cofnij publikację" jako bezpieczna alternatywa dla usuwania.
+- Sidebar or top navigation with sections: Objects, News.
+- Visible publication status for each record.
+- "Unpublish" action as a safe alternative to deletion.
 
 ### Layout Zones & Content Blocks
 
-Strona główna:
+Homepage:
 
 ```text
 [Header]
-[Intro / hero informacyjny]
-  Tytuł, krótki opis projektu
-  Primary CTA: Pokaż mapę
-  Secondary CTA: Przeglądaj katalog
+[Hero / informational intro]
+  Title, short project description
+  Primary CTA: Show Map
+  Secondary CTA: Browse Catalog
 
-[Dla kogo i po co]
-  Turyści, nauczyciele, osoby planujące wyjazdy
+[For Whom and Why]
+  Tourists, teachers, trip planners
 
-[Najnowsze obiekty]
-  Rząd 3-4 kart
+[Latest Objects]
+  Row of 3-4 cards
 
-[Aktualności teaser]
-  Kilka ostatnich wpisów albo wejście do sekcji Aktualności
+[News teaser]
+  Few recent posts or entry to News section
 
-[Kontakt / feedback prompt]
+[Contact / feedback prompt]
 [Footer]
 ```
 
-Katalog desktop:
+Desktop Catalog:
 
 ```text
 [Header]
@@ -127,12 +129,12 @@ Katalog desktop:
                        [Card grid results]
 ```
 
-Katalog mobile:
+Mobile Catalog:
 
 ```text
 [Header]
 [Search]
-[Map | Lista segmented control] [Filtry]
+[Map | List segmented control] [Filters]
 
 Default: Map
 
@@ -147,14 +149,14 @@ Filters:
   [Bottom sheet]
 ```
 
-Strona obiektu:
+Object Detail Page:
 
 ```text
 [Header]
 [Back to catalog]
 
 [Title]
-[Metadata row: województwo | kategoria | UNESCO badge]
+[Metadata row: voivodeship | category | UNESCO badge]
 [Main photo]
 [Gallery thumbnails if more images exist]
 [Description]
@@ -166,11 +168,11 @@ Strona obiektu:
 
 ### Responsive Behavior Guidelines
 
-- Desktop: filtracja stale widoczna po lewej, mapa pierwsza w centralnym obszarze, wyniki poniżej.
-- Tablet: filtry mogą przejść do panelu bocznego lub przycisku "Filtry", mapa pozostaje przed wynikami.
-- Mobile: domyślnie mapa, przełącznik Map/List, filtry jako bottom sheet.
-- Karty obiektów w mobile powinny być jednokolumnowe.
-- Mapa na mobile musi mieć wystarczającą wysokość, aby była użyteczna, minimum około 50-60% wysokości viewportu w trybie mapy.
+- Desktop: filters permanently visible on the left, map first in the central area, results below.
+- Tablet: filters may move to a side panel or "Filters" button, map remains above results.
+- Mobile: map by default, Map/List switcher, filters as a bottom sheet.
+- Object cards on mobile should be single-column.
+- Map on mobile must have sufficient height to be usable, minimum approximately 50-60% of viewport height in map mode.
 
 ---
 
@@ -178,17 +180,17 @@ Strona obiektu:
 
 ### Primary User Journey: Planning a Visit
 
-1. Użytkownik wchodzi na stronę główną.
-2. Czyta krótki opis celu projektu.
-3. Wybiera "Pokaż mapę".
-4. Trafia do katalogu z widoczną mapą i filtrami.
-5. Zawęża wyniki przez województwo, kategorię lub UNESCO.
-6. Wyniki aktualizują się natychmiast na mapie i w siatce kart.
-7. Użytkownik klika pin na mapie.
-8. Widzi popup z obrazem, tytułem i linkiem "Zobacz obiekt".
-9. Przechodzi na stronę obiektu.
-10. Czyta opis, sprawdza informacje praktyczne i obiekty w pobliżu.
-11. Opcjonalnie drukuje stronę obiektu.
+1. User enters the homepage.
+2. Reads a short description of the project's purpose.
+3. Selects "Show Map".
+4. Arrives at the catalog with visible map and filters.
+5. Narrows results by voivodeship, category, or UNESCO.
+6. Results update immediately on the map and card grid.
+7. User clicks a pin on the map.
+8. Sees a popup with image, title, and "View Object" link.
+9. Navigates to the object detail page.
+10. Reads the description, checks practical info and nearby objects.
+11. Optionally prints the object page.
 
 ### Search and Filter Flow
 
@@ -201,71 +203,71 @@ User enters query
   -> Card grid updates
 ```
 
-Filtry:
+Filters:
 
-- Województwo: single select.
-- Kategoria: accordion/tree do 3 poziomów.
+- Voivodeship: single select.
+- Category: accordion/tree up to 3 levels.
 - UNESCO: toggle/checkbox.
-- Wyczyść filtry: przywraca pełny zestaw wyników.
+- Clear filters: restores the full result set.
 
-Filtry działają natychmiast po zmianie, bez przycisku "Zastosuj".
+Filters apply immediately on change, without an "Apply" button.
 
 ### Nearby Objects Flow
 
-Na stronie obiektu:
+On the object detail page:
 
-1. System zna lokalizację aktualnie wyświetlanego obiektu.
-2. Pobiera obiekty w pobliżu.
-3. Domyślny promień: 5 km.
-4. Jeśli brak wyników, system rozszerza promień do 20 km.
-5. Wyniki są pokazane jako card grid.
+1. System knows the location of the currently displayed object.
+2. Fetches nearby objects.
+3. Default radius: 5 km.
+4. If no results, the system expands the radius to 20 km.
+5. Results are shown as a card grid.
 
-W trybie geolokalizacji użytkownika:
+In user geolocation mode:
 
-1. Użytkownik wybiera funkcję obiektów w pobliżu.
-2. System prosi o dostęp do lokalizacji.
-3. Po zgodzie pokazuje obiekty w promieniu 5 km.
-4. Jeśli brak wyników, rozszerza do 20 km.
-5. Jeśli użytkownik odmówi, pokazuje komunikat i alternatywę: użyj mapy lub filtrów.
+1. User selects the nearby objects feature.
+2. System requests location access.
+3. After consent, shows objects within 5 km.
+4. If no results, expands to 20 km.
+5. If the user declines, shows a message and an alternative: use the map or filters.
 
 ### Article Flow
 
-1. Użytkownik wybiera "Aktualności".
-2. Widzi grid wpisów z datą, tytułem, opcjonalną okładką i skrótem.
-3. Otwiera wpis.
-4. Czyta treść Markdown wyrenderowaną jako artykuł.
-5. Na końcu widzi kontekstowy CTA, np. "Pokaż mapę", "Przeglądaj katalog" albo link do filtrowanych obiektów.
+1. User selects "News".
+2. Sees a grid of posts with date, title, optional cover, and excerpt.
+3. Opens a post.
+4. Reads the Markdown content rendered as an article.
+5. At the end, sees a contextual CTA, e.g., "Show Map", "Browse Catalog", or a link to filtered objects.
 
 ### CMS Editorial Flow: Object
 
-1. Redaktor loguje się do CMS.
-2. Wybiera "Obiekty".
-3. Widzi listę obiektów ze statusem publikacji.
-4. Dodaje lub edytuje obiekt.
-5. Wypełnia wymagane pola: tytuł, opis, minimum jedno zdjęcie.
-6. Dodaje współrzędne.
-7. Opcjonalnie dodaje dane praktyczne, wiele zdjęć, kategorię, UNESCO, geometrię obszaru.
-8. Zapisuje.
-9. Po publikacji obiekt pojawia się w katalogu, na mapie i w wynikach wyszukiwania.
+1. Editor logs in to the CMS.
+2. Selects "Objects".
+3. Sees a list of objects with publication status.
+4. Adds or edits an object.
+5. Fills in required fields: title, description, minimum one photo.
+6. Adds coordinates.
+7. Optionally adds practical data, multiple photos, category, UNESCO, area geometry.
+8. Saves.
+9. After publishing, the object appears in the catalog, on the map, and in search results.
 
 ### CMS Editorial Flow: Article
 
-1. Redaktor wybiera "Aktualności".
-2. Tworzy nowy wpis.
-3. Wypełnia tytuł, datę publikacji i treść Markdown.
-4. Opcjonalnie dodaje zdjęcie główne.
-5. Zapisuje i publikuje.
-6. Wpis pojawia się na liście Aktualności.
+1. Editor selects "News".
+2. Creates a new post.
+3. Fills in title, publication date, and Markdown content.
+4. Optionally adds a cover photo.
+5. Saves and publishes.
+6. Post appears on the News listing.
 
 ### Decision Points & UI Branches
 
-- Brak wyników po filtrowaniu: pokaż empty state z możliwością wyczyszczenia filtrów.
-- Brak wyników w pobliżu 5 km: automatyczne rozszerzenie do 20 km, z komunikatem.
-- Brak wyników w pobliżu 20 km: pokaż komunikat i link do katalogu/mapy.
-- Brak zdjęcia dodatkowego: nie pokazuj galerii, użyj tylko głównego zdjęcia.
-- Obiekt nieopublikowany: nie pojawia się publicznie.
-- Wpis nieopublikowany: nie pojawia się publicznie.
-- Odmowa geolokalizacji: pokaż fallback oparty na mapie i filtrach.
+- No results after filtering: show empty state with option to clear filters.
+- No results within 5 km: automatic expansion to 20 km, with a message.
+- No results within 20 km: show a message and link to catalog/map.
+- No additional photo: don't show gallery, use only the main photo.
+- Unpublished object: does not appear publicly.
+- Unpublished post: does not appear publicly.
+- Geolocation declined: show a fallback based on map and filters.
 
 ### Flow Diagram Description for Mermaid
 
@@ -280,8 +282,8 @@ ObjectCard --> ObjectDetail
 ObjectDetail --> PrintPage
 ObjectDetail --> NearbyObjects
 
-Homepage --> AktualnosciList
-AktualnosciList --> ArticleDetail
+Homepage --> NewsList
+NewsList --> ArticleDetail
 ArticleDetail --> ContextualCTA
 ContextualCTA --> CatalogMap
 ```
@@ -297,10 +299,10 @@ Purpose: explain the project and route users into discovery.
 Primary layout:
 
 - Informational intro, not a marketing-heavy landing page.
-- Primary CTA: "Pokaż mapę".
-- Secondary CTA: "Przeglądaj katalog".
+- Primary CTA: "Show Map".
+- Secondary CTA: "Browse Catalog".
 - Latest objects row: 3-4 cards.
-- Aktualności teaser.
+- News teaser.
 - Small contact prompt near the bottom.
 
 Homepage object cards:
@@ -323,7 +325,7 @@ Desktop layout:
 
 Filter sidebar components:
 
-- Województwo select/list.
+- Voivodeship select/list.
 - Category accordion/tree up to 3 levels.
 - UNESCO checkbox/toggle.
 - Clear filters action.
@@ -339,14 +341,14 @@ Map:
 - Shows point markers for objects.
 - Shows simplified polygons for area objects.
 - Pin click opens popup.
-- Popup contains photo, title, category/location context and "Zobacz obiekt".
+- Popup contains photo, title, category/location context and "View Object".
 
 Results grid cards:
 
 - Main image.
 - Title.
 - Short description.
-- Województwo.
+- Voivodeship.
 - Category.
 - UNESCO badge if applicable.
 - Distance if geolocation/nearby mode is active.
@@ -355,7 +357,7 @@ Results grid cards:
 States:
 
 - Loading: skeleton for map and cards.
-- Empty: message, active filters visible, "Wyczyść filtry".
+- Empty: message, active filters visible, "Clear Filters".
 - Error: map/list loading error with retry.
 - Populated: map and grid synchronized.
 
@@ -367,7 +369,7 @@ Components:
 
 - Back link to catalog.
 - Title.
-- Metadata row: województwo, category, UNESCO.
+- Metadata row: voivodeship, category, UNESCO.
 - Main image.
 - Gallery if multiple images exist.
 - Description.
@@ -384,13 +386,13 @@ Print version:
 - Remove header navigation, filter controls, interactive map UI and footer noise.
 - Keep layout readable on A4.
 
-### Aktualności List
+### News Listing
 
 Purpose: simple editorial support layer for catalog discovery.
 
 Layout:
 
-- Page title: "Aktualności".
+- Page title: "News".
 - Short intro.
 - Article card grid.
 - Optional latest objects row if needed by PRD.
@@ -405,7 +407,7 @@ Article card:
 
 States:
 
-- Empty: "Brak opublikowanych aktualności".
+- Empty: "No published news articles".
 - Loading: card skeletons.
 - Error: retry.
 
@@ -413,14 +415,14 @@ States:
 
 Layout:
 
-- Back link to Aktualności.
+- Back link to News.
 - Title.
 - Publication date.
 - Optional cover image.
 - Markdown-rendered body.
 - Contextual CTA:
-  - "Pokaż mapę"
-  - "Przeglądaj katalog"
+  - "Show Map"
+  - "Browse Catalog"
   - or a filtered catalog link based on article content.
 
 Article pages do not automatically show nearby objects unless an article is explicitly associated with a specific object in a future extension.
@@ -445,8 +447,8 @@ States:
 
 Simple two-section structure:
 
-- Obiekty.
-- Aktualności.
+- Objects.
+- News.
 
 Each section should show:
 
@@ -460,7 +462,7 @@ Columns:
 
 - Thumbnail.
 - Title.
-- Województwo.
+- Voivodeship.
 - Category.
 - Status: published/unpublished.
 - Last updated.
@@ -476,7 +478,7 @@ Fields:
 - Description, required.
 - Images, minimum one required.
 - Image ordering, first image is primary.
-- Województwo.
+- Voivodeship.
 - Category accordion/select with up to 3 levels.
 - UNESCO boolean.
 - Coordinates, required for map placement.
@@ -594,7 +596,7 @@ Mobile:
 
 - Map uses native pan/zoom gestures.
 - Bottom sheet should allow drag-to-dismiss only if accessible controls remain available.
-- Segmented control switches between Map and Lista.
+- Segmented control switches between Map and List.
 
 ---
 
@@ -760,7 +762,7 @@ Suggested CMS components:
 Catalog state:
 
 - Query.
-- Selected województwo.
+- Selected voivodeship.
 - Selected category.
 - UNESCO filter.
 - Active view on mobile: map/list.
@@ -776,7 +778,7 @@ Recommended URL behavior:
 Example:
 
 ```text
-/katalog?q=zamek&wojewodztwo=malopolskie&kategoria=zabytki&unesco=true
+/katalog?q=castle&wojewodztwo=malopolskie&category=landmarks&unesco=true
 ```
 
 CMS form state:
@@ -817,6 +819,6 @@ CMS form state:
 
 - Do not add public user accounts.
 - Do not add favorites, reviews, ratings or comments.
-- Do not expand Aktualności into a full publishing platform.
+- Do not expand News into a full publishing platform.
 - Do not add complex CMS workflow.
 - Keep catalog, map and object detail pages as the main product value.

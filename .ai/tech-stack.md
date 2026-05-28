@@ -1,8 +1,10 @@
 # Technology Stack Recommendation
 
+> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "news" = *aktualności*
+
 ## Chat Summary
 
-The project is a public web application for a Polish catalog of krajoznawcze objects, with a map-first catalog, object detail pages, filters, fuzzy search, nearby objects, printable pages, a simple blog/news section, and an editorial CMS for a small nontechnical team.
+The project is a public web application for a Polish catalog of sightseeing objects, with a map-first catalog, object detail pages, filters, fuzzy search, nearby objects, printable pages, a simple blog/news section, and an editorial CMS for a small nontechnical team.
 
 Initial stack options discussed included:
 
