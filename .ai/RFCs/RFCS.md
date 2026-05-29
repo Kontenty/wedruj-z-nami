@@ -6,20 +6,21 @@
 
 This document defines the implementation roadmap for the Kanon project — a public web application presenting a catalog of Polish sightseeing objects with map, filters, news, and a CMS for the editorial team.
 
-The project is broken into **7 RFCs** implemented **strictly sequentially**. Each RFC is fully implementable after all preceding RFCs are completed. No parallel implementation is permitted.
+The project is broken into **7 RFCs** implemented in dependency order. Each RFC is fully implementable after its listed predecessors are completed; RFCs may branch where the dependency graph permits.
 
 ## Technology Stack
 
 | Layer               | Technology                      |
 | ------------------- | ------------------------------- |
 | Backend             | Laravel 13, PHP 8.4             |
+| Auth                | Laravel Fortify                 |
 | CMS/Admin           | Filament v4                     |
 | Public static pages | Blade templates                 |
 | Interactive catalog | Inertia v3 + Svelte 5           |
 | Database            | MariaDB 10.11 with spatial features |
 | Search              | MariaDB `LIKE` on case-insensitive collation for beta; Scout later if needed |
 | Map                 | MapLibre                        |
-| Media               | Spatie Laravel Media Library    |
+| Media               | Spatie Laravel Media Library, with PRD media attribution metadata (`author`, `source`) and public storage symlink serving |
 | Styling             | Tailwind CSS v4                 |
 | Testing             | Pest v4                         |
 
@@ -83,25 +84,17 @@ This means the interactive catalog and object detail features form the core deve
 
 ## User Stories Mapping
 
-| User Story                    | RFC(s)           |
-| ----------------------------- | ---------------- |
-| US-001: Browsing catalog      | RFC-005          |
-| US-002: Filter by voivodeship | RFC-005          |
-| US-003: Filter by category    | RFC-005          |
-| US-004: Filter by UNESCO      | RFC-005          |
-| US-005: Search by name        | RFC-005          |
-| US-006: Nearby objects        | RFC-007          |
-| US-007: Map view              | RFC-005          |
-| US-008: Object detail page    | RFC-006          |
-| US-009: Print object page     | RFC-007          |
-| US-010: Add object (CMS)      | RFC-003          |
-| US-011: Edit object (CMS)     | RFC-003          |
-| US-012: Delete object (CMS)   | RFC-003          |
-| US-013: Secure CMS access     | RFC-003          |
-| US-015: Homepage              | RFC-004          |
-| US-016: Latest objects        | RFC-004, RFC-005 |
-| US-017: Browse news           | RFC-004          |
-| US-018: Read news             | RFC-004          |
-| US-019: Add news (CMS)        | RFC-003          |
-| US-020: Edit news (CMS)       | RFC-003          |
-| US-021: Delete news (CMS)     | RFC-003          |
+| User Story                               | RFC(s)           |
+| ---------------------------------------- | ---------------- |
+| US-001: Browse objects catalog           | RFC-005          |
+| US-002: Filter by voivodeship            | RFC-005          |
+| US-003: Filter by object type            | RFC-005          |
+| US-003A: Filter by UNESCO designation    | RFC-005          |
+| US-004: Search by name/text              | RFC-005          |
+| US-005: Explore map                      | RFC-005          |
+| US-006: View object details              | RFC-006, RFC-007 |
+| US-007: Read news                        | RFC-004          |
+| US-008: Add object                       | RFC-003          |
+| US-009: Edit object                      | RFC-003          |
+| US-010: Manage news entry                | RFC-003          |
+| US-011: Secure CMS access                | RFC-003          |

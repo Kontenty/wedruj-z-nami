@@ -23,10 +23,9 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 3. **Enhanced print CSS** — comprehensive print stylesheet for object detail pages
 4. **WCAG 2.1 AA accessibility fixes** — skip links, aria attributes, focus management, contrast, keyboard nav
 5. **Performance optimization** — eager loading, lazy images, caching, spatial index verification
-6. **Contact form email delivery** — Mailable class and email template (if not working from RFC-004)
-7. **Custom 404 page**
-8. **Final design polish** — consistent spacing, typography, colors across all pages
-9. **Write Pest tests** for nearby objects endpoint, contact email, accessibility basics
+6. **Custom 404 page**
+7. **Final design polish** — consistent spacing, typography, colors across all pages
+8. **Write Pest tests** for nearby objects endpoint and accessibility basics
 
 ## Key Files to Create/Modify
 
@@ -34,12 +33,9 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 - `app/Http/Controllers/ObjectController.php` — add `nearby()` method
 - `resources/views/objects/show.blade.php` — replace nearby placeholder with dynamic loading
 - `resources/css/print.css` — enhanced print stylesheet
-- `app/Mail/ContactMessage.php` (if not created in RFC-004)
-- `resources/views/emails/contact.blade.php` (if not created in RFC-004)
 - `resources/views/errors/404.blade.php` — custom 404 page
 - Various view files — accessibility improvements (aria labels, skip links, focus states)
 - `tests/Feature/NearbyObjectsTest.php`
-- `tests/Feature/ContactEmailTest.php`
 - `tests/Feature/AccessibilityTest.php`
 
 ## Critical Requirements
@@ -81,11 +77,6 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 - Homepage queries cached (5 minute TTL)
 - Spatial queries use SPATIAL index (verify with EXPLAIN)
 
-### Contact
-- Contact form sends email (or logs to `storage/logs/laravel.log` in dev)
-- Email contains name, email, message
-- Success message displayed after submission
-
 ### Final Polish
 - Custom 404 page with navigation links
 - Consistent Tailwind spacing and typography across all pages
@@ -99,6 +90,7 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 - Do not add user accounts, favorites, reviews, or comments
 - Do not add tags, author profiles, or scheduled publishing
 - Do not expand the blog into a full publishing platform
+- Do not implement contact form or contact email features in this RFC
 - Do not change the CMS workflow
 - Do not add map marker clustering (unless object count exceeds 100)
 

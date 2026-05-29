@@ -23,7 +23,6 @@ Build the `/katalog` page — the most interactive part of the application — u
 - US-004: Filter by UNESCO status
 - US-005: Search by name (partial phrase)
 - US-007: Map view with markers and simplified polygons
-- US-016: Latest objects section on homepage (data already served via RFC-004; this RFC provides the catalog data layer)
 
 ---
 
@@ -53,8 +52,8 @@ class CatalogController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $query = Obiekt::query()->published()
-            ->with(['wojewodztwo', 'kategorie'])
+        $query = SightseeingObject::query()->published()
+            ->with(['voivodeship', 'objectTypes'])
             ->select([
                 'id', 'title', 'slug', 'description',
                 'latitude', 'longitude', 'is_unesco',
@@ -87,9 +86,9 @@ class CatalogController extends Controller
                 'unesco' => $request->boolean('unesco'),
             ],
             'objectTypes' => ObjectTypeResource::collection(
-                Kategoria::whereNull('parent_id')->with('childrenRecursive')->get()
+                ObjectType::whereNull('parent_id')->with('childrenRecursive')->get()
             ),
-            'voivodeships' => Wojewodztwo::all(['id', 'name', 'slug']),
+            'voivodeships' => Voivodeship::all(['id', 'name', 'slug']),
         ]);
     }
 }
@@ -114,14 +113,14 @@ class ObjectResource extends JsonResource
             'is_unesco' => $this->is_unesco,
             'thumbnail_url' => $this->thumbnail_url,
             'primary_image_url' => $this->primary_image_url,
-            'wojewodztwo' => [
-                'name' => $this->wojewodztwo->name,
-                'slug' => $this->wojewodztwo->slug,
+            'voivodeship' => [
+                'name' => $this->voivodeship->name,
+                'slug' => $this->voivodeship->slug,
             ],
-            'categories' => $this->kategorie->map(fn ($k) => [
-                'id' => $k->id,
-                'name' => $k->name,
-                'slug' => $k->slug,
+            'objectTypes' => $this->objectTypes->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'slug' => $t->slug,
             ]),
             'geojson' => $this->geojson,
             'url' => route('catalog.show', $this->slug),
@@ -437,7 +436,7 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
                 >
             </span>
         {/if}
-        <!-- ... similar for category and UNESCO -->
+        <!-- ... similar for object type and UNESCO -->
         <button onclick={clearFilters}>Clear All</button>
     </div>
     <p>Result count: {objects.total}</p>

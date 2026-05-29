@@ -1,42 +1,40 @@
 # RFC-003: Filament CMS
 
-> **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_; "news" = _aktualności_
+> **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_; "news" = _aktualności_; technical news model/resource name = `Article`
 
 **Status:** Proposed  
 **Complexity:** High  
 **Predecessors:** RFC-001, RFC-002  
-**Successors:** — (enables content creation for all public pages)
+**Successors:** RFC-004, RFC-005, RFC-006, RFC-007
 
 ---
 
 ## Summary
 
-Install and configure Filament v4 as the CMS admin panel. Build resource pages for managing objects and news with full CRUD, media upload, object type assignment, publication status, form validation, and dashboard widgets. Protect CMS routes with authentication (Fortify already installed).
+Install and configure Filament v4 as the editorial CMS under `/cms`, integrated with existing Fortify authentication. Implement resources for sightseeing objects, object types, and news, including role-based actions (administrator vs editor), media handling via Spatie Media Library, PRD-aligned publication workflows, and dashboard widgets for editorial operations.
+
+This RFC implements only the CMS/editorial layer. Public pages remain in RFC-004 (Blade) and the interactive catalog remains in RFC-005 (Inertia + Svelte), consistent with the route-by-route architecture in `.ai/tech-stack.md`.
 
 ---
 
 ## Features / Requirements Addressed
 
-- US-010: Add new object (CMS)
-- US-011: Edit object (CMS)
-- US-012: Delete object (CMS)
-- US-013: Secure CMS access (login + password)
-- US-019: Add news (CMS)
-- US-020: Edit news (CMS)
-- US-021: Delete news (CMS)
-- CMS dashboard with overview widgets
-- Media upload integration with Spatie Media Library
-- Object type management (hierarchical)
-- Publication status toggle (publish/unpublish)
-- Form validation for required fields
-- Polish-language CMS interface
+- PRD 7.1: Objects management (create/edit, object type assignment, UNESCO flag, point/polygon support)
+- PRD 7.2: News management (create/edit, draft/published)
+- PRD 7.3: Users and roles (`administrator`, `editor`) with delete restricted to administrator
+- PRD 7.4: Media upload with optional attribution (`author`, `source`) and main image semantics
+- US-008: Add object
+- US-009: Edit object
+- US-010: Manage news entry
+- US-011: Secure CMS access
+- Polish-language CMS for non-technical editors
 
 ---
 
 ## Previous / Next
 
-- **Builds on:** RFC-001 (models exist), RFC-002 (media library integrated)
-- **Built by future:** All public page RFCs consume CMS-managed content
+- **Builds on:** RFC-001 (core schema/models), RFC-002 (media layer)
+- **Built by future:** Public pages and catalog RFCs consume CMS-authored content
 
 ---
 
@@ -49,229 +47,165 @@ composer require filament/filament
 php artisan filament:install --panels
 ```
 
-Configure Filament to use the existing `User` model for authentication.
+Use Filament with the existing `User` model and Fortify authentication stack.
 
-### Filament Panel Configuration
+### Panel Configuration (`/cms`)
 
-Create `app/Providers/Filament/AdminPanelProvider.php`:
+Create `app/Providers/Filament/AdminPanelProvider.php` with:
 
-```php
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->default()
-            ->id('admin')
-            ->path('cms')
-            ->login()
-            ->colors([
-                'primary' => Color::Emerald,
-            ])
-            ->navigationGroups([
-                'Objects',
-                'News',
-                'Settings',
-            ])
-            ->widgets([
-                // Dashboard widgets registered here
-            ])
-            ->pages([
-                // Dashboard page
-            ]);
-    }
-}
-```
+- Panel path: `/cms`
+- Login enabled (`/cms/login`)
+- Polish language (`pl`)
+- Registration of resources and dashboard widgets
+- Auth middleware stack compatible with Fortify session auth
 
-### Polish Localization
+### Localization
 
-Configure Filament to use Polish:
+- Set Filament locale to Polish
+- Publish Filament translation files when needed for overrides
+- Keep CMS labels, helper text, and validation copy in Polish for editorial users
 
-```php
-// config/filament.php or panel provider
-->language('pl')
-->darkMode(false)
-```
+### Authorization Model (Roles and Actions)
 
-Publish Polish language files:
+Define and enforce two roles from PRD:
 
-```bash
-php artisan vendor:publish --tag="filament-panels-translations"
-```
+- `administrator`: full permissions, including delete operations
+- `editor`: create and edit permissions, no delete permissions
+
+Apply this consistently via policies and Filament resource/page/action visibility:
+
+- Delete row actions hidden/forbidden for `editor`
+- Delete bulk actions hidden/forbidden for `editor`
+- Create/edit allowed for both roles
 
 ### Resources
 
-#### `ObiektResource`
+#### `SightseeingObjectResource` (sightseeing objects)
 
-**Table columns:**
+**Required form capabilities (PRD-aligned):**
 
-- Thumbnail (from Spatie Media Library, `images` collection, `thumbnail` conversion)
-- Title (searchable)
-- Voivodeship (relationship column)
-- Categories (relationship column, badges)
-- Status (published/unpublished, color badge)
-- Published at (date)
-- Actions: Edit, View, Delete
+- Core identity: `title`, `slug`
+- Content: short description/lead, full description
+- Classification: object types (`objectTypes` relationship), UNESCO toggle
+- Location:
+    - `wojewodztwo_id` and optional locality field (if present in RFC-001 schema)
+    - Geometry type selection (`point` or `polygon` behavior)
+    - Point coordinates (`latitude`, `longitude`) for point-based objects
+    - Polygon geometry input for area objects (GeoJSON/WKT strategy chosen in implementation)
+- Practical information (optional): opening hours, ticket prices, accessibility
+- Provenance: data source and last update/source metadata fields that exist in schema
+- Publication workflow: status `draft|published` and publication timestamp
+- Media:
+    - multiple image upload (Spatie `images` collection)
+    - minimum one image for publish-ready content
+    - reorderable gallery
+    - main image = first ordered image
+    - optional attribution metadata (`author`, `source`) per image
 
-**Form fields:**
+**Table expectations:**
 
-- `title` (text input, required, max 255)
-- `slug` (text input, auto-generated from title, editable, unique)
-- `description` (rich text editor or textarea, required)
-- `wojewodztwo_id` (select dropdown, required, relationship)
-- `kategorie` (multi-select or checkbox list, relationship, optional)
-- `is_unesco` (toggle, default false)
-- `coordinates` (two number inputs: latitude, longitude, required)
-    - Latitude: -90 to 90, 7 decimal places
-    - Longitude: -180 to 180, 7 decimal places
-- `geometry` (textarea for GeoJSON, optional, validated as valid GeoJSON geometry)
-- `opening_hours` (textarea, optional)
-- `ticket_prices` (textarea, optional)
-- `website` (url input, optional, validated as valid URL)
-- `images` (file upload, min 1, multiple, reorderable)
-- `published` (toggle)
-- `published_at` (datetime picker)
-
-**Validation rules:**
-
-```php
-public static function getRules(): array
-{
-    return [
-        'title' => ['required', 'string', 'max:255'],
-        'slug' => ['required', 'string', 'max:255', 'unique:obiekty,slug,' . $this->record?->id],
-        'description' => ['required', 'string'],
-        'wojewodztwo_id' => ['required', 'exists:wojewodztwa,id'],
-        'latitude' => ['required', 'numeric', 'between:-90,90'],
-        'longitude' => ['required', 'numeric', 'between:-180,180'],
-        'website' => ['nullable', 'url', 'max:500'],
-        'images' => ['required_without:record', 'array', 'min:1'],
-        'images.*' => ['file', 'mimes:jpeg,png,webp', 'max:10240'],
-    ];
-}
-```
+- Thumbnail (from Spatie conversions)
+- Title
+- Voivodeship
+- Object types (badges)
+- UNESCO indicator
+- Publication status (`draft`/`published`)
+- Updated/published timestamp
+- Row actions respecting role permissions
 
 **Filters:**
 
-- By voivodeship (select)
-- By object type (select)
-- Published / Unpublished
-- UNESCO only
+- By voivodeship
+- By object type
+- By UNESCO flag
+- By publication status
 
-**Actions:**
+#### `ObjectTypeResource` (object type taxonomy)
 
-- Create / Edit / Delete (with confirmation dialog)
-- Publish / Unpublish (bulk and individual)
+**Scope:** editable taxonomy used by objects.
 
-#### `KategoriaResource` (object types)
+**Requirements:**
 
-**Table columns:**
+- CRUD for object types
+- Parent selection for hierarchical tree
+- Validation to prevent loops/self-parenting
+- Validation for maximum depth: 3 levels
+- Helpful display of parent path/breadcrumb in table/forms
 
-- Name (searchable)
-- Parent (relationship)
-- Children count
-- Objects count
+#### `ArticleResource` (news / aktualności)
 
-**Form fields:**
+**Form requirements:**
 
-- `name` (text input, required)
-- `slug` (auto-generated)
-- `description` (textarea, optional)
-- `parent_id` (select, optional, relationship to self, exclude current and descendants)
+- `title`, `slug`
+- `excerpt` (optional)
+- `body` (Markdown editor)
+- Publication status: `draft|published`
+- `published_at` datetime
+- Cover image upload (Spatie `cover` single-file collection)
+- Optional attribution metadata (`author`, `source`) for cover image
+- Author assignment field, if author relation/field exists in schema
 
-**Validation:**
+**Table expectations:**
 
-- Max 3 levels deep (validate on save)
-
-#### `ArtkulResource` (news)
-
-**Table columns:**
-
-- Cover thumbnail (from Spatie, `cover` collection, `thumbnail` conversion)
-- Title (searchable)
-- Published at (date)
-- Status (published/unpublished)
-- Actions: Edit, Delete
-
-**Form fields:**
-
-- `title` (text input, required, max 255)
-- `slug` (auto-generated)
-- `excerpt` (textarea, optional, max 500)
-- `body` (markdown editor, required)
-- `published_at` (datetime picker, required)
-- `cover` (file upload, optional, single, mimes: jpeg, png, webp, max 5MB)
-- `published` (toggle)
+- Cover thumbnail
+- Title
+- Status badge (`draft`/`published`)
+- Published at
+- Row actions respecting role permissions
 
 ### Dashboard Widgets
 
-**Latest Objects Widget:**
+Provide an editorial dashboard oriented to PRD operations:
 
-- Show 5 most recently created objects
-- Columns: thumbnail, title, voivodeship, published status
+- Stats overview:
+    - total objects
+    - objects by status (`draft`, `published`)
+    - total news entries
+    - news by status (`draft`, `published`)
+- Latest objects widget (recently created/updated)
+- Latest news widget (recently published/updated)
 
-**Latest News Widget:**
+### Route Protection and Authentication
 
-- Show 5 most recently published news entries
-- Columns: title, published at, status
+Filament routes live under `/cms/*` and require authentication.
 
-**Stats Overview Widget:**
+- `/cms/login` available for CMS users
+- Unauthenticated access to `/cms/*` redirects to login
+- Authenticated users can access CMS according to role permissions
 
-- Total objects (published / unpublished)
-- Total news entries (published / unpublished)
-
-### Filament Route Protection
-
-Filament routes are already protected by its built-in authentication middleware. Since Fortify is installed, the existing `User` model and login flow work out of the box.
-
-CMS routes will be under `/cms/*` and require authentication:
-
-```php
-// Filament handles this automatically
-// /cms/login → Filament login page
-// /cms/* → requires auth
-```
+Fortify remains the authentication backend; this RFC does not introduce public-user auth.
 
 ---
 
 ## Data Flow
 
 ```
-[Editor] → /cms/login → [Fortify Auth] → /cms/dashboard
-  │
-  ├── /cms/obiekty (list, create, edit, delete)
-  │     └── Spatie Media Library → storage/app/public/
-  │
-  ├── /cms/kategorie (list, create, edit)
-  │
-  └── /cms/artykuly (list, create, edit, delete)
-        └── Spatie Media Library → storage/app/public/
+[Administrator/Editor] -> /cms/login -> [Fortify session auth] -> /cms
+  |
+  +-- /cms/sightseeing-objects (create/edit; delete only administrator)
+  |      \-> Spatie Media Library (images + attribution metadata)
+  |
+  +-- /cms/object-types (taxonomy CRUD with max 3-level depth)
+  |
+  +-- /cms/articles (create/edit; delete only administrator)
+         \-> Spatie Media Library (cover + attribution metadata)
 ```
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Filament v4 installed and configured
-- [ ] CMS accessible at `/cms/login` with login form
-- [ ] Fortify auth integration works (existing User model)
-- [ ] CMS interface in Polish language
-- [ ] `ObiektResource` with full CRUD, form validation, table with filters
-- [ ] Image upload in Obiekt form (min 1, multiple, reorderable)
-- [ ] Coordinates input (latitude/longitude) validated
-- [ ] Object type assignment (multi-select) in Obiekt form
-- [ ] UNESCO toggle in Obiekt form
-- [ ] Publication status toggle (publish/unpublish)
-- [ ] `KategoriaResource` with CRUD, hierarchical parent selection, max 3-level validation
-- [ ] `ArtkulResource` with full CRUD, Markdown body editor, cover image upload
-- [ ] Dashboard with stats widgets and latest records
-- [ ] Publish/unpublish actions work correctly
-- [ ] Object deletion confirms before executing
-- [ ] News deletion confirms before executing
-- [ ] Unpublished objects/news do not appear in public views (enforced by scopes in RFC-001)
-- [ ] Pest tests for CMS resource CRUD operations
-- [ ] Pest tests for form validation (required fields, file types, coordinates)
-- [ ] Pest tests for publish/unpublish actions
+- [ ] Filament v4 installed and panel configured at `/cms`
+- [ ] CMS login works at `/cms/login` using Fortify-authenticated users
+- [ ] CMS interface and labels are Polish-first
+- [ ] Roles enforced: `administrator` full access, `editor` create/edit without delete
+- [ ] `SightseeingObjectResource` supports PRD object fields, point/polygon handling, UNESCO, object types, and draft/published status
+- [ ] Object media gallery supports multiple files, ordering, main image semantics, and optional attribution metadata
+- [ ] `ObjectTypeResource` supports hierarchical CRUD with loop prevention and max 3-level depth validation
+- [ ] `ArticleResource` supports draft/published status, Markdown body, and cover image upload
+- [ ] Delete actions require confirmation and are available only to administrator
+- [ ] Dashboard widgets show counts and latest records for objects/news
+- [ ] Pest feature tests cover auth, role permissions, CRUD, and key validation rules
 
 ---
 
@@ -279,52 +213,51 @@ CMS routes will be under `/cms/*` and require authentication:
 
 ### Feature Tests (Pest)
 
-- Test CMS login page loads
-- Test authenticated user can access dashboard
-- Test unauthenticated user redirected to login
-- Test ObiektResource: create with valid data, create with missing required fields (validation errors)
-- Test ObiektResource: edit, update coordinates, toggle publish status
-- Test ObiektResource: delete with confirmation
-- Test ArtkulResource: create with valid data, validation errors
-- Test KategoriaResource: create parent-child, prevent > 3 levels
+- CMS login page renders
+- Unauthenticated user cannot access `/cms/*`
+- Authenticated administrator can access dashboard and all resource actions
+- Authenticated editor can create/edit but cannot delete objects/news
+- Object create/edit validates required fields, geometry mode, and coordinate ranges
+- Object media validation covers file type/size and min-image requirement for publish-ready status
+- Object type hierarchy validation blocks loops and depth > 3
+- News create/edit validates status enum
 
-### Auth Tests
+### Authorization Tests
 
-- Test CMS login with valid credentials
-- Test CMS login with invalid credentials
-- Test CMS routes require authentication
+- Resource policies enforce role matrix consistently
+- Delete endpoints/actions forbidden for editor role
 
 ---
 
 ## Error Handling
 
-- Validation errors displayed inline in Filament forms (built-in)
-- File upload errors: type mismatch, size exceeded → clear error message
-- Slug collision: automatic suffix incrementing
-- Invalid GeoJSON: validation error with descriptive message
-- Object type depth > 3: validation error on save
+- Filament inline validation errors for all form rules
+- Geometry validation errors provide actionable input guidance
+- Slug collision handled via automatic unique suffixing
+- Upload validation errors shown for unsupported MIME type and oversize files
+- Clear errors when category depth/parent constraints are violated
 
 ---
 
 ## Performance Considerations
 
-- Lazy-load relationship columns in Filament tables
-- Use Filament's built-in pagination for large datasets
-- Thumbnail generation is synchronous (acceptable for beta admin usage)
-- Consider queue for media conversions if CMS usage grows
+- Use Filament table pagination and searchable columns
+- Eager-load relationships shown in tables to avoid N+1 queries
+- Use image conversions for thumbnails in list views
+- Keep synchronous conversions for MVP; consider queued conversions if editorial throughput grows
 
 ---
 
 ## Security Considerations
 
-- All CMS routes require authentication (Filament middleware)
-- File upload validation prevents executable uploads
-- CSRF protection built into Filament
-- XSS prevention via Filament's escaping of user input
-- Password stored via Fortify's bcrypt hashing
+- All CMS routes require authenticated session
+- Role-based authorization for mutating/destructive actions
+- File upload validation blocks executable/script payloads
+- CSRF/session protections are inherited from Laravel + Filament middleware
 
 ---
 
 ## Third-Party Dependencies
 
-- `filament/filament` (new) — includes all panels, forms, tables, actions
+- `filament/filament` (new in this RFC)
+- `spatie/laravel-medialibrary` (from RFC-002, consumed by CMS forms)

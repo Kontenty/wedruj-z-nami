@@ -38,25 +38,25 @@ CMS
 /cms
   CMS Dashboard
 
-/cms/obiekty
+/cms/sightseeing-objects
   Object listing
 
-/cms/obiekty/new
+/cms/sightseeing-objects/new
   Add object
 
-/cms/obiekty/[id]
+/cms/sightseeing-objects/[id]
   Edit object
 
-/cms/typy-obiektow
+/cms/object-types
   Manage object type taxonomy
 
-/cms/aktualnosci
+/cms/articles
   News listing
 
-/cms/aktualnosci/new
+/cms/articles/new
   Add news entry
 
-/cms/aktualnosci/[id]
+/cms/articles/[id]
   Edit news entry
 
 /cms/uzytkownicy
@@ -100,7 +100,7 @@ CMS:
 - Administrator-only user management section for creating editorial users and assigning administrator/editor roles.
 - Visible publication status for each record.
 - Object statuses are draft and published.
-- News supports draft, published, archived, and featured state.
+- News supports draft and published status.
 - Delete actions are visible only to administrators; editors can create and edit but cannot delete.
 
 ### Layout Zones & Content Blocks
@@ -177,7 +177,6 @@ Object Detail Page:
 [Practical info]
 [Data source and last update]
 [Up to 3 nearest published objects within 20 km card grid]
-[Similar objects by type]
 [Footer]
 ```
 
@@ -204,7 +203,7 @@ Object Detail Page:
 7. User clicks a pin on the map.
 8. Sees a popup with image, title, and "View Object" link.
 9. Navigates to the object detail page.
-10. Reads the description, location map, practical info, data source, last update date, up to 3 nearest published objects within 20 km, and similar objects.
+10. Reads the description, location map, practical info, data source, last update date and up to 3 nearest published objects within 20 km.
 
 ### Search and Filter Flow
 
@@ -265,8 +264,6 @@ On the object detail page:
 4. Optionally adds a cover photo.
 5. Saves as draft or publishes.
 6. Published entries appear on the News listing.
-7. Archived entries are hidden from the public listing.
-8. Featured entries receive visual priority where listing design supports it.
 
 ### CMS Editorial Flow: Users and Roles
 
@@ -282,10 +279,9 @@ On the object detail page:
 - No results after filtering: show empty state with option to clear filters.
 - No nearest objects available: show a message and link to catalog/map.
 - Fewer than 3 nearby objects within 20 km: show only the available published objects.
-- No similar objects available: omit the similar objects section or show a compact empty state.
 - No additional photo: don't show gallery, use only the main photo.
 - Draft object: does not appear publicly.
-- Draft or archived news entry: does not appear publicly.
+- Draft news entry: does not appear publicly.
 
 ### Flow Diagram Description for Mermaid
 
@@ -543,11 +539,10 @@ Columns:
 - Cover thumbnail if exists.
 - Title.
 - Publication date.
-- Status: draft/published/archived.
-- Featured flag.
+- Status: draft/published.
 - Author.
 - Last updated.
-- Actions: edit, publish, archive, feature/unfeature.
+- Actions: edit, publish.
 - Delete action: administrator only.
 
 ### CMS News Form
@@ -558,8 +553,7 @@ Fields:
 - Publication date, required.
 - Cover image, optional.
 - Content body, required.
-- Publication status: draft, published, or archived.
-- Featured flag.
+- Publication status: draft or published.
 - Author assignment.
 
 ### CMS User List and Form
@@ -651,7 +645,6 @@ Respect reduced motion preferences.
 - Object card hover: slight border/elevation change and map pin highlight on desktop.
 - Focus states must be visible for keyboard users.
 - Moving a published object back to draft should show confirmation.
-- Archiving a published news entry should show confirmation.
 
 ### Gesture Support
 
@@ -700,7 +693,7 @@ Object/detail pages:
 
 - Document-like centered content.
 - Comfortable reading width for lead and full description.
-- Gallery, small map, nearest objects, and similar objects can use wider content area.
+- Gallery, small map, and nearest objects can use wider content area.
 
 Homepage:
 
@@ -863,7 +856,7 @@ CMS form state:
 - Use responsive image sizes for object and news cards.
 - Lazy-load below-the-fold card images.
 - Keep map and results synchronized without full-page reloads.
-- Ensure no public links expose draft objects or draft/archived news entries.
+- Ensure no public links expose draft objects or draft news entries.
 - Object and news pages should support SEO metadata: friendly URLs, page titles, meta descriptions, and social sharing metadata where content exists.
 
 ### KPI Event Instrumentation
@@ -903,7 +896,7 @@ Track at minimum:
 - If no nearby published objects exist within 20 km, the section is omitted or an empty state is shown.
 - News entry body is stored as editorial content without requiring blog-platform features.
 - Object status is draft or published.
-- News status is draft, published, or archived, with a separate featured flag.
+- News status is draft or published.
 - Public user geolocation and print support are future enhancements, not MVP scope.
 
 ### Beta Scope Guardrails

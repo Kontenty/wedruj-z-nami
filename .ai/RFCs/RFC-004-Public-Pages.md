@@ -17,13 +17,13 @@ Build all Blade-based public pages: the homepage with project description and la
 
 ## Features / Requirements Addressed
 
-- US-015: Homepage with project description
-- US-016: Latest objects on homepage
-- US-017: News listing
-- US-018: News detail page
+- PRD 5.1: Homepage (project/mission intro, latest objects, latest news)
+- PRD 5.4: News listing and news detail page
+- US-007: Read news
 - Public navigation (header, footer)
 - Responsive design (mobile + desktop)
 - WCAG accessibility (basic)
+- MVP language: Polish-only interface copy
 
 ---
 
@@ -60,7 +60,7 @@ Shared layout for all public pages:
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>
-            @yield('title', 'Kanon - Sightseeing Objects Catalog of Poland')
+            @yield('title', 'Kanon - Katalog obiektow krajoznawczych Polski')
         </title>
         @vite(['resources/css/app.css'])
     </head>
@@ -69,10 +69,10 @@ Shared layout for all public pages:
         <header>
             <a href="{{ route('home') }}">Kanon</a>
             <nav>
-                <a href="{{ route('home') }}">Homepage</a>
-                <a href="/katalog">Map</a>
-                <a href="/katalog?view=list">Catalog</a>
-                <a href="{{ route('news.index') }}">News</a>
+                <a href="{{ route('home') }}">Strona glowna</a>
+                <a href="/katalog">Mapa</a>
+                <a href="/katalog?view=list">Katalog</a>
+                <a href="{{ route('news.index') }}">Aktualnosci</a>
             </nav>
         </header>
 
@@ -82,7 +82,7 @@ Shared layout for all public pages:
         {{-- Public Footer --}}
         <footer>
             <div>
-                <p>Kanon — Sightseeing Objects Catalog of Poland</p>
+                <p>Kanon — Katalog obiektow krajoznawczych Polski</p>
             </div>
         </footer>
 
@@ -100,13 +100,13 @@ class HomeController extends Controller
 {
     public function __invoke(): View
     {
-        $latestObjects = Obiekt::published()
-            ->with(['wojewodztwo', 'kategorie'])
+        $latestObjects = SightseeingObject::published()
+            ->with(['voivodeship', 'objectTypes'])
             ->orderByDesc('published_at')
             ->limit(4)
             ->get();
 
-        $latestNews = Artkul::published()
+        $latestNews = Article::published()
             ->limit(3)
             ->get();
 
@@ -118,10 +118,10 @@ class HomeController extends Controller
 **Page sections:**
 
 1. **Hero / Intro section**
-    - Title: "Sightseeing Objects Catalog of Poland"
+    - Title: "Katalog obiektow krajoznawczych Polski"
     - Short description of the project purpose
-    - Primary CTA: "Show Map" → `/katalog`
-    - Secondary CTA: "Browse Catalog" → `/katalog?view=list`
+    - Primary CTA: "Pokaz mape" → `/katalog`
+    - Secondary CTA: "Przegladaj katalog" → `/katalog?view=list`
 
 2. **For whom section** — who benefits from the catalog
     - Tourists, Teachers, Trip planners
@@ -129,10 +129,10 @@ class HomeController extends Controller
 3. **Latest objects section**
     - Grid of 4 object cards (image, title, voivodeship, link)
     - Each card links to `/katalog/{slug}`
-    4. **Latest news teaser**
+4. **Latest news teaser**
     - Grid of up to 3 news cards (cover image, title, date, excerpt)
     - Each card links to `/aktualnosci/{slug}`
-    - "View All" link to `/aktualnosci`
+    - "Zobacz wszystkie" link to `/aktualnosci`
 
 ### News Listing: `NewsController` + `resources/views/news/index.blade.php`
 
@@ -143,11 +143,11 @@ class NewsController extends Controller
 {
     public function index(): View
     {
-        $news = Artkul::published()
+        $news = Article::published()
             ->orderByDesc('published_at')
             ->paginate(12);
 
-        $latestObjects = Obiekt::published()
+        $latestObjects = SightseeingObject::published()
             ->with('wojewodztwo')
             ->orderByDesc('published_at')
             ->limit(4)
@@ -158,7 +158,7 @@ class NewsController extends Controller
 
     public function show(string $slug): View
     {
-        $newsItem = Artkul::where('slug', $slug)
+        $newsItem = Article::where('slug', $slug)
             ->where('published', true)
             ->firstOrFail();
 
@@ -169,7 +169,7 @@ class NewsController extends Controller
 
 **Page structure:**
 
-- Page title: "News"
+- Page title: "Aktualnosci"
 - Optional short intro paragraph
 - News card grid:
     - Cover image (if exists)
@@ -184,12 +184,14 @@ class NewsController extends Controller
 
 **Page structure:**
 
-- Back link: "← News"
+- Back link: "← Aktualnosci"
 - Title
 - Publication date
 - Cover image (if exists)
 - Markdown body rendered to HTML (using `Str::markdown()` or a Markdown parser)
-- Contextual CTA at bottom: "Show Map" / "Browse Catalog"
+- Contextual CTA at bottom: "Pokaz mape" / "Przegladaj katalog"
+
+All labels and navigational copy should be in Polish.
 
 ### Markdown Rendering
 
@@ -215,9 +217,9 @@ Extract to `resources/views/components/public-header.blade.php`:
                 Kanon
             </a>
             <nav class="hidden md:flex space-x-8">
-                <a href="/katalog" class="...">Map</a>
-                <a href="/katalog?view=list" class="...">Catalog</a>
-                <a href="{{ route('news.index') }}" class="...">News</a>
+                <a href="/katalog" class="...">Mapa</a>
+                <a href="/katalog?view=list" class="...">Katalog</a>
+                <a href="{{ route('news.index') }}" class="...">Aktualnosci</a>
             </nav>
             {{-- Mobile hamburger menu --}}
             <button class="md:hidden" aria-label="Menu">☰</button>
@@ -234,7 +236,7 @@ Extract to `resources/views/components/public-footer.blade.php`:
 ```blade
 <footer class="bg-gray-50 border-t border-gray-200 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-8">
-        <p>Kanon — Sightseeing Objects Catalog of Poland</p>
+        <p>Kanon — Katalog obiektow krajoznawczych Polski</p>
     </div>
 </footer>
 ```
@@ -259,15 +261,15 @@ Configure in CSS:
 
 ```
 [RFC-001 Data] → HomeController → home.blade.php
-  ├── latestObjects (Obiekt::published, limit 4)
-  └── latestNews (Artkul::published, limit 3)
+  ├── latestObjects (SightseeingObject::published, limit 4)
+  └── latestNews (Article::published, limit 3)
 
 [RFC-001 Data] → NewsController::index → news/index.blade.php
-  ├── news (Artkul::published, paginated)
-  └── latestObjects (Obiekt::published, limit 4)
+  ├── news (Article::published, paginated)
+  └── latestObjects (SightseeingObject::published, limit 4)
 
 [RFC-001 Data] → NewsController::show → news/show.blade.php
-  └── newsItem (Artkul by slug, published only)
+  └── newsItem (Article by slug, published only)
 ```
 
 ---
@@ -278,14 +280,14 @@ Configure in CSS:
 
 ```
 ┌─────────────────────────────────────────┐
-│  Header: Logo | Map | Catalog | News    │
+│  Header: Logo | Mapa | Katalog | Aktualnosci │
 ├─────────────────────────────────────────┤
 │                                         │
 │  HERO                                   │
-│  "Sightseeing Objects Catalog           │
-│   of Poland"                            │
+│  "Katalog obiektow krajoznawczych       │
+│   Polski"                               │
 │  Short project description              │
-│  [Show Map] [Browse Catalog]            │
+│  [Pokaz mape] [Przegladaj katalog]      │
 │                                         │
 ├─────────────────────────────────────────┤
 │  FOR WHOM                               │
@@ -298,11 +300,11 @@ Configure in CSS:
 │  └────┘ └────┘ └────┘ └────┘          │
 │                                         │
 ├─────────────────────────────────────────┤
-│  NEWS                                   │
+│  AKTUALNOSCI                            │
 │  ┌────┐ ┌────┐ ┌────┐                  │
 │  │new │ │new │ │new │                  │
 │  └────┘ └────┘ └────┘                  │
-│  [View All]                             │
+│  [Zobacz wszystkie]                     │
 │                                         │
 ├─────────────────────────────────────────┤
 │  Footer                                 │
@@ -315,6 +317,7 @@ Configure in CSS:
 - Tablet: 2-column card grids
 - Desktop: 4-column latest objects, 3-column news cards
 - Header collapses to hamburger on mobile
+- Public copy remains Polish across breakpoints
 
 ### Object Card (Homepage)
 
@@ -349,8 +352,8 @@ Configure in CSS:
 - [ ] Header navigation links work: home, map, catalog, news
 - [ ] Header responsive: hamburger on mobile, full nav on desktop
 - [ ] Homepage loads with project description and CTAs
-- [ ] Homepage "Show Map" links to `/katalog`
-- [ ] Homepage "Browse Catalog" links to `/katalog?view=list`
+- [ ] Homepage "Pokaz mape" links to `/katalog`
+- [ ] Homepage "Przegladaj katalog" links to `/katalog?view=list`
 - [ ] Homepage latest objects section shows up to 4 published objects
 - [ ] Object cards show image, title, and voivodeship
 - [ ] Homepage latest news section shows up to 3 published news entries
@@ -358,7 +361,7 @@ Configure in CSS:
 - [ ] `/aktualnosci` lists published news entries in reverse chronological order
 - [ ] `/aktualnosci` shows pagination
 - [ ] `/aktualnosci/{slug}` shows single news entry with Markdown body rendered
-- [ ] News detail has back link to News
+- [ ] News detail has back link to Aktualnosci
 - [ ] News detail has contextual CTA to catalog/map
 - [ ] All pages responsive on mobile and desktop
 - [ ] Unpublished objects/news do not appear on public pages
@@ -389,7 +392,7 @@ Configure in CSS:
 
 ## Performance Considerations
 
-- Eager-load relationships (`wojewodztwo`, `kategorie`) to prevent N+1 queries
+- Eager-load relationships (`voivodeship`, `objectTypes`) to prevent N+1 queries
 - Paginate news listing (12 per page)
 - Use `thumbnail` conversion for card images (smaller file sizes)
 - Cache latest objects and news queries for homepage (short TTL, e.g., 5 minutes)
@@ -400,8 +403,7 @@ Configure in CSS:
 
 - Semantic HTML: `<header>`, `<nav>`, `<main>`, `<footer>`, `<article>`
 - All images have meaningful `alt` attributes
-- Form inputs have associated `<label>` elements
 - Focus states visible on all interactive elements
 - Skip-to-content link
 - Color contrast meets WCAG AA
-- Keyboard navigable header and forms
+- Keyboard navigable header and links

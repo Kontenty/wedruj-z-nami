@@ -4,7 +4,7 @@
 **ID:** RFC-005  
 **Brief Description:** Build the `/katalog` page with MapLibre map, filter sidebar, fuzzy search, active filter chips, map/list synchronization, and responsive card grid using Inertia v3 + Svelte 5.
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*
+> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "object type" = *typ obiektu*
 
 ---
 
@@ -18,9 +18,9 @@ You are implementing RFC-005 for the Kanon project. This is the most interactive
 ## What to Build
 
 1. **CatalogController** — serves Inertia page with filtered/paginated objects, categories tree, voivodeships list
-2. **ObjectResource** and **CategoryResource** — API resources for Inertia props
+2. **ObjectResource** and **ObjectTypeResource** — API resources for Inertia props
 3. **Catalog/Index.svelte** — main page component with state management
-4. **FilterSidebar.svelte** — desktop filter panel (search, voivodeship select, category accordion, UNESCO toggle)
+4. **FilterSidebar.svelte** — desktop filter panel (search, voivodeship select, object type accordion, UNESCO toggle)
 5. **MobileFilterSheet.svelte** — mobile bottom sheet with same filters
 6. **SearchBar.svelte** — debounced search input
 7. **ActiveFilterChips.svelte** — shows active filters with remove buttons
@@ -37,7 +37,7 @@ You are implementing RFC-005 for the Kanon project. This is the most interactive
 - `routes/web.php` — add `/katalog` route
 - `app/Http/Controllers/CatalogController.php`
 - `app/Http/Resources/ObjectResource.php`
-- `app/Http/Resources/CategoryResource.php`
+- `app/Http/Resources/ObjectTypeResource.php`
 - `resources/js/pages/Catalog/Index.svelte`
 - `resources/js/pages/Catalog/FilterSidebar.svelte`
 - `resources/js/pages/Catalog/MobileFilterSheet.svelte`

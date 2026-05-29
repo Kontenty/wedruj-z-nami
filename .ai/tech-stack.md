@@ -40,12 +40,11 @@ Use Blade for mostly content-oriented and document-like public pages:
 
 ```text
 /                         Blade
-/katalog/[slug]           Blade
 /aktualnosci              Blade
 /aktualnosci/[slug]       Blade
-/kontakt                  Blade
-/cms/*                    Filament
 /katalog                  Inertia + Svelte
+/katalog/[slug]           Inertia + Svelte
+/cms/*                    Filament
 ```
 
 This keeps the application simple while using Svelte only where it provides clear value: map interaction, filters, active chips, selected marker state, result updates, and mobile map/list switching.
@@ -128,7 +127,6 @@ Filter changes should update the URL query string. Start with Inertia visits usi
 resources/views/
   layouts/public.blade.php
   home.blade.php
-  objects/show.blade.php
   articles/index.blade.php
   articles/show.blade.php
   app.blade.php
@@ -138,6 +136,7 @@ resources/js/
   Pages/
     Catalog/
       Index.svelte
+      Show.svelte
       FilterSidebar.svelte
       MobileFilterSheet.svelte
       SearchBar.svelte
@@ -146,6 +145,7 @@ resources/js/
       MapPopup.svelte
       ObjectGrid.svelte
       ObjectCard.svelte
+      ImageGallery.svelte
 ```
 
 ## Strengths

@@ -77,7 +77,6 @@ Each object is created and maintained editorially by PTTK. Objects may also be m
   - ticket prices,
   - accessibility.
 - List of up to 3 geographically nearest published objects within a 20 km radius.
-- List of similar objects (by type).
 - Data source and last update date.
 
 ### 5.4 News
@@ -207,7 +206,7 @@ As a tourist, I want to open an object page so I can read detailed information.
 **Acceptance criteria:**
 - Page includes title, type, lead, full description, and main image.
 - Optional practical data is shown when available.
-- Page shows up to 3 nearest published objects within 20 km and similar objects.
+- Page shows up to 3 nearest published objects within 20 km.
 
 **US-007 — Read news**  
 As a visitor, I want to browse news so I can stay up to date.  

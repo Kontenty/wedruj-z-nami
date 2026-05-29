@@ -2,45 +2,62 @@
 
 **Title:** Database Foundation & Core Models  
 **ID:** RFC-001  
-**Brief Description:** Establish MariaDB 10.11 database with all domain models, migrations, relationships, scopes, seeders, and tests.
+**Brief Description:** Establish MariaDB 10.11 database with PRD-aligned domain models, migrations, relationships, scopes, factories, seeders, and tests.
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*; "article" = *artykuł*
+> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "object type" = *typ obiektu*; "news" = *aktualności*
 
 ---
 
 You are implementing RFC-001 for the Kanon project — a Polish sightseeing objects catalog. This is the **foundation RFC** that all subsequent RFCs depend on.
 
+This implementation must follow `.ai/PRD.md`. If the RFC and PRD conflict, the PRD wins.
+
+This RFC only implements the database/model foundation. Do not implement public pages, CMS screens, maps, media upload, authentication, authorization, routes, controllers, Blade views, or Svelte components in this milestone.
+
 ## What to Build
 
 1. **Switch database from SQLite to MariaDB**
-2. **Create migrations** for: `wojewodztwa`, `kategorie`, `obiekty`, `object_category`, `artykuly`
+2. **Create migrations** for: `voivodeships`, `object_types`, `sightseeing_objects`, `object_object_type`, `articles`
 3. **Create Eloquent models** with relationships, scopes, and slug generation
-4. **Seed the database** with 16 Polish voivodeships, sample categories, sample objects (including UNESCO and polygon geometry), and sample articles
-5. **Defer search integration** to a later RFC; do not add Scout or another search package in this milestone
-6. **Write Pest tests** for all models, relationships, and scopes
+4. **Create factories** for all new models
+5. **Seed the database** with 16 Polish voivodeships, sample object types, sample sightseeing objects (including UNESCO and polygon geometry), and sample news entries
+6. **Defer search integration** to a later RFC; do not add Scout or another search package in this milestone
+7. **Write Pest tests** for all models, relationships, factories, seed data, and scopes
 
 ## Key Files to Create/Modify
 
-- `.env` — change `DB_CONNECTION` to `mysql`, configure MariaDB credentials
+- `.env` — change local `DB_CONNECTION` to `mysql`, configure MariaDB credentials without committing secrets
+- `.env.example` — update safe MariaDB defaults if needed
 - `database/migrations/` — 5 migration files for the tables and spatial indexes
-- `app/Models/Wojewodztwo.php`
-- `app/Models/Kategoria.php`
-- `app/Models/Obiekt.php` (with spatial scopes)
-- `app/Models/Artkul.php`
+- `app/Models/Voivodeship.php`
+- `app/Models/ObjectType.php` (technical table/model for PRD object types)
+- `app/Models/SightseeingObject.php` (with spatial scopes)
+- `app/Models/Article.php` (technical model for PRD news entries)
+- `database/factories/VoivodeshipFactory.php`
+- `database/factories/ObjectTypeFactory.php`
+- `database/factories/SightseeingObjectFactory.php`
+- `database/factories/ArticleFactory.php`
 - `database/seeders/DatabaseSeeder.php` — comprehensive seed data
-- `tests/Feature/ObiektTest.php`
-- `tests/Feature/KategoriaTest.php`
-- `tests/Feature/ArtkulTest.php`
+- `tests/Feature/SightseeingObjectTest.php`
+- `tests/Feature/ObjectTypeTest.php`
+- `tests/Feature/VoivodeshipTest.php`
+- `tests/Feature/ArticleTest.php`
 
 ## Critical Requirements
 
 - MariaDB must be used (not SQLite) for spatial support
-- `geometry` column on `obiekty` must use `GEOMETRY` and be indexed with a `SPATIAL INDEX`
-- `scopeNearby` must use `ST_Distance_Sphere` for distance calculation
+- Use Laravel/MariaDB-compatible migrations. Treat SQL snippets in the RFC as conceptual only; do not copy PostgreSQL-only syntax such as `bigserial`, partial indexes with `WHERE`, or `NULLS LAST`
+- `geometry` column on `sightseeing_objects` must use `GEOMETRY` and be indexed with a `SPATIAL INDEX`
+- `sightseeing_objects` must support both point and polygon geometries
+- For polygon objects, nearby distance calculations must use the polygon centroid
+- `scopeNearby` must use `ST_Distance_Sphere` for distance calculation and must parameterize raw SQL values
+- Nearby objects must follow the PRD: return up to 3 nearest published objects within 20 km; if fewer than 3 exist, return only available objects; if none exist, return an empty result
 - `scopeSearchByTitle` must use case-insensitive partial matching on MariaDB
-- `scopeNearbyWithFallback` must try 5km then 20km
-- `scopeInCategory` must include parent category and all descendants (up to 3 levels)
-- Slugs auto-generated from titles with collision handling
+- `scopeInCategory` must filter by PRD object type and include the selected type plus descendants up to 3 levels
+- Slugs must be auto-generated with collision handling: from `name` for `Voivodeship` and `ObjectType`, from `title` for `SightseeingObject` and `Article`
+- Sightseeing objects must include PRD foundation fields: title, slug, lead/short description, full description, object type relationship, voivodeship relationship, locality, UNESCO flag, geometry, opening hours, ticket prices, accessibility, data source, status, publication timestamp, and last source/update metadata
+- News entries must include PRD foundation fields: title, slug, body, publication status (`draft`, `published`), and publication timestamp
+- Publication filtering must use a `published` boolean and `published_at` timestamp
 - All Pest tests must pass
 
 ## Do NOT
