@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/svelte-starter-kit",
+    "name": "laravel/wedruj-z-nami",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
     "keywords": [
