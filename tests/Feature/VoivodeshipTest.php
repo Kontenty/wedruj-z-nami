@@ -1,0 +1,28 @@
+<?php
+
+use App\Models\SightseeingObject;
+use App\Models\Voivodeship;
+use Database\Seeders\DatabaseSeeder;
+
+test('database seeder creates all polish voivodeships', function () {
+    $this->seed(DatabaseSeeder::class);
+
+    expect(Voivodeship::query()->count())->toBe(16)
+        ->and(Voivodeship::query()->where('slug', 'malopolskie')->exists())->toBeTrue()
+        ->and(Voivodeship::query()->where('slug', 'warminsko-mazurskie')->exists())->toBeTrue();
+});
+
+test('voivodeship has sightseeing objects', function () {
+    $voivodeship = Voivodeship::factory()->create();
+    $object = SightseeingObject::factory()->for($voivodeship)->create();
+
+    expect($voivodeship->sightseeingObjects()->first()->is($object))->toBeTrue();
+});
+
+test('voivodeship slugs are generated with collision handling', function () {
+    $first = Voivodeship::query()->create(['name' => 'małopolskie']);
+    $second = Voivodeship::query()->create(['name' => 'małopolskie']);
+
+    expect($first->slug)->toBe('malopolskie')
+        ->and($second->slug)->toBe('malopolskie-2');
+});
