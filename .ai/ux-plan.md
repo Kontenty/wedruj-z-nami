@@ -1,10 +1,12 @@
 # UX & UI Specification — Sightseeing Objects Catalog of Poland
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "news" = *aktualności*; "news listing" = *lista wpisów*
+> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "object type" = PRD catalog classification; "news" = *aktualności*; "news listing" = *lista wpisów*
 
 This document translates the PRD and design decisions into a UX/UI specification ready for direct use by a frontend developer or interface generation tool.
 
 The scope covers a public web application, a map-first catalog, object pages, a homepage, a News section, and a simple CMS for the editorial team.
+
+All production UI copy for the MVP must be in Polish. English labels and examples in this document are descriptive only.
 
 ---
 
@@ -20,17 +22,14 @@ Public
 /katalog
   Object catalog with map, filters, and result list
 
-/obiekty/[slug]
+/katalog/[slug]
   Object detail page
 
 /aktualnosci
-  Article listing page
+  News listing page
 
 /aktualnosci/[slug]
-  Article detail page
-
-/kontakt
-  Optional contact page or contact section accessible from footer/nav
+  News detail page
 
 CMS
 /cms/login
@@ -48,14 +47,20 @@ CMS
 /cms/obiekty/[id]
   Edit object
 
+/cms/typy-obiektow
+  Manage object type taxonomy
+
 /cms/aktualnosci
-  Article listing
+  News listing
 
 /cms/aktualnosci/new
-  Add article
+  Add news entry
 
 /cms/aktualnosci/[id]
-  Edit article
+  Edit news entry
+
+/cms/uzytkownicy
+  User and role management
 ```
 
 ### Content Grouping & Component Organization
@@ -64,12 +69,14 @@ The public application should have three main areas:
 
 - **Object Discovery:** catalog, map, search, filters, detail pages.
 - **Project Context:** homepage, purpose description, value for tourists and teachers.
-- **Editorial Content:** News, articles, entry points to catalog/map.
+- **Editorial Content:** News, newly added objects, entry points to catalog/map.
 
 The CMS should remain simple and operational:
 
-- **Objects:** list, add, edit, publish/unpublish, media, location.
-- **News:** list, add, edit, publish/unpublish, Markdown.
+- **Objects:** list, add, edit, draft/published status, media, location.
+- **Object Types:** editable taxonomy used by public filters and object forms.
+- **News:** list, add, edit, publish/archive, featured flag.
+- **Users:** administrator-managed editorial accounts and roles.
 
 ### Navigation Structure & Patterns
 
@@ -79,19 +86,22 @@ Main public navigation:
 - Map
 - Catalog
 - News
-- Contact
 
 Preferred model:
 
 - CTA on the homepage leads primarily to the map/catalog view.
 - "Map" link may lead to `/katalog` with the map as the active entry point.
 - "Catalog" link leads to the same view, but oriented toward filtering and results.
+- Public navigation labels and CTA copy use Polish in the implemented product.
 
 CMS:
 
-- Sidebar or top navigation with sections: Objects, News.
+- Sidebar or top navigation with sections: Objects, Object Types, News.
+- Administrator-only user management section for creating editorial users and assigning administrator/editor roles.
 - Visible publication status for each record.
-- "Unpublish" action as a safe alternative to deletion.
+- Object statuses are draft and published.
+- News supports draft, published, archived, and featured state.
+- Delete actions are visible only to administrators; editors can create and edit but cannot delete.
 
 ### Layout Zones & Content Blocks
 
@@ -107,13 +117,15 @@ Homepage:
 [For Whom and Why]
   Tourists, teachers, trip planners
 
+[Dynamic Statistics]
+  Number of published objects and object types
+
 [Latest Objects]
   Row of 3-4 cards
 
 [News teaser]
-  Few recent posts or entry to News section
+  Latest published news or entry to News section
 
-[Contact / feedback prompt]
 [Footer]
 ```
 
@@ -156,13 +168,16 @@ Object Detail Page:
 [Back to catalog]
 
 [Title]
-[Metadata row: voivodeship | category | UNESCO badge]
+[Metadata row: voivodeship | locality | object type | UNESCO badge]
 [Main photo]
 [Gallery thumbnails if more images exist]
-[Description]
+[Lead / short description]
+[Full description]
+[Small location map: point or polygon]
 [Practical info]
-[Print button]
-[Nearby objects card grid]
+[Data source and last update]
+[Up to 3 nearest published objects within 20 km card grid]
+[Similar objects by type]
 [Footer]
 ```
 
@@ -184,13 +199,12 @@ Object Detail Page:
 2. Reads a short description of the project's purpose.
 3. Selects "Show Map".
 4. Arrives at the catalog with visible map and filters.
-5. Narrows results by voivodeship, category, or UNESCO.
+5. Narrows results by voivodeship, object type, or UNESCO.
 6. Results update immediately on the map and card grid.
 7. User clicks a pin on the map.
 8. Sees a popup with image, title, and "View Object" link.
 9. Navigates to the object detail page.
-10. Reads the description, checks practical info and nearby objects.
-11. Optionally prints the object page.
+10. Reads the description, location map, practical info, data source, last update date, up to 3 nearest published objects within 20 km, and similar objects.
 
 ### Search and Filter Flow
 
@@ -206,7 +220,7 @@ User enters query
 Filters:
 
 - Voivodeship: single select.
-- Category: accordion/tree up to 3 levels.
+- Object type: accordion/tree up to 3 levels.
 - UNESCO: toggle/checkbox.
 - Clear filters: restores the full result set.
 
@@ -217,26 +231,19 @@ Filters apply immediately on change, without an "Apply" button.
 On the object detail page:
 
 1. System knows the location of the currently displayed object.
-2. Fetches nearby objects.
-3. Default radius: 5 km.
-4. If no results, the system expands the radius to 20 km.
-5. Results are shown as a card grid.
+2. For point objects, nearest objects are calculated from the point coordinates.
+3. For polygon objects, nearest objects are calculated from the polygon centroid.
+4. System returns up to 3 geographically nearest published objects within a 20 km radius.
+5. If fewer than 3 objects are available within 20 km, only the available objects are shown.
+6. If no objects are available within 20 km, the section is omitted or replaced with a compact empty state.
+7. Results are shown as a card grid.
 
-In user geolocation mode:
-
-1. User selects the nearby objects feature.
-2. System requests location access.
-3. After consent, shows objects within 5 km.
-4. If no results, expands to 20 km.
-5. If the user declines, shows a message and an alternative: use the map or filters.
-
-### Article Flow
+### News Flow
 
 1. User selects "News".
-2. Sees a grid of posts with date, title, optional cover, and excerpt.
-3. Opens a post.
-4. Reads the Markdown content rendered as an article.
-5. At the end, sees a contextual CTA, e.g., "Show Map", "Browse Catalog", or a link to filtered objects.
+2. Sees a single public news page divided into sections for news/events and newly added objects.
+3. Opens a news item.
+4. Reads the published news entry.
 
 ### CMS Editorial Flow: Object
 
@@ -244,30 +251,41 @@ In user geolocation mode:
 2. Selects "Objects".
 3. Sees a list of objects with publication status.
 4. Adds or edits an object.
-5. Fills in required fields: title, description, minimum one photo.
-6. Adds coordinates.
-7. Optionally adds practical data, multiple photos, category, UNESCO, area geometry.
+5. Fills in required fields: title, lead, full description, minimum one photo, object type, voivodeship, locality, and geometry.
+6. Adds point coordinates or polygon geometry.
+7. Optionally adds practical data, multiple photos, UNESCO designation, accessibility info, image author/source if known, data source, and last update date.
 8. Saves.
 9. After publishing, the object appears in the catalog, on the map, and in search results.
 
-### CMS Editorial Flow: Article
+### CMS Editorial Flow: News
 
 1. Editor selects "News".
-2. Creates a new post.
-3. Fills in title, publication date, and Markdown content.
+2. Creates a news entry.
+3. Fills in title, publication date, and content.
 4. Optionally adds a cover photo.
-5. Saves and publishes.
-6. Post appears on the News listing.
+5. Saves as draft or publishes.
+6. Published entries appear on the News listing.
+7. Archived entries are hidden from the public listing.
+8. Featured entries receive visual priority where listing design supports it.
+
+### CMS Editorial Flow: Users and Roles
+
+1. Administrator selects "Users".
+2. Sees editorial accounts with assigned roles.
+3. Creates a new user or edits an existing user.
+4. Assigns administrator or editor role.
+5. Saves changes.
+6. Updated permissions apply to CMS access and destructive actions.
 
 ### Decision Points & UI Branches
 
 - No results after filtering: show empty state with option to clear filters.
-- No results within 5 km: automatic expansion to 20 km, with a message.
-- No results within 20 km: show a message and link to catalog/map.
+- No nearest objects available: show a message and link to catalog/map.
+- Fewer than 3 nearby objects within 20 km: show only the available published objects.
+- No similar objects available: omit the similar objects section or show a compact empty state.
 - No additional photo: don't show gallery, use only the main photo.
-- Unpublished object: does not appear publicly.
-- Unpublished post: does not appear publicly.
-- Geolocation declined: show a fallback based on map and filters.
+- Draft object: does not appear publicly.
+- Draft or archived news entry: does not appear publicly.
 
 ### Flow Diagram Description for Mermaid
 
@@ -279,13 +297,13 @@ UpdatedMapAndGrid --> PinPopup
 PinPopup --> ObjectDetail
 UpdatedMapAndGrid --> ObjectCard
 ObjectCard --> ObjectDetail
-ObjectDetail --> PrintPage
 ObjectDetail --> NearbyObjects
+ObjectDetail --> SimilarObjects
 
 Homepage --> NewsList
-NewsList --> ArticleDetail
-ArticleDetail --> ContextualCTA
-ContextualCTA --> CatalogMap
+NewsList --> NewsEventsSection
+NewsList --> NewlyAddedObjectsSection
+NewsEventsSection --> NewsDetail
 ```
 
 ---
@@ -301,15 +319,15 @@ Primary layout:
 - Informational intro, not a marketing-heavy landing page.
 - Primary CTA: "Show Map".
 - Secondary CTA: "Browse Catalog".
+- Dynamic statistics: published object count and object type count.
 - Latest objects row: 3-4 cards.
-- News teaser.
-- Small contact prompt near the bottom.
+- Latest news teaser.
 
 Homepage object cards:
 
 - Image
 - Title
-- Short location/category context
+- Short location/object type context
 - Link to detail page
 
 ### Catalog View
@@ -326,22 +344,23 @@ Desktop layout:
 Filter sidebar components:
 
 - Voivodeship select/list.
-- Category accordion/tree up to 3 levels.
+- Object type accordion/tree up to 3 levels.
 - UNESCO checkbox/toggle.
 - Clear filters action.
 
 Search behavior:
 
-- Searches object names using fuzzy search.
+- Searches object names and matching text using partial phrase matching.
 - Applies within active filters.
 - Updates results immediately.
 
 Map:
 
 - Shows point markers for objects.
-- Shows simplified polygons for area objects.
-- Pin click opens popup.
-- Popup contains photo, title, category/location context and "View Object".
+- Shows full polygons for area objects.
+- Uses marker clustering for large result sets.
+- Pin or polygon click opens popup.
+- Popup contains photo, title, object type/location context and "View Object".
 
 Results grid cards:
 
@@ -349,10 +368,9 @@ Results grid cards:
 - Title.
 - Short description.
 - Voivodeship.
-- Category.
+- Object type.
 - UNESCO badge if applicable.
-- Distance if geolocation/nearby mode is active.
-- Optional compact indicators for hours, tickets, website if data exists.
+- Optional compact indicators for hours, tickets, and accessibility if data exists.
 
 States:
 
@@ -363,28 +381,28 @@ States:
 
 ### Object Detail View
 
-Tone: document-like, reference-oriented, readable and printable.
+Tone: document-like, reference-oriented, and readable.
 
 Components:
 
 - Back link to catalog.
 - Title.
-- Metadata row: voivodeship, category, UNESCO.
+- Metadata row: voivodeship, locality, object type, UNESCO if applicable.
 - Main image.
 - Gallery if multiple images exist.
-- Description.
+- Lead / short description.
+- Full description.
+- Small location map showing the point or polygon; polygon detail pages should fit the viewport to the full area.
 - Practical info below description:
   - Opening hours.
   - Ticket prices.
-  - Website.
-- Print button.
-- Nearby objects card grid.
+  - Accessibility.
+- Data source.
+- Last update date.
+- Up to 3 geographically nearest published objects within 20 km card grid.
+- Similar objects by type card grid.
 
-Print version:
-
-- Include title, metadata, main image, description and practical info.
-- Remove header navigation, filter controls, interactive map UI and footer noise.
-- Keep layout readable on A4.
+Print support is optional and should be treated as a future enhancement, not MVP scope.
 
 ### News Listing
 
@@ -394,24 +412,25 @@ Layout:
 
 - Page title: "News".
 - Short intro.
-- Article card grid.
-- Optional latest objects row if needed by PRD.
+- Section 1: news/events card grid.
+- Section 2: newly added objects card grid/list.
 
-Article card:
+News card:
 
 - Optional cover image.
 - Title.
 - Publication date.
 - Short excerpt.
-- Link to article.
+- Link to news detail.
 
 States:
 
-- Empty: "No published news articles".
+- Empty news/events section: "No published news entries".
+- Empty newly added objects section: "No newly added objects".
 - Loading: card skeletons.
 - Error: retry.
 
-### Article Detail
+### News Detail
 
 Layout:
 
@@ -419,13 +438,9 @@ Layout:
 - Title.
 - Publication date.
 - Optional cover image.
-- Markdown-rendered body.
-- Contextual CTA:
-  - "Show Map"
-  - "Browse Catalog"
-  - or a filtered catalog link based on article content.
+- Rendered body content.
 
-Article pages do not automatically show nearby objects unless an article is explicitly associated with a specific object in a future extension.
+News detail pages do not automatically show nearby objects unless a future extension explicitly associates the entry with a specific object.
 
 ### CMS Login
 
@@ -445,16 +460,18 @@ States:
 
 ### CMS Dashboard
 
-Simple two-section structure:
+Simple four-section structure:
 
 - Objects.
+- Object Types.
 - News.
+- Users.
 
 Each section should show:
 
 - Total records.
-- Published/unpublished counts.
-- Primary add action.
+- Status counts where applicable.
+- Primary add/manage action.
 
 ### CMS Object List
 
@@ -463,65 +480,109 @@ Columns:
 - Thumbnail.
 - Title.
 - Voivodeship.
-- Category.
-- Status: published/unpublished.
+- Object type.
+- Status: draft/published.
+- Author.
 - Last updated.
-- Actions: edit, publish/unpublish.
+- Actions: edit, publish, move to draft.
+- Delete action: administrator only.
 
-Optional destructive delete can be hidden or reserved for admin-only use. Primary removal action is unpublish.
+Editors can create and edit objects but cannot delete them.
 
 ### CMS Object Form
 
 Fields:
 
 - Title, required.
-- Description, required.
+- Lead / short description, required.
+- Full description, required.
 - Images, minimum one required.
-- Image ordering, first image is primary.
-- Voivodeship.
-- Category accordion/select with up to 3 levels.
+- Image ordering, selected main image.
+- Optional image author and source fields, filled only if known.
+- Voivodeship, required.
+- Locality, required.
+- Object type accordion/select with up to 3 levels, required.
 - UNESCO boolean.
-- Coordinates, required for map placement.
-- Optional GeoJSON-style geometry input for simplified polygons.
+- Geometry type: point or polygon.
+- Coordinates for point objects.
+- GeoJSON-style geometry input/upload for polygon objects.
 - Opening hours.
 - Ticket prices.
-- Website.
-- Publication status.
+- Accessibility.
+- Data source.
+- Last update date.
+- Publication status: draft or published.
+- Author assignment.
 
 Validation:
 
 - Required title.
-- Required description.
+- Required lead.
+- Required full description.
+- Required voivodeship, locality, object type, and geometry type.
 - At least one image.
-- Valid coordinate format.
-- Valid URL if website is provided.
-- Valid prepared geometry if polygon field is used.
+- Valid coordinate format for point objects.
+- Valid prepared geometry for polygon objects.
 
-### CMS Article List
+### CMS Object Type Taxonomy
+
+Purpose: allow editors/admins to maintain the object type taxonomy used in catalog filters and object forms.
+
+List columns:
+
+- Name.
+- Parent object type if nested.
+- Number of assigned objects.
+- Status/visibility if supported.
+- Actions: add, edit, reorder; delete only for administrators and only when safe.
+
+### CMS News List
 
 Columns:
 
 - Cover thumbnail if exists.
 - Title.
 - Publication date.
-- Status.
+- Status: draft/published/archived.
+- Featured flag.
+- Author.
 - Last updated.
-- Actions: edit, publish/unpublish.
+- Actions: edit, publish, archive, feature/unfeature.
+- Delete action: administrator only.
 
-### CMS Article Form
+### CMS News Form
 
 Fields:
 
 - Title, required.
 - Publication date, required.
 - Cover image, optional.
-- Markdown body, required.
-- Publication status.
-- Optional contextual CTA configuration:
-  - Label.
-  - URL or internal route.
+- Content body, required.
+- Publication status: draft, published, or archived.
+- Featured flag.
+- Author assignment.
 
-Markdown editor should support preview if feasible.
+### CMS User List and Form
+
+Purpose: allow administrators to manage editorial accounts and assign roles.
+
+List columns:
+
+- Name.
+- Email/login.
+- Role: administrator/editor.
+- Status if supported.
+- Last updated.
+- Actions: edit; delete only for administrators and only when safe.
+
+Form fields:
+
+- Name, required.
+- Email/login, required.
+- Role, required.
+- Password fields when creating or resetting credentials.
+
+Editors do not have access to this area.
 
 ---
 
@@ -535,17 +596,17 @@ Filters:
 - Active filters represented as chips.
 - Chip removal updates map and results immediately.
 
-Category accordion:
+Object type accordion:
 
 - Supports up to 3 levels.
-- Parent categories expand/collapse.
-- Selecting a parent may include all descendants unless technical data model requires exact category matching.
+- Parent object types expand/collapse.
+- Selecting a parent may include all descendants unless technical data model requires exact object type matching.
 - Selected item remains visible after refresh/update.
 
 Search:
 
 - Debounced input.
-- Fuzzy matching against object names.
+- Partial phrase matching against object names and relevant text fields.
 - Runs within current filters.
 - Empty query returns filtered result set.
 
@@ -553,8 +614,10 @@ Map:
 
 - Pin click opens popup.
 - Popup link opens object page.
-- Polygon click can open same popup pattern if geometry represents a single object.
-- Hover/focus on card may highlight corresponding pin on desktop.
+- Polygon click opens the same popup pattern for the represented object.
+- Marker clustering is enabled for large result sets.
+- Object detail map fits the viewport to the full polygon for polygon objects.
+- Hover/focus on card may highlight corresponding pin or polygon on desktop.
 
 Mobile filters:
 
@@ -587,8 +650,8 @@ Respect reduced motion preferences.
 
 - Object card hover: slight border/elevation change and map pin highlight on desktop.
 - Focus states must be visible for keyboard users.
-- Print button should invoke browser print.
-- Publish/unpublish actions should show confirmation when changing from published to unpublished.
+- Moving a published object back to draft should show confirmation.
+- Archiving a published news entry should show confirmation.
 
 ### Gesture Support
 
@@ -621,7 +684,7 @@ Core components:
 - Modal/confirmation dialog.
 - Toast.
 - Skeleton.
-- Markdown content renderer.
+- Rich text content renderer.
 
 ### Layout Grid Structure
 
@@ -636,14 +699,14 @@ Main content max width: avoid overly wide cards below map
 Object/detail pages:
 
 - Document-like centered content.
-- Comfortable reading width for description.
-- Gallery and nearby object grid can use wider content area.
+- Comfortable reading width for lead and full description.
+- Gallery, small map, nearest objects, and similar objects can use wider content area.
 
 Homepage:
 
 - Full-width sections with constrained inner content.
 - Avoid nested cards.
-- Use cards only for repeated objects/articles.
+- Use cards only for repeated objects/news entries.
 
 ### Spacing Principles
 
@@ -654,22 +717,22 @@ Homepage:
 
 ### UI Pattern Consistency
 
-- Object cards and article cards should feel related but not identical.
-- Object cards prioritize place/photo/location/category.
-- Article cards prioritize date/title/excerpt.
-- Badges should be reused for UNESCO/status/category metadata.
+- Object cards and news cards should feel related but not identical.
+- Object cards prioritize place/photo/location/object type.
+- News cards prioritize date/title/excerpt.
+- Badges should be reused for UNESCO/status/object type metadata.
 
 ---
 
 ## 6. Accessibility Considerations
 
-Target: WCAG 2.1 AA.
+Target: WCAG 2.1 A.
 
 ### Keyboard Navigation Paths
 
 - Header navigation fully keyboard accessible.
 - Filter controls reachable and operable by keyboard.
-- Category accordion supports keyboard expand/collapse.
+- Object type accordion supports keyboard expand/collapse.
 - Map must not trap keyboard focus.
 - Map popup content reachable after opening.
 - Bottom sheet traps focus while open and returns focus to trigger on close.
@@ -683,7 +746,7 @@ Target: WCAG 2.1 AA.
 - Map should have a text alternative through the results list.
 - Object cards have descriptive link text.
 - Form validation errors are associated with fields.
-- Publish status is conveyed as text, not only color.
+- Publication status is conveyed as text, not only color.
 
 ### Touch Target Guidelines
 
@@ -693,7 +756,7 @@ Target: WCAG 2.1 AA.
 
 ### Color Contrast Requirements
 
-- Text/background contrast meets WCAG AA.
+- Text/background contrast should remain strong for readability even though MVP compliance target is WCAG A.
 - Badges and status indicators must not rely only on color.
 - Focus states have strong visible contrast.
 
@@ -704,12 +767,9 @@ Target: WCAG 2.1 AA.
 - After closing popup/sheet/modal, return focus to triggering element.
 - After CMS save, keep user on form with success feedback unless workflow explicitly returns to list.
 
-### Print Accessibility
+### Future Print Accessibility
 
-- Printed object page should preserve meaningful content order.
-- Hide navigation and interactive controls in print CSS.
-- Keep text black or high contrast.
-- Ensure image does not consume excessive page height.
+Print support is optional future scope. If implemented, the printed object page should preserve meaningful content order, hide navigation/interactive controls, keep text high contrast, and prevent images from consuming excessive page height.
 
 ---
 
@@ -722,8 +782,10 @@ Suggested public components:
 - `PublicHeader`
 - `PublicFooter`
 - `HomepageIntro`
+- `HomepageStats`
 - `LatestObjectsRow`
-- `ArticleTeaserGrid`
+- `NewsEventsGrid`
+- `NewlyAddedObjectsGrid`
 - `CatalogLayout`
 - `FilterSidebar`
 - `MobileFilterSheet`
@@ -735,12 +797,14 @@ Suggested public components:
 - `ObjectGrid`
 - `ObjectDetail`
 - `ImageGallery`
+- `ObjectLocationMap`
 - `PracticalInfo`
-- `NearbyObjectsGrid`
-- `ArticleGrid`
-- `ArticleCard`
-- `ArticleDetail`
-- `MarkdownContent`
+- `NearestObjectsGrid`
+- `SimilarObjectsGrid`
+- `NewsGrid`
+- `NewsCard`
+- `NewsDetail`
+- `RichTextContent`
 
 Suggested CMS components:
 
@@ -752,9 +816,12 @@ Suggested CMS components:
 - `ImageManager`
 - `CoordinatesInput`
 - `GeometryInput`
-- `ArticleTable`
-- `ArticleForm`
-- `MarkdownEditor`
+- `ObjectTypeTable`
+- `ObjectTypeForm`
+- `NewsTable`
+- `NewsForm`
+- `UserTable`
+- `UserForm`
 - `PublishStatusControl`
 
 ### View State Management Approach
@@ -763,7 +830,7 @@ Catalog state:
 
 - Query.
 - Selected voivodeship.
-- Selected category.
+- Selected object type.
 - UNESCO filter.
 - Active view on mobile: map/list.
 - Selected map object for popup.
@@ -778,8 +845,10 @@ Recommended URL behavior:
 Example:
 
 ```text
-/katalog?q=castle&wojewodztwo=malopolskie&category=landmarks&unesco=true
+/katalog?q=castle&wojewodztwo=malopolskie&type=landmarks&unesco=true
 ```
+
+Search requests should use partial phrase matching semantics rather than fuzzy ranking.
 
 CMS form state:
 
@@ -791,29 +860,51 @@ CMS form state:
 
 - Map should have stable height before data loads to avoid layout shift.
 - Card images should use consistent aspect ratios.
-- Use responsive image sizes for object and article cards.
+- Use responsive image sizes for object and news cards.
 - Lazy-load below-the-fold card images.
 - Keep map and results synchronized without full-page reloads.
-- Ensure no public links expose unpublished objects or articles.
+- Ensure no public links expose draft objects or draft/archived news entries.
+- Object and news pages should support SEO metadata: friendly URLs, page titles, meta descriptions, and social sharing metadata where content exists.
+
+### KPI Event Instrumentation
+
+Track at minimum:
+
+- Homepage to catalog/map CTA clicks.
+- Homepage to object detail navigations.
+- Homepage to news navigations.
+- Catalog search changes.
+- Catalog filter changes for voivodeship, object type, and UNESCO.
+- Map zooms and pans where technically feasible.
+- Marker opens and polygon opens.
+- Map popup opens.
+- Catalog to object detail navigations.
+- Object detail page views.
+- News listing page views.
+- News detail page views.
+- News or homepage to object-detail navigations.
 
 ### Performance Optimization Suggestions
 
 - Debounce search input.
 - Avoid re-rendering the entire map on every minor UI update if possible.
-- Cluster map markers if result volume grows.
-- Cache latest objects for homepage.
-- Cache article list where appropriate.
+- Cluster map markers for large result sets.
+- Cache homepage statistics and latest objects.
+- Cache news list where appropriate.
 - Use pagination or "load more" for large result sets.
 
 ### Data and Content Assumptions
 
-- First image in object media order is the primary image.
-- Additional object images form a gallery.
-- Coordinates are entered manually by editor and validated.
+- Selected main image is used as the primary image; additional object images form a gallery.
+- Image author/source fields are available when known; images are assumed to be PTTK-owned unless specified otherwise.
+- Coordinates are entered manually by editor and validated for point objects.
 - Area geometry is prepared outside the CMS and entered/uploaded as valid structured data, preferably GeoJSON.
-- Article body is Markdown.
-- Article CTA can be configured per article or selected from common defaults.
-- Unpublish is the primary safe removal action in CMS.
+- Nearest objects are up to 3 geographically nearest published objects within 20 km; polygon objects use centroid-based distance.
+- If no nearby published objects exist within 20 km, the section is omitted or an empty state is shown.
+- News entry body is stored as editorial content without requiring blog-platform features.
+- Object status is draft or published.
+- News status is draft, published, or archived, with a separate featured flag.
+- Public user geolocation and print support are future enhancements, not MVP scope.
 
 ### Beta Scope Guardrails
 
