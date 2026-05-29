@@ -27,7 +27,7 @@ Implement the remaining beta features: nearby objects, enhanced print layout for
 
 ## Previous / Next
 
-- **Builds on:** RFC-001 (PostGIS spatial queries), RFC-005 (catalog page exists), RFC-006 (object detail page exists)
+- **Builds on:** RFC-001 (MariaDB spatial queries), RFC-005 (catalog page exists), RFC-006 (object detail page exists)
 - **Built by future:** — (final RFC; product is beta-complete)
 
 ---
@@ -387,7 +387,7 @@ Review and fix across all pages:
 - [ ] No N+1 queries on any page
 - [ ] Images lazy-loaded below the fold
 - [ ] Homepage queries cached
-- [ ] Spatial queries use GiST index
+- [ ] Spatial queries use SPATIAL index
 
 ### Final Polish
 
@@ -438,7 +438,7 @@ Review and fix across all pages:
 ## Performance Considerations
 
 - Nearby objects loaded via AJAX, not blocking initial page render
-- Spatial query uses GiST index for O(log n) performance
+- Spatial query uses SPATIAL index for O(log n) performance
 - Limit nearby results to 3 to keep response small
 - Cache homepage queries with `Cache::remember()` (5 minute TTL)
 

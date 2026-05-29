@@ -8,14 +8,14 @@ The project is a public web application for a Polish catalog of sightseeing obje
 
 Initial stack options discussed included:
 
-- Next.js + Payload CMS + PostgreSQL/PostGIS.
-- Astro + Directus + PostgreSQL/PostGIS.
-- Next.js + Sanity + Supabase/PostGIS.
-- Django + GeoDjango + PostgreSQL/PostGIS.
-- Ruby on Rails + PostgreSQL/PostGIS.
+- Next.js + Payload CMS + MariaDB.
+- Astro + Directus + MariaDB.
+- Next.js + Sanity + MariaDB.
+- Django + GeoDjango + MariaDB spatial features.
+- Ruby on Rails + MariaDB.
 - WordPress + custom post types.
 
-The first recommendation was Next.js + Payload CMS + PostgreSQL/PostGIS because it keeps the frontend, CMS, API, and structured content model close together in TypeScript. After considering PHP + Laravel + Filament, the preferred direction shifted toward Laravel if the developer is comfortable in that ecosystem, because it can deliver the CMS and CRUD-heavy editorial workflows faster.
+The first recommendation was Next.js + Payload CMS + MariaDB because it keeps the frontend, CMS, API, and structured content model close together in TypeScript. After considering PHP + Laravel + Filament, the preferred direction shifted toward Laravel if the developer is comfortable in that ecosystem, because it can deliver the CMS and CRUD-heavy editorial workflows faster.
 
 The final architectural question was whether native Blade templates can be mixed with Inertia + Svelte only for the interactive catalog page. The answer was yes: this is a good fit, as long as the mix happens by route rather than trying to render one page partly as Blade and partly as Inertia.
 
@@ -27,8 +27,8 @@ The final architectural question was whether native Blade templates can be mixed
 | CMS/admin panel | Filament |
 | Public static/content pages | Blade templates |
 | Interactive catalog page | Inertia + Svelte |
-| Database | PostgreSQL + PostGIS |
-| Search | Laravel Scout database driver first; Meilisearch or Typesense later if needed |
+| Database | MariaDB 10.11 with spatial features |
+| Search | MariaDB `LIKE` on case-insensitive collation for beta; Scout or external search later if needed |
 | Map | MapLibre with marker clustering
 | Media/files | Laravel filesystem with S3-compatible storage; optionally Spatie Media Library |
 | Styling | Tailwind CSS |
@@ -40,7 +40,7 @@ Use Blade for mostly content-oriented and document-like public pages:
 
 ```text
 /                         Blade
-/obiekty/[slug]           Blade
+/katalog/[slug]           Blade
 /aktualnosci              Blade
 /aktualnosci/[slug]       Blade
 /kontakt                  Blade
@@ -65,7 +65,7 @@ Filament is well suited for the editorial CMS requirements:
 - Dashboard widgets.
 - Safe editorial workflows without building a custom CMS from scratch.
 
-PostgreSQL + PostGIS fits the geospatial requirements:
+MariaDB 10.11 with native spatial functions fits the geospatial requirements:
 
 - Object coordinates.
 - Nearby-object search with 5 km and 20 km fallback.
@@ -155,15 +155,15 @@ resources/js/
 - Blade keeps simple public pages simple and SEO-friendly.
 - Svelte is used only where rich interaction is needed.
 - Laravel keeps backend, CMS, auth, mail, storage, and validation in one cohesive app.
-- PostgreSQL/PostGIS directly supports the map and nearby-object requirements.
+- MariaDB spatial functions directly support the map and nearby-object requirements.
 - Hosting can stay conventional and cost-effective.
 
 ## Weaknesses and Risks
 
-- PostGIS in Laravel may require raw SQL or custom query scopes for distance and geometry operations.
+- MariaDB spatial queries in Laravel may require raw SQL or custom query scopes for distance and geometry operations.
 - A pure Blade/Livewire catalog would be awkward for map-heavy interactions, so `/katalog` should really be handled by Svelte or another frontend adapter.
 - Inertia and Blade should be mixed by route, not inside the same rendered page body.
-- Laravel Scout database search is acceptable for beta, but true typo tolerance may require Meilisearch or Typesense later.
+- MariaDB case-insensitive `LIKE` search is acceptable for beta, but true typo tolerance may require Scout, Meilisearch, or Typesense later.
 - Filament is an admin-panel framework, not a traditional standalone CMS, so content modeling must be designed carefully.
 
 ## Final Recommendation
@@ -171,7 +171,7 @@ resources/js/
 Use:
 
 ```text
-Laravel + Filament + PostgreSQL/PostGIS + Blade + Inertia/Svelte + MapLibre
+Laravel + Filament + MariaDB 10.11 + Blade + Inertia/Svelte + MapLibre
 ```
 
 This is a pragmatic and well-balanced stack for the product. It gives the editorial team a capable CMS, keeps most public pages simple, and reserves Svelte for the one area where the UX needs a richer client-side application.

@@ -12,13 +12,13 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 
 ## Prerequisites
 
-- RFC-001 must be completed (PostGIS spatial queries)
+- RFC-001 must be completed (MariaDB spatial queries)
 - RFC-005 must be completed (catalog page exists)
 - RFC-006 must be completed (object detail page with nearby placeholder)
 
 ## What to Build
 
-1. **Nearby objects API endpoint** — `/obiekty/{slug}/nearby` returning JSON with objects and radius info
+1. **Nearby objects API endpoint** — `/katalog/{slug}/nearby` returning JSON with objects and radius info
 2. **Dynamic nearby objects loading** — JavaScript on object detail page fetches and renders nearby objects
 3. **Enhanced print CSS** — comprehensive print stylesheet for object detail pages
 4. **WCAG 2.1 AA accessibility fixes** — skip links, aria attributes, focus management, contrast, keyboard nav
@@ -30,7 +30,7 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 
 ## Key Files to Create/Modify
 
-- `routes/web.php` — add `/obiekty/{slug}/nearby` route
+- `routes/web.php` — add `/katalog/{slug}/nearby` route
 - `app/Http/Controllers/ObjectController.php` — add `nearby()` method
 - `resources/views/objects/show.blade.php` — replace nearby placeholder with dynamic loading
 - `resources/css/print.css` — enhanced print stylesheet
@@ -45,7 +45,7 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 ## Critical Requirements
 
 ### Nearby Objects
-- `/obiekty/{slug}/nearby` returns JSON: `{ objects: [...], radius_km: 5|20, has_results: bool }`
+- `/katalog/{slug}/nearby` returns JSON: `{ objects: [...], radius_km: 5|20, has_results: bool }`
 - 5km radius tried first; falls back to 20km when no 5km results
 - Maximum 6 nearby objects returned
 - Current object excluded from results
@@ -79,7 +79,7 @@ You are implementing RFC-007 for the Kanon project. This is the **final RFC** th
 - No N+1 queries on any page (verify with `DB::enableQueryLog()`)
 - `loading="lazy"` on below-fold images
 - Homepage queries cached (5 minute TTL)
-- Spatial queries use GiST index (verify with EXPLAIN)
+- Spatial queries use SPATIAL index (verify with EXPLAIN)
 
 ### Contact
 - Contact form sends email (or logs to `storage/logs/laravel.log` in dev)

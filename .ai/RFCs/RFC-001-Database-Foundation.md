@@ -11,13 +11,13 @@
 
 ## Summary
 
-Establish the PostgreSQL + PostGIS database, define all core domain models and migrations, implement Eloquent relationships, scopes, and query patterns, and seed the database with voivodeship data and sample content. This RFC creates the data backbone that every subsequent RFC builds upon.
+Establish the MariaDB 10.11 database, define all core domain models and migrations, implement Eloquent relationships, scopes, and query patterns, and seed the database with voivodeship data and sample content. This RFC creates the data backbone that every subsequent RFC builds upon.
 
 ---
 
 ## Features / Requirements Addressed
 
-- Database switch from SQLite to PostgreSQL with PostGIS extension
+- Database switch from SQLite to MariaDB with native spatial features
 - `obiekty` (objects) table with geometry support
 - `kategorie` (object type taxonomy) hierarchical table (3 levels)
 - `wojewodztwa` (voivodeships) reference table with seed data
@@ -25,7 +25,7 @@ Establish the PostgreSQL + PostGIS database, define all core domain models and m
 - `object_category` pivot table
 - Eloquent models with relationships, scopes, and query methods
 - Database seeders with Polish voivodeships and sample data
-- Laravel Scout configuration for future search
+- Title search scope for the catalog
 - Pest tests for models, scopes, and relationships
 
 ---
@@ -41,11 +41,7 @@ Establish the PostgreSQL + PostGIS database, define all core domain models and m
 
 ### Database Migration
 
-Switch `.env` from `DB_CONNECTION=sqlite` to `DB_CONNECTION=pgsql`. Create a new PostgreSQL database. Install PostGIS extension via a migration:
-
-```php
-DB::unprepared('CREATE EXTENSION IF NOT EXISTS postgis');
-```
+Switch `.env` from `DB_CONNECTION=sqlite` to `DB_CONNECTION=mysql`. Create a new MariaDB database and configure the Laravel `mysql` connection for it.
 
 ### Table Schema
 
@@ -94,7 +90,7 @@ CREATE TABLE obiekty (
     website varchar(500),
     latitude numeric(10, 7),
     longitude numeric(10, 7),
-    geometry geometry(Geometry, 4326),
+    geometry geometry NOT NULL,
     wojewodztwo_id bigint NOT NULL REFERENCES wojewodztwa(id),
     published boolean NOT NULL DEFAULT false,
     published_at timestamp,
@@ -105,14 +101,14 @@ CREATE TABLE obiekty (
 CREATE INDEX idx_obiekty_wojewodztwo ON obiekty(wojewodztwo_id);
 CREATE INDEX idx_obiekty_published ON obiekty(published) WHERE published = true;
 CREATE INDEX idx_obiekty_slug ON obiekty(slug);
-CREATE INDEX idx_obiekty_geometry ON obiekty USING GIST(geometry);
+CREATE SPATIAL INDEX idx_obiekty_geometry ON obiekty (geometry);
 CREATE INDEX idx_obiekty_published_at ON obiekty(published_at DESC NULLS LAST);
 ```
 
 **Design decisions:**
 
 - `latitude` / `longitude` stored as numeric for fast point queries and simple display.
-- `geometry` column stores PostGIS geometry for spatial queries (nearby search, polygon areas). It can be a POINT for simple locations or a POLYGON for area objects (parks).
+- `geometry` column stores MariaDB geometry for spatial queries (nearby search, polygon areas). It can be a POINT for simple locations or a POLYGON for area objects (parks).
 - `slug` is unique and URL-safe for SEO.
 - `published_at` is used for "latest objects" ordering (nullable; falls back to `created_at`).
 - `published` boolean controls public visibility.
@@ -237,12 +233,12 @@ class Obiekt extends Model
     /** Get objects within a radius in km, ordered by distance */
     public function scopeNearby(Builder $query, float $lat, float $lng, float $radiusKm): Builder
     {
-        $point = "ST_SetSRID(ST_MakePoint({$lng}, {$lat}), 4326)";
-        $distance = "ST_DistanceSphere(geometry, {$point})";
+        $point = "ST_GeomFromText(CONCAT('POINT(', {$lng}, ' ', {$lat}, ')'), 4326)";
+        $distance = "ST_Distance_Sphere(geometry, {$point})";
 
         return $query
             ->selectRaw("*, ({$distance}) as distance")
-            ->whereRaw("ST_DistanceSphere(geometry, {$point}) <= ?", [$radiusKm * 1000])
+            ->whereRaw("ST_Distance_Sphere(geometry, {$point}) <= ?", [$radiusKm * 1000])
             ->orderByRaw("{$distance}");
     }
 
@@ -294,7 +290,7 @@ class Obiekt extends Model
     {
         if (!$search) return $query;
 
-        return $query->where('title', 'ilike', "%{$search}%");
+        return $query->where('title', 'like', "%{$search}%");
     }
 
     /** Published objects only */
@@ -342,19 +338,19 @@ Implement a `HasSlug` trait or use `Str::slug()` in the model `boot()` method to
     ├── obiekty (created/edited via CMS in RFC-003)
     │     ├── belongs to wojewodztwo
     │     ├── belongs to many kategorie
-    │     ├── has geometry (PostGIS)
+    │     ├── has geometry (MariaDB spatial)
     │     └── published_at drives "latest" ordering
     ├── artykuly (news created/edited via CMS in RFC-003)
     │     └── published_at drives chronological ordering
-    └── Laravel Scout configured (database driver)
+    └── Title search scope available for catalog filtering
 ```
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] PostgreSQL database configured and connection working
-- [ ] PostGIS extension installed
+- [ ] MariaDB database configured and connection working
+- [ ] Spatial columns and indexes created successfully
 - [ ] All migrations run successfully
 - [ ] All 5 tables created with correct columns, indexes, and constraints
 - [ ] `Wojewodztwo` seeded with all 16 Polish voivodeships
@@ -403,17 +399,17 @@ Create factories for all models:
 
 - Migration failures: clear error message, log and halt
 - Slug collisions: automatic suffix incrementing, no user intervention needed
-- PostGIS geometry errors: validate geometry format before insert, return validation error
+- MariaDB geometry errors: validate geometry format before insert, return validation error
 - Missing required fields: Laravel validation in model/requests
 
 ---
 
 ## Performance Considerations
 
-- GiST index on `geometry` column for fast spatial queries
+- SPATIAL index on `geometry` column for fast spatial queries
 - Partial indexes on `published` for filtered queries
 - Composite index on `published_at DESC` for "latest" queries
-- Consider `DB::unprepared()` for PostGIS extension to avoid repeated checks
+- Ensure geometry columns are `NOT NULL` before creating spatial indexes
 
 ---
 
@@ -428,4 +424,4 @@ Create factories for all models:
 ## Third-Party Dependencies
 
 - `doctrine/dbal` may be needed for column modifications if using `Schema::getColumnType()`
-- No new Composer packages required for this RFC (PostGIS is server-side)
+- No new Composer packages required for this RFC (spatial support is server-side in MariaDB)

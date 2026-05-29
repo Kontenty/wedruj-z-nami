@@ -29,7 +29,7 @@ Build the `/katalog` page — the most interactive part of the application — u
 
 ## Previous / Next
 
-- **Builds on:** RFC-001 (models, scopes, PostGIS), RFC-002 (media URLs on models)
+- **Builds on:** RFC-001 (models, scopes, MariaDB spatial support), RFC-002 (media URLs on models)
 - **Built by future:** RFC-006 (object detail page linked from catalog), RFC-007 (nearby objects, print)
 
 ---
@@ -147,16 +147,11 @@ class ObjectTypeResource extends JsonResource
 }
 ```
 
-### Laravel Scout Configuration
+### Title Search Implementation
 
-Configure Scout with the database driver for fuzzy search:
+Use the `scopeSearchByTitle` from RFC-001, which relies on MariaDB case-insensitive `LIKE` for beta search.
 
-```php
-// config/scout.php
-'driver' => env('SCOUT_DRIVER', 'database'),
-```
-
-For the database driver, add full-text search or use `ilike` for PostgreSQL. The current `scopeSearchByTitle` using `ilike` is sufficient for beta. If typo tolerance is needed later, swap to Meilisearch.
+If typo tolerance becomes a requirement later, move the search layer into a dedicated follow-up RFC and add Scout or another search backend there.
 
 ### Svelte Component Architecture
 

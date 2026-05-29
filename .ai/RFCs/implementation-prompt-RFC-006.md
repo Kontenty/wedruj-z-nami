@@ -2,7 +2,7 @@
 
 **Title:** Object Detail Page  
 **ID:** RFC-006  
-**Brief Description:** Build the `/obiekty/{slug}` Blade page — a document-like, reference-oriented view with title, description, image gallery, practical info, metadata, print button, and nearby objects placeholder.
+**Brief Description:** Build the `/katalog/{slug}` Blade page — a document-like, reference-oriented view with title, description, image gallery, practical info, metadata, print button, and nearby objects placeholder.
 
 > **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*
 
@@ -20,14 +20,14 @@ You are implementing RFC-006 for the Kanon project. This RFC creates the individ
 
 1. **ObjectController::show** — loads published object by slug with relationships, prepares image data from Spatie
 2. **Object detail Blade view** — title, metadata row, main image, gallery, Markdown description, practical info, print button, nearby objects placeholder
-3. **Route** — `/obiekty/{slug:slug}` with route model binding on slug
+3. **Route** — `/katalog/{slug:slug}` with route model binding on slug
 4. **Basic print CSS** — hides header/footer/nav, preserves content
 5. **Simple lightbox** — for gallery image viewing (JS, no library)
 6. **Write Pest tests** for object detail page
 
 ## Key Files to Create/Modify
 
-- `routes/web.php` — add `/obiekty/{slug}` route
+- `routes/web.php` — add `/katalog/{slug}` route
 - `app/Http/Controllers/ObjectController.php`
 - `resources/views/objects/show.blade.php`
 - `resources/css/print.css` (basic print styles)
@@ -35,9 +35,9 @@ You are implementing RFC-006 for the Kanon project. This RFC creates the individ
 
 ## Critical Requirements
 
-- `/obiekty/{slug}` renders for published objects only
-- `/obiekty/{nonexistent}` returns 404
-- `/obiekty/{slug}` for unpublished objects returns 404
+- `/katalog/{slug}` renders for published objects only
+- `/katalog/{nonexistent}` returns 404
+- `/katalog/{slug}` for unpublished objects returns 404
 - Page displays: title, voivodeship name, category badges, UNESCO badge
 - Main image displayed prominently (first in media order)
 - Gallery shows thumbnail grid when > 1 image exists

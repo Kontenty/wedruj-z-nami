@@ -12,7 +12,7 @@ You are implementing RFC-002 for the Kanon project. This RFC adds image manageme
 
 ## Prerequisites
 
-- RFC-001 must be completed (PostgreSQL database with all models and migrations)
+- RFC-001 must be completed (MariaDB database with all models and migrations)
 
 ## What to Build
 

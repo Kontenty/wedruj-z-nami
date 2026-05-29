@@ -2,7 +2,7 @@
 
 **Title:** Interactive Catalog (Inertia + Svelte)  
 **ID:** RFC-005  
-**Brief Description:** Build the `/katalog` page with Leaflet map, filter sidebar, fuzzy search, active filter chips, map/list synchronization, and responsive card grid using Inertia v3 + Svelte 5.
+**Brief Description:** Build the `/katalog` page with MapLibre map, filter sidebar, fuzzy search, active filter chips, map/list synchronization, and responsive card grid using Inertia v3 + Svelte 5.
 
 > **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*
 
@@ -12,7 +12,7 @@ You are implementing RFC-005 for the Kanon project. This is the most interactive
 
 ## Prerequisites
 
-- RFC-001 must be completed (models, scopes, PostGIS)
+- RFC-001 must be completed (models, scopes, MariaDB spatial support)
 - RFC-002 must be completed (media URLs on models)
 
 ## What to Build
@@ -24,12 +24,12 @@ You are implementing RFC-005 for the Kanon project. This is the most interactive
 5. **MobileFilterSheet.svelte** — mobile bottom sheet with same filters
 6. **SearchBar.svelte** — debounced search input
 7. **ActiveFilterChips.svelte** — shows active filters with remove buttons
-8. **CatalogMap.svelte** — Leaflet map with markers and polygons
+8. **CatalogMap.svelte** — MapLibre map with markers and polygons
 9. **MapPopup.svelte** — marker popup content
 10. **ObjectGrid.svelte** + **ObjectCard.svelte** — card grid results
 11. **MobileViewToggle.svelte** — Map | List segmented control
 12. **EmptyState.svelte** — no results message
-13. **Leaflet installation** via npm
+13. **MapLibre installation** via npm
 14. **Write Pest tests** for CatalogController filter combinations
 
 ## Key Files to Create/Modify
@@ -53,13 +53,13 @@ You are implementing RFC-005 for the Kanon project. This is the most interactive
 
 ## Critical Requirements
 
-- Map displays all published objects as Leaflet markers at correct coordinates
-- Simplified polygons rendered for objects with PostGIS geometry
+- Map displays all published objects as MapLibre markers at correct coordinates
+- Simplified polygons rendered for objects with MariaDB geometry
 - Map popup shows thumbnail, title, voivodeship, link to detail
 - Voivodeship filter: single select, updates URL and results
 - Category filter: hierarchical accordion, 3 levels, selects parent + descendants
 - UNESCO toggle: filters to UNESCO-only objects
-- Search: debounced fuzzy search by title (ilike on PostgreSQL)
+- Search: debounced fuzzy search by title (case-insensitive LIKE on MariaDB)
 - Active filter chips: display current filters, remove button on each
 - "Clear Filters" clears all filters
 - Result count displayed and updates

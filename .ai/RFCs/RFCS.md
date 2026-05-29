@@ -16,8 +16,8 @@ The project is broken into **7 RFCs** implemented **strictly sequentially**. Eac
 | CMS/Admin           | Filament v4                     |
 | Public static pages | Blade templates                 |
 | Interactive catalog | Inertia v3 + Svelte 5           |
-| Database            | PostgreSQL + PostGIS            |
-| Search              | Laravel Scout (database driver) |
+| Database            | MariaDB 10.11 with spatial features |
+| Search              | MariaDB `LIKE` on case-insensitive collation for beta; Scout later if needed |
 | Map                 | MapLibre                        |
 | Media               | Spatie Laravel Media Library    |
 | Styling             | Tailwind CSS v4                 |

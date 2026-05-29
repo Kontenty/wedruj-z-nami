@@ -203,7 +203,7 @@ class ObjectController extends Controller
 
 ### Nearby Objects (Stub)
 
-The "Nearby Objects" section is a placeholder in this RFC. RFC-007 implements it with PostGIS spatial queries and dynamic loading. The section container and heading are defined here so the page layout is complete.
+The "Nearby Objects" section is a placeholder in this RFC. RFC-007 implements it with MariaDB spatial queries and dynamic loading. The section container and heading are defined here so the page layout is complete.
 
 ### Route Model Binding Alternative
 
