@@ -2,6 +2,8 @@
     "$schema": "https://www.schemastore.org/package.json",
     "private": true,
     "type": "module",
+    "author": "Konrad Gorski",
+    "name": "wedruj-z-nami",
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
