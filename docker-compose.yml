@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:${MARIADB_VERSION:-10.6.16}
+    container_name: mariadb-wedruj-z-nami
+    ports:
+      - "${HOST_PORT:-3306}:3306"
+    environment:
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      DB_DATABASE: ${DB_DATABASE:-wedruj_z_nami}
+      DB_USER: ${DB_USER:-user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_ROOT_HOST: ${DB_ROOT_HOST:-%}
+    volumes:
+      - mariadb_data:${DB_DATA_DIR:-/var/lib/mysql}
+      - ${BACKUP_DIR:-./backup}:/backup
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - mariadb_network
+
+volumes:
+  mariadb_data:
+    name: ${VOLUME_NAME:-mariadb_data_wedruj_z_nami}
+
+networks:
+  mariadb_network:
+    name: ${NETWORK_NAME:-mariadb_network_wedruj_z_nami}
