@@ -1,6 +1,6 @@
 # RFC-002: Media Management Layer
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "article" = *artykuł*
+> **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "news" = _aktualności_
 
 **Status:** Proposed  
 **Complexity:** Medium  
@@ -11,14 +11,14 @@
 
 ## Summary
 
-Integrate Spatie Laravel Media Library to handle image uploads for objects and articles. Define media collections, configure upload constraints, implement image ordering, and ensure first-image-is-primary semantics. This layer is consumed by the CMS (RFC-003), the interactive catalog (RFC-005), and the object detail page (RFC-006).
+Integrate Spatie Laravel Media Library to handle image uploads for objects and news entries. Define media collections, configure upload constraints, implement image ordering, and ensure first-image-is-primary semantics. This layer is consumed by the CMS (RFC-003), the interactive catalog (RFC-005), and the object detail page (RFC-006).
 
 ---
 
 ## Features / Requirements Addressed
 
 - Spatie Media Library integration with Obiekt and Artkul models
-- Media collections: `images` (for objects), `cover` (for articles)
+- Media collections: `images` (for objects), `cover` (for news entries)
 - Image upload constraints (max size, allowed MIME types)
 - Media ordering: first image is primary/cover
 - Thumbnail generation for list views
@@ -113,7 +113,7 @@ class Artkul extends Model implements HasMedia
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
             ->maxFileSize(5120) // 5 MB
             ->singleFile() // Only one cover image
-            ->useFallbackUrl('/images/placeholder-article.jpg');
+            ->useFallbackUrl('/images/placeholder-news.jpg');
     }
 
     public function registerMediaConversions(Media $media = null): void
@@ -188,7 +188,7 @@ Add media URLs to model arrays via Accessors (shown above). These accessors are 
 - [ ] Object max file size: 10 MB; Article max file size: 5 MB
 - [ ] Thumbnail conversion generated for objects (400×300)
 - [ ] Card conversion generated for objects (800×600)
-- [ ] Thumbnail conversion generated for articles (600×400)
+- [ ] Thumbnail conversion generated for news entries (600×400)
 - [ ] `getPrimaryImageUrlAttribute` returns first image URL or fallback
 - [ ] `getThumbnailUrlAttribute` returns thumbnail URL or fallback
 - [ ] `getCoverImageUrlAttribute` returns cover URL or fallback

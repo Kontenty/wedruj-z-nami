@@ -1,6 +1,6 @@
 # RFC-001: Database Foundation & Core Models
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*; "article" = *artykuł*
+> **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_; "news" = _aktualności_
 
 **Status:** Proposed  
 **Complexity:** Medium  
@@ -19,9 +19,9 @@ Establish the PostgreSQL + PostGIS database, define all core domain models and m
 
 - Database switch from SQLite to PostgreSQL with PostGIS extension
 - `obiekty` (objects) table with geometry support
-- `kategorie` (categories) hierarchical table (3 levels)
+- `kategorie` (object type taxonomy) hierarchical table (3 levels)
 - `wojewodztwa` (voivodeships) reference table with seed data
-- `artykuly` (articles) table
+- `artykuly` (news) table
 - `object_category` pivot table
 - Eloquent models with relationships, scopes, and query methods
 - Database seeders with Polish voivodeships and sample data
@@ -110,6 +110,7 @@ CREATE INDEX idx_obiekty_published_at ON obiekty(published_at DESC NULLS LAST);
 ```
 
 **Design decisions:**
+
 - `latitude` / `longitude` stored as numeric for fast point queries and simple display.
 - `geometry` column stores PostGIS geometry for spatial queries (nearby search, polygon areas). It can be a POINT for simple locations or a POLYGON for area objects (parks).
 - `slug` is unique and URL-safe for SEO.
@@ -128,7 +129,7 @@ CREATE TABLE object_category (
 
 Objects can belong to multiple categories.
 
-#### `artykuly` (articles)
+#### `artykuly` (news)
 
 ```sql
 CREATE TABLE artykuly (
@@ -166,7 +167,7 @@ class Wojewodztwo extends Model
 }
 ```
 
-### `App\Models\Kategoria`
+### `App\Models\Kategoria` (object type)
 
 ```php
 class Kategoria extends Model
@@ -265,7 +266,7 @@ class Obiekt extends Model
         return $query->whereHas('wojewodztwo', fn ($q) => $q->where('slug', $slug));
     }
 
-    /** Filter by category ID (includes descendants) */
+    /** Filter by object type ID (includes descendants) */
     public function scopeInCategory(Builder $query, ?int $categoryId): Builder
     {
         if (!$categoryId) return $query;
@@ -316,7 +317,7 @@ class Artkul extends Model
         'published_at' => 'datetime',
     ];
 
-    /** Published articles, newest first */
+    /** Published news, newest first */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('published', true)
@@ -343,7 +344,7 @@ Implement a `HasSlug` trait or use `Str::slug()` in the model `boot()` method to
     │     ├── belongs to many kategorie
     │     ├── has geometry (PostGIS)
     │     └── published_at drives "latest" ordering
-    ├── artykuly (created/edited via CMS in RFC-003)
+    ├── artykuly (news created/edited via CMS in RFC-003)
     │     └── published_at drives chronological ordering
     └── Laravel Scout configured (database driver)
 ```
@@ -357,14 +358,14 @@ Implement a `HasSlug` trait or use `Str::slug()` in the model `boot()` method to
 - [ ] All migrations run successfully
 - [ ] All 5 tables created with correct columns, indexes, and constraints
 - [ ] `Wojewodztwo` seeded with all 16 Polish voivodeships
-- [ ] Sample `Kategoria` hierarchy seeded (at least 3 parent categories with children)
+- [ ] Sample `Kategoria` hierarchy seeded (at least 3 parent object types with children)
 - [ ] Sample `Obiekt` records seeded (at least 5, including at least 1 UNESCO, at least 1 with polygon geometry)
 - [ ] Sample `Artkul` records seeded (at least 2)
 - [ ] Eloquent relationships work: `obiekt.wojewodztwo`, `obiekt.kategorie`, `kategoria.children`, etc.
 - [ ] `scopeNearby` returns objects sorted by distance within given radius
 - [ ] `scopeNearbyWithFallback` returns 5km results when available, 20km when not
 - [ ] `scopeInVoivodeship` filters correctly by voivodeship slug
-- [ ] `scopeInCategory` filters by category and its descendants
+- [ ] `scopeInCategory` filters by object type and its descendants
 - [ ] `scopeSearchByTitle` performs case-insensitive partial matching
 - [ ] `scopePublished` returns only published records
 - [ ] Slug auto-generation works with collision handling
@@ -390,6 +391,7 @@ Implement a `HasSlug` trait or use `Str::slug()` in the model `boot()` method to
 ### Factories
 
 Create factories for all models:
+
 - `ObiektFactory`: generate with random coordinates within Poland bounds, random wojewodztwo
 - `KategoriaFactory`: support parent state
 - `ArtkulFactory`: support published/unpublished states

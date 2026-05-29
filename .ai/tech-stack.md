@@ -29,7 +29,7 @@ The final architectural question was whether native Blade templates can be mixed
 | Interactive catalog page | Inertia + Svelte |
 | Database | PostgreSQL + PostGIS |
 | Search | Laravel Scout database driver first; Meilisearch or Typesense later if needed |
-| Map | Leaflet for beta; MapLibre later if advanced vector styling is needed |
+| Map | MapLibre with marker clustering
 | Media/files | Laravel filesystem with S3-compatible storage; optionally Spatie Media Library |
 | Styling | Tailwind CSS |
 | Hosting | Laravel Forge/VPS, Hetzner, DigitalOcean, Render, Fly.io, Railway, or similar |
@@ -171,7 +171,7 @@ resources/js/
 Use:
 
 ```text
-Laravel + Filament + PostgreSQL/PostGIS + Blade + Inertia/Svelte + Leaflet
+Laravel + Filament + PostgreSQL/PostGIS + Blade + Inertia/Svelte + MapLibre
 ```
 
 This is a pragmatic and well-balanced stack for the product. It gives the editorial team a capable CMS, keeps most public pages simple, and reserves Svelte for the one area where the UX needs a richer client-side application.

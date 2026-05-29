@@ -1,6 +1,6 @@
 # RFC-003: Filament CMS
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*; "article" = *artykuł*; "news" = *aktualności*
+> **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_; "news" = _aktualności_
 
 **Status:** Proposed  
 **Complexity:** High  
@@ -11,7 +11,7 @@
 
 ## Summary
 
-Install and configure Filament v4 as the CMS admin panel. Build resource pages for managing objects and articles with full CRUD, media upload, category assignment, publication status, form validation, and dashboard widgets. Protect CMS routes with authentication (Fortify already installed).
+Install and configure Filament v4 as the CMS admin panel. Build resource pages for managing objects and news with full CRUD, media upload, object type assignment, publication status, form validation, and dashboard widgets. Protect CMS routes with authentication (Fortify already installed).
 
 ---
 
@@ -21,12 +21,12 @@ Install and configure Filament v4 as the CMS admin panel. Build resource pages f
 - US-011: Edit object (CMS)
 - US-012: Delete object (CMS)
 - US-013: Secure CMS access (login + password)
-- US-019: Add article (CMS)
-- US-020: Edit article (CMS)
-- US-021: Delete article (CMS)
+- US-019: Add news (CMS)
+- US-020: Edit news (CMS)
+- US-021: Delete news (CMS)
 - CMS dashboard with overview widgets
 - Media upload integration with Spatie Media Library
-- Category management (hierarchical)
+- Object type management (hierarchical)
 - Publication status toggle (publish/unpublish)
 - Form validation for required fields
 - Polish-language CMS interface
@@ -94,6 +94,7 @@ Configure Filament to use Polish:
 ```
 
 Publish Polish language files:
+
 ```bash
 php artisan vendor:publish --tag="filament-panels-translations"
 ```
@@ -103,6 +104,7 @@ php artisan vendor:publish --tag="filament-panels-translations"
 #### `ObiektResource`
 
 **Table columns:**
+
 - Thumbnail (from Spatie Media Library, `images` collection, `thumbnail` conversion)
 - Title (searchable)
 - Voivodeship (relationship column)
@@ -112,6 +114,7 @@ php artisan vendor:publish --tag="filament-panels-translations"
 - Actions: Edit, View, Delete
 
 **Form fields:**
+
 - `title` (text input, required, max 255)
 - `slug` (text input, auto-generated from title, editable, unique)
 - `description` (rich text editor or textarea, required)
@@ -119,8 +122,8 @@ php artisan vendor:publish --tag="filament-panels-translations"
 - `kategorie` (multi-select or checkbox list, relationship, optional)
 - `is_unesco` (toggle, default false)
 - `coordinates` (two number inputs: latitude, longitude, required)
-  - Latitude: -90 to 90, 7 decimal places
-  - Longitude: -180 to 180, 7 decimal places
+    - Latitude: -90 to 90, 7 decimal places
+    - Longitude: -180 to 180, 7 decimal places
 - `geometry` (textarea for GeoJSON, optional, validated as valid GeoJSON geometry)
 - `opening_hours` (textarea, optional)
 - `ticket_prices` (textarea, optional)
@@ -130,6 +133,7 @@ php artisan vendor:publish --tag="filament-panels-translations"
 - `published_at` (datetime picker)
 
 **Validation rules:**
+
 ```php
 public static function getRules(): array
 {
@@ -148,35 +152,41 @@ public static function getRules(): array
 ```
 
 **Filters:**
+
 - By voivodeship (select)
-- By category (select)
+- By object type (select)
 - Published / Unpublished
 - UNESCO only
 
 **Actions:**
+
 - Create / Edit / Delete (with confirmation dialog)
 - Publish / Unpublish (bulk and individual)
 
-#### `KategoriaResource`
+#### `KategoriaResource` (object types)
 
 **Table columns:**
+
 - Name (searchable)
 - Parent (relationship)
 - Children count
 - Objects count
 
 **Form fields:**
+
 - `name` (text input, required)
 - `slug` (auto-generated)
 - `description` (textarea, optional)
 - `parent_id` (select, optional, relationship to self, exclude current and descendants)
 
 **Validation:**
+
 - Max 3 levels deep (validate on save)
 
-#### `ArtkulResource`
+#### `ArtkulResource` (news)
 
 **Table columns:**
+
 - Cover thumbnail (from Spatie, `cover` collection, `thumbnail` conversion)
 - Title (searchable)
 - Published at (date)
@@ -184,6 +194,7 @@ public static function getRules(): array
 - Actions: Edit, Delete
 
 **Form fields:**
+
 - `title` (text input, required, max 255)
 - `slug` (auto-generated)
 - `excerpt` (textarea, optional, max 500)
@@ -195,16 +206,19 @@ public static function getRules(): array
 ### Dashboard Widgets
 
 **Latest Objects Widget:**
+
 - Show 5 most recently created objects
 - Columns: thumbnail, title, voivodeship, published status
 
-**Latest Articles Widget:**
-- Show 5 most recently published articles
+**Latest News Widget:**
+
+- Show 5 most recently published news entries
 - Columns: title, published at, status
 
 **Stats Overview Widget:**
+
 - Total objects (published / unpublished)
-- Total articles (published / unpublished)
+- Total news entries (published / unpublished)
 
 ### Filament Route Protection
 
@@ -245,7 +259,7 @@ CMS routes will be under `/cms/*` and require authentication:
 - [ ] `ObiektResource` with full CRUD, form validation, table with filters
 - [ ] Image upload in Obiekt form (min 1, multiple, reorderable)
 - [ ] Coordinates input (latitude/longitude) validated
-- [ ] Category assignment (multi-select) in Obiekt form
+- [ ] Object type assignment (multi-select) in Obiekt form
 - [ ] UNESCO toggle in Obiekt form
 - [ ] Publication status toggle (publish/unpublish)
 - [ ] `KategoriaResource` with CRUD, hierarchical parent selection, max 3-level validation
@@ -253,8 +267,8 @@ CMS routes will be under `/cms/*` and require authentication:
 - [ ] Dashboard with stats widgets and latest records
 - [ ] Publish/unpublish actions work correctly
 - [ ] Object deletion confirms before executing
-- [ ] Article deletion confirms before executing
-- [ ] Unpublished objects/articles do not appear in public views (enforced by scopes in RFC-001)
+- [ ] News deletion confirms before executing
+- [ ] Unpublished objects/news do not appear in public views (enforced by scopes in RFC-001)
 - [ ] Pest tests for CMS resource CRUD operations
 - [ ] Pest tests for form validation (required fields, file types, coordinates)
 - [ ] Pest tests for publish/unpublish actions
@@ -288,7 +302,7 @@ CMS routes will be under `/cms/*` and require authentication:
 - File upload errors: type mismatch, size exceeded → clear error message
 - Slug collision: automatic suffix incrementing
 - Invalid GeoJSON: validation error with descriptive message
-- Category depth > 3: validation error on save
+- Object type depth > 3: validation error on save
 
 ---
 

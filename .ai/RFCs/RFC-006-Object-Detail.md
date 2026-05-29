@@ -1,6 +1,6 @@
 # RFC-006: Object Detail Page
 
-> **Terminology:** "sightseeing object" = *obiekt krajoznawczy*; "voivodeship" = *województwo*; "category" = *kategoria*
+> **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_
 
 **Status:** Proposed  
 **Complexity:** Medium  
@@ -11,7 +11,7 @@
 
 ## Summary
 
-Build the object detail page at `/obiekty/{slug}` — a document-like, reference-oriented Blade page displaying all information about a single sightseeing object. Includes title, description, image gallery, practical info, metadata, and a "back to catalog" link. Print-friendly layout is prepared here with basic CSS; RFC-007 enhances it further.
+Build the object detail page at `/katalog/{slug}` — a document-like, reference-oriented Blade page displaying all information about a single sightseeing object. Includes title, description, image gallery, practical info, metadata, and a "back to catalog" link. Print-friendly layout is prepared here with basic CSS; RFC-007 enhances it further.
 
 ---
 
@@ -39,7 +39,7 @@ Build the object detail page at `/obiekty/{slug}` — a document-like, reference
 
 ```php
 // routes/web.php
-Route::get('/obiekty/{slug}', [ObjectController::class, 'show'])->name('objects.show');
+Route::get('/katalog/{slug}', [ObjectController::class, 'show'])->name('catalog.show');
 ```
 
 ### Controller
@@ -210,7 +210,7 @@ The "Nearby Objects" section is a placeholder in this RFC. RFC-007 implements it
 Instead of manual slug lookup, consider route model binding with a custom key:
 
 ```php
-Route::get('/obiekty/{object:slug}', [ObjectController::class, 'show'])->name('objects.show');
+Route::get('/katalog/{object:slug}', [ObjectController::class, 'show'])->name('catalog.show');
 ```
 
 This leverages Laravel's `getRouteKeyName()` on the Obiekt model:
@@ -294,7 +294,11 @@ public function getRouteKeyName(): string
 
 ```css
 @media print {
-    header, footer, nav, .print-hidden, #nearby-objects {
+    header,
+    footer,
+    nav,
+    .print-hidden,
+    #nearby-objects {
         display: none !important;
     }
     article {
@@ -317,10 +321,10 @@ RFC-007 enhances the print layout significantly.
 
 ## Acceptance Criteria
 
-- [ ] `/obiekty/{slug}` renders object detail page for published objects
-- [ ] `/obiekty/{nonexistent}` returns 404
-- [ ] `/obiekty/{slug}` for unpublished objects returns 404
-- [ ] Page displays: title, voivodeship, categories, UNESCO badge
+- [ ] `/katalog/{slug}` renders object detail page for published objects
+- [ ] `/katalog/{nonexistent}` returns 404
+- [ ] `/katalog/{slug}` for unpublished objects returns 404
+- [ ] Page displays: title, voivodeship, object types, UNESCO badge
 - [ ] Main image displayed prominently
 - [ ] Gallery shows thumbnail grid when more than 1 image exists
 - [ ] Gallery thumbnail click opens lightbox with full image
