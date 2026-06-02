@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use InvalidArgumentException;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\File;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
     'title',
@@ -33,10 +39,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'published',
     'published_at',
 ])]
-class SightseeingObject extends Model
+class SightseeingObject extends Model implements HasMedia
 {
     /** @use HasFactory<SightseeingObjectFactory> */
-    use HasFactory, HasSlug;
+    use HasFactory, HasSlug, InteractsWithMedia;
 
     protected $attributes = [
         'is_unesco' => false,
@@ -52,6 +58,103 @@ class SightseeingObject extends Model
     public function objectTypes(): BelongsToMany
     {
         return $this->belongsToMany(ObjectType::class, 'object_object_type');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('images')
+            ->acceptsFile(fn (File $file): bool => in_array($file->mimeType, ['image/jpeg', 'image/png', 'image/webp'], true)
+                && $file->size <= 10 * 1024 * 1024)
+            ->useDisk('public')
+            ->useFallbackUrl('/images/placeholder-object.jpg')
+            ->useFallbackUrl('/images/placeholder-object-thumb.jpg', 'thumbnail')
+            ->useFallbackUrl('/images/placeholder-object-card.jpg', 'card');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumbnail')
+            ->fit(Fit::Crop, 400, 300)
+            ->nonQueued();
+
+        $this->addMediaConversion('card')
+            ->fit(Fit::Crop, 800, 600)
+            ->nonQueued();
+    }
+
+    public function reorderImages(array $mediaIds): void
+    {
+        $currentMediaIds = $this->media()
+            ->where('collection_name', 'images')
+            ->orderBy('order_column')
+            ->pluck('id')
+            ->map(fn (int|string $mediaId): int => (int) $mediaId)
+            ->all();
+
+        $submittedMediaIds = array_map(fn (int|string $mediaId): int => (int) $mediaId, $mediaIds);
+        $uniqueSubmittedMediaIds = array_values(array_unique($submittedMediaIds));
+        $sortedCurrentMediaIds = $currentMediaIds;
+        $sortedSubmittedMediaIds = $submittedMediaIds;
+
+        sort($sortedCurrentMediaIds);
+        sort($sortedSubmittedMediaIds);
+
+        if ($submittedMediaIds !== $uniqueSubmittedMediaIds || $sortedSubmittedMediaIds !== $sortedCurrentMediaIds) {
+            throw new InvalidArgumentException('Media IDs must contain every object image exactly once.');
+        }
+
+        Media::setNewOrder($submittedMediaIds);
+    }
+
+    public function getPrimaryImageUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('images');
+    }
+
+    public function getThumbnailUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('images', 'thumbnail');
+    }
+
+    public function getCardUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('images', 'card');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getImageUrlsAttribute(): array
+    {
+        return $this->getMedia('images')
+            ->map(fn (Media $media): string => $media->getUrl())
+            ->values()
+            ->all();
+    }
+
+    public function getHasImagesAttribute(): bool
+    {
+        return $this->hasMedia('images');
+    }
+
+    /**
+     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, alt: string, author: mixed, source: mixed, order: int|null}>
+     */
+    public function getImageItemsAttribute(): array
+    {
+        return $this->getMedia('images')
+            ->map(fn (Media $media): array => [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'thumbnail_url' => $media->getUrl('thumbnail'),
+                'card_url' => $media->getUrl('card'),
+                'alt' => $media->getCustomProperty('alt', $this->title),
+                'author' => $media->getCustomProperty('author'),
+                'source' => $media->getCustomProperty('source'),
+                'order' => $media->order_column,
+            ])
+            ->values()
+            ->all();
     }
 
     #[Scope]
