@@ -4,7 +4,7 @@
 
 **Status:** Proposed  
 **Complexity:** Medium  
-**Predecessors:** RFC-001  
+**Predecessors:** RFC-001, RFC-002  
 **Successors:** RFC-007
 
 ---
@@ -29,7 +29,7 @@ Build all Blade-based public pages: the homepage with project description and la
 
 ## Previous / Next
 
-- **Builds on:** RFC-001 (models and data exist)
+- **Builds on:** RFC-001 (models and data exist), RFC-002 (media URLs, thumbnails, and cover images exist)
 - **Built by future:** RFC-007 (nearby objects on homepage enhancement)
 
 ---

@@ -11,7 +11,7 @@
 
 ## Summary
 
-Install and configure Filament v4 as the editorial CMS under `/cms`, integrated with existing Fortify authentication. Implement resources for sightseeing objects, object types, and news, including role-based actions (administrator vs editor), media handling via Spatie Media Library, PRD-aligned publication workflows, and dashboard widgets for editorial operations.
+Install and configure Filament v4 as the editorial CMS under `/cms`, using a Filament-owned login page on the existing Laravel `web` guard and session stack. Implement resources for sightseeing objects, object types, and news, including role-based actions (administrator vs editor), automatic author assignment, media handling via Spatie Media Library, PRD-aligned publication workflows, and dashboard widgets for editorial operations.
 
 This RFC implements only the CMS/editorial layer. Public pages remain in RFC-004 (Blade) and the interactive catalog remains in RFC-005 (Inertia + Svelte), consistent with the route-by-route architecture in `.ai/tech-stack.md`.
 
@@ -20,8 +20,9 @@ This RFC implements only the CMS/editorial layer. Public pages remain in RFC-004
 ## Features / Requirements Addressed
 
 - PRD 7.1: Objects management (create/edit, object type assignment, UNESCO flag, point/polygon support)
-- PRD 7.2: News management (create/edit, draft/published)
+- PRD 7.2: News management (create/edit, draft/published/archived, featured)
 - PRD 7.3: Users and roles (`administrator`, `editor`) with delete restricted to administrator
+- PRD 7.3: Automatic author assignment for content
 - PRD 7.4: Media upload with optional attribution (`author`, `source`) and main image semantics
 - US-008: Add object
 - US-009: Edit object
@@ -47,7 +48,7 @@ composer require filament/filament
 php artisan filament:install --panels
 ```
 
-Use Filament with the existing `User` model and Fortify authentication stack.
+Use Filament with the existing `User` model, the Laravel `web` guard, and the existing session authentication stack. Fortify remains installed for the app's current auth flow, but Filament owns the CMS login UI.
 
 ### Panel Configuration (`/cms`)
 
@@ -57,7 +58,8 @@ Create `app/Providers/Filament/AdminPanelProvider.php` with:
 - Login enabled (`/cms/login`)
 - Polish language (`pl`)
 - Registration of resources and dashboard widgets
-- Auth middleware stack compatible with Fortify session auth
+- Auth middleware stack using the existing `web` guard and session cookies
+- No Fortify route prefix change and no redirect bridge through `/login`
 
 ### Localization
 
@@ -72,11 +74,23 @@ Define and enforce two roles from PRD:
 - `administrator`: full permissions, including delete operations
 - `editor`: create and edit permissions, no delete permissions
 
+Persist role directly on `users` as a simple application enum/string field. For MVP, no separate permissions package is introduced.
+
 Apply this consistently via policies and Filament resource/page/action visibility:
 
 - Delete row actions hidden/forbidden for `editor`
 - Delete bulk actions hidden/forbidden for `editor`
 - Create/edit allowed for both roles
+
+### Author Assignment
+
+Author assignment is automatic for both sightseeing objects and articles:
+
+- Persist `author_id` on `sightseeing_objects` and `articles`
+- Set `author_id` from the authenticated CMS user on create
+- Treat the stored author as the content owner/creator
+- Show author as read-only metadata in CMS where useful
+- Do not allow editors to reassign author ownership
 
 ### Resources
 
@@ -139,17 +153,19 @@ Apply this consistently via policies and Filament resource/page/action visibilit
 - `title`, `slug`
 - `excerpt` (optional)
 - `body` (Markdown editor)
-- Publication status: `draft|published`
+- Publication status: `draft|published|archived`
+- `is_featured` toggle for selected entries
 - `published_at` datetime
 - Cover image upload (Spatie `cover` single-file collection)
 - Optional attribution metadata (`author`, `source`) for cover image
-- Author assignment field, if author relation/field exists in schema
+- Author displayed as automatic read-only assignment from the creating CMS user
 
 **Table expectations:**
 
 - Cover thumbnail
 - Title
 - Status badge (`draft`/`published`)
+- Featured indicator
 - Published at
 - Row actions respecting role permissions
 
@@ -161,7 +177,8 @@ Provide an editorial dashboard oriented to PRD operations:
     - total objects
     - objects by status (`draft`, `published`)
     - total news entries
-    - news by status (`draft`, `published`)
+    - news by status (`draft`, `published`, `archived`)
+    - featured news count
 - Latest objects widget (recently created/updated)
 - Latest news widget (recently published/updated)
 
@@ -173,14 +190,14 @@ Filament routes live under `/cms/*` and require authentication.
 - Unauthenticated access to `/cms/*` redirects to login
 - Authenticated users can access CMS according to role permissions
 
-Fortify remains the authentication backend; this RFC does not introduce public-user auth.
+`/cms/login` is a Filament-provided login page using the existing Laravel `web` guard and session. Fortify remains available for the app's current Inertia-rendered auth pages at `/login`, but the CMS does not reuse or redirect through those views.
 
 ---
 
 ## Data Flow
 
 ```
-[Administrator/Editor] -> /cms/login -> [Fortify session auth] -> /cms
+[Administrator/Editor] -> /cms/login -> [Filament login on web/session auth] -> /cms
   |
   +-- /cms/sightseeing-objects (create/edit; delete only administrator)
   |      \-> Spatie Media Library (images + attribution metadata)
@@ -196,13 +213,15 @@ Fortify remains the authentication backend; this RFC does not introduce public-u
 ## Acceptance Criteria
 
 - [ ] Filament v4 installed and panel configured at `/cms`
-- [ ] CMS login works at `/cms/login` using Fortify-authenticated users
+- [ ] CMS login works at `/cms/login` using Filament auth on the existing `web` guard/session
 - [ ] CMS interface and labels are Polish-first
 - [ ] Roles enforced: `administrator` full access, `editor` create/edit without delete
+- [ ] Roles are persisted directly on `users`
 - [ ] `SightseeingObjectResource` supports PRD object fields, point/polygon handling, UNESCO, object types, and draft/published status
 - [ ] Object media gallery supports multiple files, ordering, main image semantics, and optional attribution metadata
 - [ ] `ObjectTypeResource` supports hierarchical CRUD with loop prevention and max 3-level depth validation
-- [ ] `ArticleResource` supports draft/published status, Markdown body, and cover image upload
+- [ ] `ArticleResource` supports draft/published/archived status, featured entries, Markdown body, and cover image upload
+- [ ] Objects and articles store author ownership automatically from the authenticated CMS user
 - [ ] Delete actions require confirmation and are available only to administrator
 - [ ] Dashboard widgets show counts and latest records for objects/news
 - [ ] Pest feature tests cover auth, role permissions, CRUD, and key validation rules
@@ -217,10 +236,11 @@ Fortify remains the authentication backend; this RFC does not introduce public-u
 - Unauthenticated user cannot access `/cms/*`
 - Authenticated administrator can access dashboard and all resource actions
 - Authenticated editor can create/edit but cannot delete objects/news
+- Object and article create flows persist `author_id` from the authenticated user
 - Object create/edit validates required fields, geometry mode, and coordinate ranges
 - Object media validation covers file type/size and min-image requirement for publish-ready status
 - Object type hierarchy validation blocks loops and depth > 3
-- News create/edit validates status enum
+- News create/edit validates `draft|published|archived` status and featured flag behavior
 
 ### Authorization Tests
 
