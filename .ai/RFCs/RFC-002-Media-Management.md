@@ -2,7 +2,7 @@
 
 > **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "news" = _aktualności_
 
-**Status:** Proposed  
+**Status:** Implemented  
 **Complexity:** Medium  
 **Predecessors:** RFC-001  
 **Successors:** RFC-003, RFC-005, RFC-006

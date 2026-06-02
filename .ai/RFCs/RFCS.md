@@ -50,15 +50,15 @@ RFC-007  Advanced Features (Nearby, Print, Polish)
 
 ## RFC Summary Table
 
-| ID                                        | Title                                     | Complexity | Pages Addressed                      | Dependencies              |
-| ----------------------------------------- | ----------------------------------------- | ---------- | ------------------------------------ | ------------------------- |
-| [RFC-001](RFC-001-Database-Foundation.md) | Database Foundation & Core Models         | Medium     | —                                    | None                      |
-| [RFC-002](RFC-002-Media-Management.md)    | Media Management Layer                    | Medium     | —                                    | RFC-001                   |
-| [RFC-003](RFC-003-Filament-CMS.md)        | Filament CMS                              | High       | /cms/\*                              | RFC-001, RFC-002          |
-| [RFC-004](RFC-004-Public-Pages.md)        | Public Pages (Homepage, News)             | Medium     | /, /aktualnosci, /aktualnosci/[slug] | RFC-001                   |
-| [RFC-005](RFC-005-Interactive-Catalog.md) | Interactive Catalog (Inertia + Svelte)    | High       | /katalog                             | RFC-001, RFC-002          |
-| [RFC-006](RFC-006-Object-Detail.md)       | Object Detail Page                        | Medium     | /katalog/[slug]                      | RFC-001, RFC-002, RFC-005 |
-| [RFC-007](RFC-007-Advanced-Features.md)   | Advanced Features (Nearby, Print, Polish) | Medium     | Enhancements                         | RFC-001, RFC-005, RFC-006 |
+| ID                                        | Title                                     | Status         | Complexity | Pages Addressed                      | Dependencies              |
+| ----------------------------------------- | ----------------------------------------- | -------------- | ---------- | ------------------------------------ | ------------------------- |
+| [RFC-001](RFC-001-Database-Foundation.md) | Database Foundation & Core Models         | ✅ Implemented | Medium     | —                                    | None                      |
+| [RFC-002](RFC-002-Media-Management.md)    | Media Management Layer                    | ✅ Implemented | Medium     | —                                    | RFC-001                   |
+| [RFC-003](RFC-003-Filament-CMS.md)        | Filament CMS                              | Pending        | High       | /cms/\*                              | RFC-001, RFC-002          |
+| [RFC-004](RFC-004-Public-Pages.md)        | Public Pages (Homepage, News)             | Pending        | Medium     | /, /aktualnosci, /aktualnosci/[slug] | RFC-001                   |
+| [RFC-005](RFC-005-Interactive-Catalog.md) | Interactive Catalog (Inertia + Svelte)    | Pending        | High       | /katalog                             | RFC-001, RFC-002          |
+| [RFC-006](RFC-006-Object-Detail.md)       | Object Detail Page                        | Pending        | Medium     | /katalog/[slug]                      | RFC-001, RFC-002, RFC-005 |
+| [RFC-007](RFC-007-Advanced-Features.md)   | Advanced Features (Nearby, Print, Polish) | Pending        | Medium     | Enhancements                         | RFC-001, RFC-005, RFC-006 |
 
 ## Dependency Matrix
 
