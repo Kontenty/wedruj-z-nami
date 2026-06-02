@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Article;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,6 +25,8 @@ class ArticleFactory extends Factory
             'status' => 'draft',
             'published' => false,
             'published_at' => null,
+            'author_id' => User::factory()->editor(),
+            'is_featured' => false,
         ];
     }
 
@@ -33,6 +36,13 @@ class ArticleFactory extends Factory
             'status' => 'published',
             'published' => true,
             'published_at' => now()->subDays(fake()->numberBetween(1, 30)),
+        ]);
+    }
+
+    public function featured(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_featured' => true,
         ]);
     }
 }

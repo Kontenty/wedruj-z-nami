@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\SightseeingObject;
+use App\Models\User;
 use App\Models\Voivodeship;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Query\Expression;
@@ -39,6 +40,7 @@ class SightseeingObjectFactory extends Factory
             'longitude' => $longitude,
             'geometry' => self::pointExpression($latitude, $longitude),
             'voivodeship_id' => Voivodeship::factory(),
+            'author_id' => User::factory()->editor(),
             'status' => 'draft',
             'published' => false,
             'published_at' => null,

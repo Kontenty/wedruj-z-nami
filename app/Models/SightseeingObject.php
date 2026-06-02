@@ -35,6 +35,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'longitude',
     'geometry',
     'voivodeship_id',
+    'author_id',
     'status',
     'published',
     'published_at',
@@ -53,6 +54,11 @@ class SightseeingObject extends Model implements HasMedia
     public function voivodeship(): BelongsTo
     {
         return $this->belongsTo(Voivodeship::class);
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     public function objectTypes(): BelongsToMany

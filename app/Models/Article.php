@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\File;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-#[Fillable(['title', 'slug', 'excerpt', 'body', 'status', 'published', 'published_at'])]
+#[Fillable(['title', 'slug', 'excerpt', 'body', 'status', 'published', 'published_at', 'author_id', 'is_featured'])]
 class Article extends Model implements HasMedia
 {
     /** @use HasFactory<ArticleFactory> */
@@ -24,7 +25,13 @@ class Article extends Model implements HasMedia
     protected $attributes = [
         'published' => false,
         'status' => 'draft',
+        'is_featured' => false,
     ];
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
 
     public function registerMediaCollections(): void
     {
@@ -95,6 +102,7 @@ class Article extends Model implements HasMedia
         return [
             'published' => 'boolean',
             'published_at' => 'datetime',
+            'is_featured' => 'boolean',
         ];
     }
 }
