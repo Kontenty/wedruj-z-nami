@@ -41,7 +41,7 @@ function clear() {
     </button>
 
     {#if open}
-        <div class="absolute z-30 mt-2 w-full overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl">
+        <div class="absolute z-50 mt-2 w-full overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl">
             <div class="border-b border-stone-100 p-3">
                 <input class="w-full rounded-2xl border border-stone-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600" bind:value={search} placeholder="Szukaj…" />
             </div>
