@@ -63,22 +63,29 @@ class CatalogController extends Controller
         // Apply filters
         $query->searchByTitle($request->query('q'));
         $query->inVoivodeship($request->query('wojewodztwo'));
-        $query->inCategory($request->query('objectType') ? (int) $request->query('objectType') : null);
+        $query->inObjectType($request->query('objectType') ? (int) $request->query('objectType') : null);
         $query->unesco($request->boolean('unesco'));
 
-        // Get results with geometry for map display
-        $objects = $query->orderByDesc('published_at')->paginate(24);
+        // Paginated list/card results
+        $objects = (clone $query)
+            ->orderByDesc('published_at')
+            ->paginate(24)
+            ->withQueryString();
 
-        // Add geometry GeoJSON to each object for map rendering
-        $objects->getCollection()->transform(function ($object) {
-            $object->geojson = $object->geometry
-                ? DB::selectOne("SELECT ST_AsGeoJSON(?) as geojson", [$object->geometry])->geojson
-                : null;
-            return $object;
-        });
+        // All filtered map results (expected max ~500), including GeoJSON from geometry column
+        $mapObjects = (clone $query)
+            ->selectRaw('ST_AsGeoJSON(geometry) as geojson')
+            ->where(function ($query): void {
+                $query->whereNotNull('latitude')
+                    ->whereNotNull('longitude')
+                    ->orWhereNotNull('geometry');
+            })
+            ->orderByDesc('published_at')
+            ->get();
 
         return Inertia::render('Catalog/Index', [
             'objects' => ObjectResource::collection($objects),
+            'mapObjects' => ObjectResource::collection($mapObjects),
             'filters' => [
                 'q' => $request->query('q'),
                 'wojewodztwo' => $request->query('wojewodztwo'),
@@ -123,7 +130,7 @@ class ObjectResource extends JsonResource
                 'slug' => $t->slug,
             ]),
             'geojson' => $this->geojson,
-            'url' => route('catalog.show', $this->slug),
+            // No detail URL until RFC-006.
         ];
     }
 }
@@ -164,7 +171,7 @@ resources/js/pages/Catalog/Index.svelte
 │   └── MapPopup.svelte           (marker popup content)
 ├── ObjectGrid.svelte             (card grid results)
 │   └── ObjectCard.svelte         (single object card)
-├── MobileViewToggle.svelte       (Map | List segmented control)
+├── MobileViewToggle.svelte       (Mapa | Lista segmented control)
 └── EmptyState.svelte             (no results message)
 ```
 
@@ -176,28 +183,30 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
 <script>
     import { router } from '@inertiajs/svelte';
 
-    let { objects, filters, categories, voivodeships } = $props();
+    import { index as catalogIndex } from '@/routes/catalog';
+
+    let { objects, mapObjects, filters, objectTypes, voivodeships } = $props();
 
     let searchQuery = $state(filters.q || '');
     let selectedVoivodeship = $state(filters.wojewodztwo || '');
-    let selectedCategory = $state(filters.objectType || '');
+    let selectedObjectType = $state(filters.objectType || '');
     let isUnesco = $state(filters.unesco || false);
     let activeView = $state('map'); // 'map' | 'list'
     let selectedObject = $state(null);
 
     function applyFilters() {
         router.get(
-            '/katalog',
+            catalogIndex.url(),
             {
                 q: searchQuery || undefined,
                 wojewodztwo: selectedVoivodeship || undefined,
-                objectType: selectedCategory || undefined,
+                objectType: selectedObjectType || undefined,
                 unesco: isUnesco || undefined,
             },
             {
                 preserveState: true,
                 replace: true,
-                only: ['objects'],
+                only: ['objects', 'mapObjects', 'filters'],
             },
         );
     }
@@ -220,7 +229,7 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
     import maplibregl from 'maplibre-gl';
     import 'maplibre-gl/dist/maplibre-gl.css';
 
-    let { objects, selectedObject, onObjectSelect } = $props();
+    let { mapObjects, selectedObject, onObjectSelect } = $props();
     let map;
     let isReady = false;
 
@@ -228,7 +237,7 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
         if (!map) {
             map = new maplibregl.Map({
                 container: 'catalog-map',
-                style: 'https://demotiles.maplibre.org/style.json',
+                style: 'https://tiles.openfreemap.org/styles/liberty',
                 center: [19.1, 51.9],
                 zoom: 6,
             });
@@ -239,7 +248,7 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
         }
 
         if (isReady) {
-            updateLayers(objects);
+            updateLayers(mapObjects);
         }
     });
 
@@ -324,6 +333,8 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
 <div id="catalog-map" class="w-full h-[60vh] md:h-[70vh] rounded-lg"></div>
 ```
 
+Implementation note: split `mapObjects` into separate point and polygon GeoJSON sources. Enable clustering only on the point source. Render polygons with fill and outline layers, and attach popup click handlers to both point and polygon layers.
+
 ### Filter Sidebar (Desktop)
 
 ```svelte
@@ -333,24 +344,24 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
 
     <!-- Voivodeship filter -->
     <fieldset>
-        <legend>Voivodeship</legend>
+        <legend>Województwo</legend>
         <select bind:value={selectedVoivodeship} onchange={applyFilters}>
-            <option value="">All</option>
+            <option value="">Wszystkie</option>
             {#each voivodeships as v}
                 <option value={v.slug}>{v.name}</option>
             {/each}
         </select>
     </fieldset>
 
-    <!-- Category filter (hierarchical) -->
+    <!-- Object type filter (hierarchical) -->
     <fieldset>
-        <legend>Category</legend>
-        {#each categories as category}
-            <CategoryAccordion
-                {category}
-                selected={selectedCategory}
+        <legend>Typ obiektu</legend>
+        {#each objectTypes as objectType}
+            <ObjectTypeAccordion
+                objectType={objectType}
+                selected={selectedObjectType}
                 onSelect={(id) => {
-                    selectedCategory = id;
+                    selectedObjectType = id;
                     applyFilters();
                 }}
             />
@@ -364,10 +375,10 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
             bind:checked={isUnesco}
             onchange={applyFilters}
         />
-        UNESCO Only
+        Tylko UNESCO
     </label>
 
-    <button onclick={clearFilters}>Clear Filters</button>
+    <button onclick={clearFilters}>Wyczyść filtry</button>
 </aside>
 ```
 
@@ -376,21 +387,21 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
 ```svelte
 <!-- Mobile layout -->
 <div class="md:hidden">
-    <!-- Segmented control: Map | List -->
+    <!-- Segmented control: Mapa | Lista -->
     <div class="flex border-b">
         <button
             class:active={activeView === 'map'}
-            onclick={() => (activeView = 'map')}>Map</button
+            onclick={() => (activeView = 'map')}>Mapa</button
         >
         <button
             class:active={activeView === 'list'}
-            onclick={() => (activeView = 'list')}>List</button
+            onclick={() => (activeView = 'list')}>Lista</button
         >
-        <button onclick={() => (showFilters = true)}>Filters</button>
+        <button onclick={() => (showFilters = true)}>Filtry</button>
     </div>
 
     {#if activeView === 'map'}
-        <CatalogMap {objects} {onObjectSelect} />
+        <CatalogMap {mapObjects} {onObjectSelect} />
     {:else}
         <ObjectGrid {objects} {onObjectSelect} />
     {/if}
@@ -399,7 +410,7 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
         <MobileFilterSheet
             bind:show={showFilters}
             {selectedVoivodeship}
-            {selectedCategory}
+            {selectedObjectType}
             {isUnesco}
             {applyFilters}
             {clearFilters}
@@ -416,7 +427,7 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
     <div class="flex flex-wrap gap-2 mb-4">
         {#if searchQuery}
             <span class="chip">
-                Search: {searchQuery}
+                Szukaj: {searchQuery}
                 <button
                     onclick={() => {
                         searchQuery = '';
@@ -437,9 +448,9 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
             </span>
         {/if}
         <!-- ... similar for object type and UNESCO -->
-        <button onclick={clearFilters}>Clear All</button>
+        <button onclick={clearFilters}>Wyczyść filtry</button>
     </div>
-    <p>Result count: {objects.total}</p>
+    <p>Liczba wyników: {objects.total}</p>
 {/if}
 ```
 
@@ -451,9 +462,8 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
     let { object, onHover, onLeave } = $props();
 </script>
 
-<a
-    href={object.url}
-    class="group block bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+<article
+    class="group block bg-white rounded-lg shadow-sm border"
     onmouseenter={() => onHover?.(object)}
     onmouseleave={() => onLeave?.(object)}
 >
@@ -467,12 +477,12 @@ Use Svelte 5 runes (`$state`, `$derived`, `$effect`) for local state. URL query 
         <h3 class="font-semibold text-lg group-hover:text-primary">
             {object.title}
         </h3>
-        <p class="text-sm text-gray-500">{object.wojewodztwo.name}</p>
+        <p class="text-sm text-gray-500">{object.voivodeship.name}</p>
         {#if object.is_unesco}
             <span class="badge">UNESCO</span>
         {/if}
     </div>
-</a>
+</article>
 ```
 
 ### URL State Persistence
@@ -483,7 +493,7 @@ Filters are persisted as URL query parameters, enabling:
 - Browser back/forward navigation
 - Direct link to filtered view
 
-Example: `/katalog?q=castle&wojewodztwo=malopolskie&unesco=true`
+Example: `/katalog?wojewodztwo=malopolskie&objectType=12&unesco=true`
 
 ### Map-List Synchronization
 
@@ -493,13 +503,13 @@ Example: `/katalog?q=castle&wojewodztwo=malopolskie&unesco=true`
 
 ### Partial Reloads
 
-Use Inertia partial reloads to only fetch updated objects when filters change:
+Use Inertia partial reloads to fetch updated list objects, map objects, and canonical filters when filters change:
 
 ```svelte
-router.get('/katalog', params, {
+router.get(catalogIndex.url(), params, {
     preserveState: true,
     replace: true,
-    only: ['objects'],
+    only: ['objects', 'mapObjects', 'filters'],
 });
 ```
 
@@ -511,15 +521,16 @@ router.get('/katalog', params, {
 [RFC-001 Data] → CatalogController → Inertia::render → Catalog/Index.svelte
   │
   ├── filters (URL query params)
-  ├── objects (filtered, paginated, with GeoJSON)
-  ├── categories (hierarchical tree)
+  ├── objects (filtered, paginated list/card results)
+  ├── mapObjects (all filtered objects with coordinates and/or GeoJSON)
+  ├── objectTypes (hierarchical tree)
   └── voivodeships (reference list)
   │
   └── Svelte Components
-        ├── FilterSidebar → applyFilters() → router.get() → partial reload
+        ├── FilterSidebar → applyFilters() → Wayfinder catalog route → partial reload
         ├── CatalogMap → MapLibre markers/polygons
         ├── ObjectGrid → ObjectCard list
-        └── MapPopup → click → navigate to /katalog/{slug}
+        └── MapPopup → show object summary (no detail navigation until RFC-006)
 ```
 
 ---
@@ -532,23 +543,23 @@ router.get('/katalog', params, {
 ┌────────────────────────────────────────────────────────┐
 │  Header                                                │
 ├──────────┬─────────────────────────────────────────────┤
-│ SIDEBAR  │  Search bar              Result count: 42   │
+│ SIDEBAR  │  Szukaj              Liczba wyników: 42   │
 │          │  [Active filter chips]                      │
-│ Search   │                                             │
+│ Szukaj   │                                             │
 │ [input]  │  ┌─────────────────────────────────────────┐│
 │          │  │                                         ││
-│ Voivodeship│ │              MAP                        ││
+│ Województwo│ │              MAP                        ││
 │ ▼ select │  │         (MapLibre tiles)                ││
 │          │  │                                         ││
-│ Category │  └─────────────────────────────────────────┘│
-│ ▸ Landmarks│                                            │
-│ ▸ Parks  │  ┌────┐ ┌────┐ ┌────┐ ┌────┐             │
-│ ▸ Museums│  │card│ │card│ │card│ │card│             │
+│ Typ obiektu │  └─────────────────────────────────────────┘│
+│ ▸ Zabytki│                                            │
+│ ▸ Parki  │  ┌────┐ ┌────┐ ┌────┐ ┌────┐             │
+│ ▸ Muzea│  │card│ │card│ │card│ │card│             │
 │          │  └────┘ └────┘ └────┘ └────┘             │
 │ UNESCO   │  ┌────┐ ┌────┐ ┌────┐ ┌────┐             │
 │ ☐ only   │  │card│ │card│ │card│ │card│             │
 │          │  └────┘ └────┘ └────┘ └────┘             │
-│ [Clear]  │  [Pagination]                              │
+│ [Wyczyść]  │  [Pagination]                              │
 └──────────┴─────────────────────────────────────────────┘
 ```
 
@@ -558,9 +569,9 @@ router.get('/katalog', params, {
 ┌────────────────────────┐
 │ Header                 │
 ├────────────────────────┤
-│ Search bar   [Filters] │
+│ Szukaj   [Filtry] │
 ├────────────────────────┤
-│ [Map] [List]           │
+│ [Map] [Lista]           │
 ├────────────────────────┤
 │                        │
 │       MAP              │
@@ -584,9 +595,7 @@ router.get('/katalog', params, {
     />
     <h4 class="mt-2 font-semibold">{title}</h4>
     <p class="text-xs text-gray-500">{voivodeship}</p>
-    <a href="{url}" class="mt-1 inline-block text-sm text-primary"
-        >View Object →</a
-    >
+
 </div>
 ```
 
@@ -595,10 +604,10 @@ router.get('/katalog', params, {
 ```html
 <div class="py-12 text-center">
     <p class="text-lg text-gray-500">
-        No objects found for the selected filters.
+        Nie znaleziono obiektów dla wybranych filtrów.
     </p>
     <button onclick="{clearFilters}" class="btn btn-primary mt-4">
-        Clear Filters
+        Wyczyść filtry
     </button>
 </div>
 ```
@@ -608,22 +617,22 @@ router.get('/katalog', params, {
 ## Acceptance Criteria
 
 - [ ] `/katalog` route renders Inertia Svelte page
-- [ ] Map displays all published objects as markers at correct coordinates
+- [ ] Map displays all filtered published objects with coordinates and/or GeoJSON
 - [ ] Simplified polygons rendered for objects with geometry data
-- [ ] Map popup shows thumbnail, title, voivodeship, and link to detail page
+- [ ] Map popup shows thumbnail, title, and voivodeship, with no detail link until RFC-006
 - [ ] Filter sidebar visible on desktop
 - [ ] Voivodeship filter works: select narrows results, URL updates
 - [ ] Object type filter: hierarchical accordion with 3 levels, selection filters results
 - [ ] UNESCO toggle filters correctly
 - [ ] Search input: debounced partial phrase search by title, updates results
 - [ ] Active filter chips display current filters with remove buttons
-- [ ] "Clear Filters" clears all filters and shows full result set
-- [ ] Result count displayed and updates with filters
-- [ ] Mobile: segmented control switches between Map and List views
+- [ ] "Wyczyść filtry" clears all filters and shows full result set
+- [ ] Liczba wyników displayed and updates with filters
+- [ ] Mobile: segmented control switches between Mapa and Lista views
 - [ ] Mobile: default view is Map
-- [ ] Mobile: Filters button opens bottom sheet with all filters
+- [ ] Mobile: `Filtry` button opens bottom sheet with all filters
 - [ ] Filters persist in URL query params (shareable, browser nav works)
-- [ ] Partial reloads: only objects data refreshes on filter change
+- [ ] Partial reloads: objects, mapObjects, and filters refresh on filter change
 - [ ] Loading state: skeleton cards while data loads
 - [ ] Empty state with clear message and clear-filters action
 - [ ] Object card hover highlights map marker (desktop)
@@ -651,10 +660,7 @@ router.get('/katalog', params, {
 
 ### Frontend
 
-- Component rendering tests (if Svelte testing library available)
-- Integration: filter changes trigger correct Inertia visits
-- Integration: map renders markers for all objects
-- Integration: URL reflects current filter state
+No frontend/browser/component tests are required for RFC-005.
 
 ---
 
@@ -673,7 +679,7 @@ router.get('/katalog', params, {
 
 - Debounce search input (300ms)
 - Lazy-load card images (`loading="lazy"`)
-- Use `only: ['objects']` partial reloads to avoid re-fetching categories/voivodeships
+- Use `only: ['objects', 'mapObjects', 'filters']` partial reloads to avoid re-fetching objectTypes/voivodeships
 - Limit map markers if volume grows (use MapLibre clustering)
 - Use `thumbnail` conversion for card images (400×300, much smaller than originals)
 - Stable map height to prevent layout shift
@@ -684,9 +690,9 @@ router.get('/katalog', params, {
 ## Accessibility Considerations
 
 - Filter controls accessible by keyboard
-- Category accordion supports keyboard expand/collapse
+- Object type accordion supports keyboard expand/collapse
 - Search input has clear label
-- Result count announced via aria-live region
+- Liczba wyników announced via aria-live region
 - Map has text alternative (the results list serves as alternative content)
 - Focus management: preserve focus after filter changes
 - Map does not trap keyboard focus
@@ -697,4 +703,4 @@ router.get('/katalog', params, {
 ## Third-Party Dependencies
 
 - `maplibre-gl` (npm, new) — map library
-- `@types/maplibre-gl` (npm dev, new) — TypeScript types
+- Do not add `@types/maplibre-gl` unless the project conventions or TypeScript compiler require it
