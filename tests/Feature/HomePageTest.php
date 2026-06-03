@@ -90,6 +90,17 @@ test('homepage limits news to three', function () {
         ->assertDontSee('Old News');
 });
 
+test('homepage works with the database cache store on repeated requests', function () {
+    config()->set('cache.default', 'database');
+    Cache::flush();
+
+    SightseeingObject::factory()->published()->create();
+    Article::factory()->published()->create();
+
+    $this->get('/')->assertSuccessful();
+    $this->get('/')->assertSuccessful();
+});
+
 test('nonexistent route renders the custom 404 page', function () {
     $this->get('/nie-ma-takiej-strony')
         ->assertNotFound()

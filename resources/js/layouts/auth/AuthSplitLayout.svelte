@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Link, page } from '@inertiajs/svelte';
+    import { page } from '@inertiajs/svelte';
     import type { Snippet } from 'svelte';
     import AppLogoIcon from '@/components/AppLogoIcon.svelte';
     import { home } from '@/routes';
@@ -24,13 +24,13 @@
         class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
     >
         <div class="absolute inset-0 bg-zinc-900"></div>
-        <Link
-            href={home()}
+        <a
+            href={home.url()}
             class="relative z-20 flex items-center text-lg font-medium"
         >
             <AppLogoIcon class="mr-2 size-8 fill-current text-white" />
             {name}
-        </Link>
+        </a>
     </div>
     <div class="lg:p-8">
         <div

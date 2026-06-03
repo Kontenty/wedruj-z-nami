@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { Link } from '@inertiajs/svelte';
     import type { Snippet } from 'svelte';
     import AppLogoIcon from '@/components/AppLogoIcon.svelte';
     import { home } from '@/routes';
@@ -21,8 +20,8 @@
     <div class="w-full max-w-sm">
         <div class="flex flex-col gap-8">
             <div class="flex flex-col items-center gap-4">
-                <Link
-                    href={home()}
+                <a
+                    href={home.url()}
                     class="flex flex-col items-center gap-2 font-medium"
                 >
                     <div
@@ -33,7 +32,7 @@
                         />
                     </div>
                     <span class="sr-only">{title}</span>
-                </Link>
+                </a>
                 <div class="space-y-2 text-center">
                     <h1 class="text-xl font-medium">{title}</h1>
                     <p class="text-center text-sm text-muted-foreground">
