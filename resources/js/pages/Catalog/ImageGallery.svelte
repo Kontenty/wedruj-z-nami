@@ -15,22 +15,39 @@
     }
 
     function nextImage() {
-        if (images.length <= 1) return;
+        if (images.length <= 1) {
+            return;
+        }
+
         lightboxIndex = (lightboxIndex + 1) % images.length;
         lightboxImage = images[lightboxIndex].url;
     }
 
     function prevImage() {
-        if (images.length <= 1) return;
+        if (images.length <= 1) {
+            return;
+        }
+
         lightboxIndex = (lightboxIndex - 1 + images.length) % images.length;
         lightboxImage = images[lightboxIndex].url;
     }
 
     function onKeydown(e) {
-        if (!lightboxOpen) return;
-        if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowRight') nextImage();
-        if (e.key === 'ArrowLeft') prevImage();
+        if (!lightboxOpen) {
+            return;
+        }
+
+        if (e.key === 'Escape') {
+            closeLightbox();
+        }
+
+        if (e.key === 'ArrowRight') {
+            nextImage();
+        }
+
+        if (e.key === 'ArrowLeft') {
+            prevImage();
+        }
     }
 </script>
 
@@ -55,7 +72,7 @@
 
 {#if images.length > 1}
     <div class="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-        {#each images as image, index}
+        {#each images as image, index (image.url ?? index)}
             <button
                 type="button"
                 onclick={() => openLightbox(image.url, index)}
@@ -73,7 +90,6 @@
 {/if}
 
 {#if lightboxOpen}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
         onclick={closeLightbox}
@@ -85,7 +101,10 @@
     >
         {#if images.length > 1}
             <button
-                onclick={(e) => { e.stopPropagation(); prevImage(); }}
+                onclick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                }}
                 class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
                 aria-label="Poprzednie zdjęcie"
             >
@@ -108,7 +127,10 @@
 
         {#if images.length > 1}
             <button
-                onclick={(e) => { e.stopPropagation(); nextImage(); }}
+                onclick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                }}
                 class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
                 aria-label="Następne zdjęcie"
             >

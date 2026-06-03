@@ -16,11 +16,13 @@ const chips = $derived([
 function remove(chip) {
     if (chip.key === 'unesco') {
         onChange?.({ ...filters, unesco: false })
+
         return
     }
 
     if (chip.key === 'q') {
         onChange?.({ ...filters, q: '' })
+
         return
     }
 

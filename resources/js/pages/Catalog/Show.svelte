@@ -30,7 +30,7 @@
             {#if object.locality}
                 <span class="rounded-full bg-stone-100 px-3 py-1">{object.locality}</span>
             {/if}
-            {#each object.objectTypes as type}
+            {#each object.objectTypes as type (type.id)}
                 <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">{type.name}</span>
             {/each}
             {#if object.is_unesco}
@@ -55,6 +55,7 @@
 
         {#if object.description}
             <div class="prose prose-lg prose-stone mb-8 max-w-none">
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -->
                 {@html object.description}
             </div>
         {/if}
