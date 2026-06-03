@@ -110,6 +110,22 @@ class DatabaseSeeder extends Seeder
         ], [$nationalParks->id]);
 
         $this->createSightseeingObject([
+            'title' => 'Biebrzański Park Narodowy',
+            'lead' => 'Największy park narodowy w Polsce chroniący rozległe bagna i dolinę Biebrzy.',
+            'description' => 'Park obejmuje cenne torfowiska, rozlewiska i siedliska ptaków wodno-błotnych.',
+            'locality' => 'Osowiec-Twierdza',
+            'latitude' => 53.5000,
+            'longitude' => 22.8000,
+            'geometry' => DB::raw("ST_GeomFromText('POLYGON((22.4500000 53.3000000,23.0500000 53.3000000,23.0500000 53.7000000,22.4500000 53.7000000,22.4500000 53.3000000))', 4326)"),
+            'voivodeship_id' => $voivodeships['podlaskie']->id,
+            'status' => 'published',
+            'published' => true,
+            'published_at' => now()->subDays(6),
+            'data_source' => 'PTTK',
+            'source_updated_at' => now()->subWeeks(3),
+        ], [$nationalParks->id]);
+
+        $this->createSightseeingObject([
             'title' => 'Jasna Góra',
             'lead' => 'Zespół klasztorny paulinów i jedno z najważniejszych sanktuariów w Polsce.',
             'description' => 'Jasna Góra jest ważnym miejscem pielgrzymkowym, historycznym i kulturowym.',

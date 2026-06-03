@@ -22,6 +22,16 @@ test('database seeder attaches object types to seeded sightseeing objects', func
     expect($wawel->objectTypes()->whereKey($castleType->id)->exists())->toBeTrue();
 });
 
+test('database seeder creates the biebrzanski national park', function () {
+    $this->seed(DatabaseSeeder::class);
+
+    $biebrza = SightseeingObject::query()->where('title', 'Biebrzański Park Narodowy')->firstOrFail();
+    $nationalParks = ObjectType::query()->where('name', 'Parki narodowe')->firstOrFail();
+
+    expect($biebrza->voivodeship->slug)->toBe('podlaskie')
+        ->and($biebrza->objectTypes()->whereKey($nationalParks->id)->exists())->toBeTrue();
+});
+
 test('voivodeship has sightseeing objects', function () {
     $voivodeship = Voivodeship::factory()->create();
     $object = SightseeingObject::factory()->for($voivodeship)->create();
