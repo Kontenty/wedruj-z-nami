@@ -84,7 +84,7 @@
     >
         {#if images.length > 1}
             <button
-                onclick|stopPropagation={prevImage}
+                onclick={(e) => { e.stopPropagation(); prevImage(); }}
                 class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
                 aria-label="Poprzednie zdjęcie"
             >
@@ -97,12 +97,12 @@
             src={lightboxImage}
             alt=""
             class="max-h-[85vh] max-w-[90vw] rounded-lg"
-            onclick|stopPropagation={() => {}}
+            onclick={(e) => e.stopPropagation()}
         />
 
         {#if images.length > 1}
             <button
-                onclick|stopPropagation={nextImage}
+                onclick={(e) => { e.stopPropagation(); nextImage(); }}
                 class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
                 aria-label="Następne zdjęcie"
             >

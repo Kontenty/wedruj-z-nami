@@ -7,9 +7,7 @@
 
 <Link
     href={catalogShow.url(object.slug)}
-    class="block overflow-hidden rounded-3xl border bg-white shadow-sm transition focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-    class:border-emerald-500={selected}
-    class:border-stone-200={!selected}
+    class="block overflow-hidden rounded-3xl border bg-white shadow-sm transition focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 {selected ? 'border-emerald-500' : 'border-stone-200'}"
     onmouseenter={() => onHover?.(object.id)}
     onmouseleave={() => onHover?.(null)}
 >
