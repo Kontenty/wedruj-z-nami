@@ -168,11 +168,17 @@ class DatabaseSeeder extends Seeder
      */
     private function createSightseeingObject(array $attributes, array $objectTypeIds): void
     {
-        if (SightseeingObject::query()->where('title', $attributes['title'])->exists()) {
+        $object = SightseeingObject::query()->updateOrCreate(
+            ['title' => $attributes['title']],
+            $attributes,
+        );
+
+        if ($object->wasRecentlyCreated) {
+            $object->objectTypes()->sync($objectTypeIds);
+
             return;
         }
 
-        $object = SightseeingObject::query()->create($attributes);
         $object->objectTypes()->sync($objectTypeIds);
     }
 }

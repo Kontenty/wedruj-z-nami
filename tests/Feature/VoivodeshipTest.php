@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
 use Database\Seeders\DatabaseSeeder;
@@ -10,6 +11,15 @@ test('database seeder creates all polish voivodeships', function () {
     expect(Voivodeship::query()->count())->toBe(16)
         ->and(Voivodeship::query()->where('slug', 'malopolskie')->exists())->toBeTrue()
         ->and(Voivodeship::query()->where('slug', 'warminsko-mazurskie')->exists())->toBeTrue();
+});
+
+test('database seeder attaches object types to seeded sightseeing objects', function () {
+    $this->seed(DatabaseSeeder::class);
+
+    $wawel = SightseeingObject::query()->where('title', 'Wawel - Zamek Królewski')->firstOrFail();
+    $castleType = ObjectType::query()->where('name', 'Zamki')->firstOrFail();
+
+    expect($wawel->objectTypes()->whereKey($castleType->id)->exists())->toBeTrue();
 });
 
 test('voivodeship has sightseeing objects', function () {
