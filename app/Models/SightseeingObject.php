@@ -212,8 +212,14 @@ class SightseeingObject extends Model implements HasMedia
     }
 
     #[Scope]
-    protected function nearby(Builder $query, self|int $origin, float $radiusKm = 20, int $limit = 3): void
+    protected function nearby(Builder $query, self|int|float $origin, ?float $longitude = null, float $radiusKm = 20, int $limit = 3): void
     {
+        if ($longitude !== null) {
+            $this->applyNearbyCoordinateScope($query, (float) $origin, $longitude, $radiusKm, $limit);
+
+            return;
+        }
+
         $originId = $origin instanceof self ? $origin->getKey() : $origin;
         $table = $this->getTable();
         $qualifiedGeometryColumn = $this->qualifyColumn('geometry');
@@ -256,6 +262,26 @@ class SightseeingObject extends Model implements HasMedia
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    private function applyNearbyCoordinateScope(Builder $query, float $latitude, float $longitude, float $radiusKm, int $limit): void
+    {
+        $table = $this->getTable();
+        $qualifiedLatitudeColumn = $this->qualifyColumn('latitude');
+        $qualifiedLongitudeColumn = $this->qualifyColumn('longitude');
+        $longitudeScale = cos(deg2rad($latitude));
+        $distanceExpression = "SQRT(POWER(({$qualifiedLatitudeColumn} - ?) * 111320, 2) + POWER(({$qualifiedLongitudeColumn} - ?) * ? * 111320, 2))";
+        $distanceParameters = [$latitude, $longitude, $longitudeScale];
+
+        $query
+            ->published()
+            ->whereNotNull($qualifiedLatitudeColumn)
+            ->whereNotNull($qualifiedLongitudeColumn)
+            ->select("{$table}.*")
+            ->selectRaw("{$distanceExpression} as distance_meters", $distanceParameters)
+            ->whereRaw("{$distanceExpression} <= ?", [...$distanceParameters, $radiusKm * 1000])
+            ->orderByRaw($distanceExpression, $distanceParameters)
+            ->limit($limit);
     }
 
     private function applyObjectTypeScope(Builder $query, ObjectType|int|null $objectType): void

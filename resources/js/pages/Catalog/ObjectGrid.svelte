@@ -6,13 +6,13 @@ const items = $derived(objects.data ?? [])
 </script>
 
 {#if isLoading}
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-4">
         {#each Array(6) as _}
             <div class="h-72 animate-pulse rounded-3xl bg-stone-200"></div>
         {/each}
     </div>
 {:else}
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-4">
         {#each items as object (object.id)}
             <ObjectCard {object} selected={selectedObjectId === object.id} {onHover} />
         {/each}

@@ -10,6 +10,7 @@ use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,13 +18,25 @@ class CatalogController extends Controller
 {
     public function __invoke(Request $request): Response
     {
+        $voivodeships = array_values(array_filter(Arr::wrap($request->query('voivodeships', []))));
+        $objectTypes = array_values(array_filter(array_map('intval', Arr::wrap($request->query('objectTypes', [])))));
+
         $query = SightseeingObject::query()
             ->published()
             ->with(['voivodeship', 'objectTypes'])
             ->select('sightseeing_objects.*')
             ->searchByTitle($request->query('q'))
-            ->inVoivodeship($request->query('wojewodztwo'))
-            ->inObjectType($request->integer('objectType') ?: null)
+            ->when($voivodeships !== [], fn (Builder $query) => $query->whereHas('voivodeship', fn (Builder $query) => $query->whereIn('slug', $voivodeships)))
+            ->when($objectTypes !== [], function (Builder $query) use ($objectTypes): void {
+                $descendantIds = ObjectType::query()
+                    ->whereIn('id', $objectTypes)
+                    ->get()
+                    ->flatMap(fn (ObjectType $objectType) => $objectType->descendantIds()->prepend($objectType->getKey()))
+                    ->unique()
+                    ->values();
+
+                $query->whereHas('objectTypes', fn (Builder $query) => $query->whereIn('object_types.id', $descendantIds));
+            })
             ->unesco($request->boolean('unesco'));
 
         $objects = (clone $query)
@@ -48,8 +61,8 @@ class CatalogController extends Controller
             'mapObjects' => ObjectResource::collection($mapObjects),
             'filters' => [
                 'q' => $request->query('q'),
-                'wojewodztwo' => $request->query('wojewodztwo'),
-                'objectType' => $request->query('objectType'),
+                'voivodeships' => $voivodeships,
+                'objectTypes' => array_map('strval', $objectTypes),
                 'unesco' => $request->boolean('unesco'),
             ],
             'objectTypes' => ObjectTypeResource::collection(

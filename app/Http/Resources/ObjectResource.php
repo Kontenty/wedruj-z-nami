@@ -20,6 +20,7 @@ class ObjectResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'description' => Str::limit((string) $this->description, 150),
+            'locality' => $this->locality,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'is_unesco' => $this->is_unesco,

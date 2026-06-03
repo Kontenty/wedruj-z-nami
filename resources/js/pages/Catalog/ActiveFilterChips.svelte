@@ -1,21 +1,37 @@
 <script>
 let { filters, voivodeships, objectTypes, onChange, onClear } = $props()
-const flatTypes = $derived((objectTypes.data ?? objectTypes).flatMap((t) => [t, ...(t.children ?? []), ...(t.children ?? []).flatMap((c) => c.children ?? [])]))
+
+function flattenTypes(types) {
+    return (types ?? []).flatMap((type) => [type, ...flattenTypes(type.children ?? [])])
+}
+
+const flatTypes = $derived(flattenTypes(objectTypes.data ?? objectTypes))
 const chips = $derived([
-    filters.q ? { key: 'q', label: `Szukaj: ${filters.q}` } : null,
-    filters.wojewodztwo ? { key: 'wojewodztwo', label: voivodeships.find((v) => v.slug === filters.wojewodztwo)?.name ?? filters.wojewodztwo } : null,
-    filters.objectType ? { key: 'objectType', label: flatTypes.find((t) => String(t.id) === String(filters.objectType))?.name ?? 'Typ obiektu' } : null,
-    filters.unesco ? { key: 'unesco', label: 'Tylko UNESCO' } : null,
+    filters.q ? { key: 'q', value: filters.q, label: `Szukaj: ${filters.q}` } : null,
+    ...(filters.voivodeships ?? []).map((slug) => ({ key: 'voivodeships', value: slug, label: voivodeships.find((v) => v.slug === slug)?.name ?? slug })),
+    ...(filters.objectTypes ?? []).map((id) => ({ key: 'objectTypes', value: id, label: flatTypes.find((t) => String(t.id) === String(id))?.name ?? 'Typ obiektu' })),
+    filters.unesco ? { key: 'unesco', value: true, label: 'UNESCO' } : null,
 ].filter(Boolean))
-function remove(key) {
- onChange?.({ ...filters, [key]: key === 'unesco' ? false : '' }) 
+
+function remove(chip) {
+    if (chip.key === 'unesco') {
+        onChange?.({ ...filters, unesco: false })
+        return
+    }
+
+    if (chip.key === 'q') {
+        onChange?.({ ...filters, q: '' })
+        return
+    }
+
+    onChange?.({ ...filters, [chip.key]: (filters[chip.key] ?? []).filter((value) => String(value) !== String(chip.value)) })
 }
 </script>
 
 {#if chips.length}
     <div class="mb-4 flex flex-wrap items-center gap-2">
-        {#each chips as chip (chip.key)}
-            <button class="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-900" onclick={() => remove(chip.key)}>{chip.label} ×</button>
+        {#each chips as chip (`${chip.key}-${chip.value}`)}
+            <button class={(chip.key === 'unesco' ? 'bg-amber-100 text-amber-950' : 'bg-emerald-100 text-emerald-900') + ' rounded-full px-3 py-1 text-sm font-medium'} onclick={() => remove(chip)}>{chip.label} ×</button>
         {/each}
         <button class="rounded-full px-3 py-1 text-sm font-semibold text-stone-600 underline" onclick={onClear}>Wyczyść filtry</button>
     </div>

@@ -4,10 +4,10 @@ import { index as catalogIndex } from '@/routes/catalog'
 import ActiveFilterChips from './ActiveFilterChips.svelte'
 import CatalogMap from './CatalogMap.svelte'
 import EmptyState from './EmptyState.svelte'
-import FilterSidebar from './FilterSidebar.svelte'
 import MobileFilterSheet from './MobileFilterSheet.svelte'
 import MobileViewToggle from './MobileViewToggle.svelte'
 import ObjectGrid from './ObjectGrid.svelte'
+import TopFilterBar from './TopFilterBar.svelte'
 
 let { objects, mapObjects, filters, objectTypes, voivodeships } = $props()
 
@@ -19,8 +19,8 @@ let isLoading = $state(false)
 
 const activeFilters = $derived({
     q: filters.q || '',
-    wojewodztwo: filters.wojewodztwo || '',
-    objectType: filters.objectType || '',
+    voivodeships: filters.voivodeships || [],
+    objectTypes: filters.objectTypes || [],
     unesco: filters.unesco === true,
 })
 const resultCount = $derived(objects.total ?? (objects.data ?? []).length)
@@ -40,7 +40,7 @@ function visit(nextFilters) {
 }
 
 function clearFilters() {
-    visit({ q: '', wojewodztwo: '', objectType: '', unesco: false })
+    visit({ q: '', voivodeships: [], objectTypes: [], unesco: false })
 }
 
 function scrollToObject(objectId) {
@@ -61,13 +61,12 @@ function scrollToObject(objectId) {
             <button class="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 md:hidden" onclick={() => (showMobileFilters = true)}>Filtry</button>
         </div>
 
+        <TopFilterBar filters={activeFilters} {objectTypes} {voivodeships} onApply={visit} onClear={clearFilters} />
+
         <MobileViewToggle bind:activeView />
 
-        <div class="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
-            <FilterSidebar class="hidden lg:block" filters={activeFilters} {objectTypes} {voivodeships} onApply={visit} onClear={clearFilters} />
-
-            <main id="main-content" class="grid gap-4 focus:outline-none xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]" tabindex="-1">
-                <section class={(activeView === 'map' ? 'block' : 'hidden') + ' h-[70vh] overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm md:block xl:sticky xl:top-4'} aria-labelledby="catalog-map-heading">
+        <main id="main-content" class="grid gap-4 focus:outline-none lg:grid-cols-[minmax(0,65fr)_minmax(22rem,35fr)]" tabindex="-1">
+                <section class={(activeView === 'map' ? 'block' : 'hidden') + ' h-[70vh] overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm md:block lg:sticky lg:top-4'} aria-labelledby="catalog-map-heading">
                     <h2 id="catalog-map-heading" class="sr-only">Mapa obiektów</h2>
                     <CatalogMap objects={mapObjects.data ?? mapObjects} {highlightedObjectId} {selectedObjectId} onSelect={scrollToObject} />
                 </section>
@@ -85,7 +84,6 @@ function scrollToObject(objectId) {
                     {/if}
                 </section>
             </main>
-        </div>
     </div>
 </div>
 

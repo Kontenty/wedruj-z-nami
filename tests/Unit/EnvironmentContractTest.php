@@ -36,7 +36,7 @@ function exampleEnvironmentKeys(): array
     $lines = file(base_path('.env.example'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
     foreach ($lines as $line) {
-        if (preg_match('/^([A-Z0-9_]+)=/', $line, $matches) === 1) {
+        if (preg_match('/^#?\s*([A-Z0-9_]+)=/', $line, $matches) === 1) {
             $keys[] = $matches[1];
         }
     }

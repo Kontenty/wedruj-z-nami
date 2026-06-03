@@ -29,7 +29,7 @@ it('filters by voivodeship slug', function () {
     SightseeingObject::factory()->published()->for($mazowieckie)->create(['title' => 'Warszawski zamek']);
     SightseeingObject::factory()->published()->for($malopolskie)->create(['title' => 'Krakowski zamek']);
 
-    $this->get('/katalog?wojewodztwo=mazowieckie')
+    $this->get('/katalog?'.http_build_query(['voivodeships' => ['mazowieckie']]))
         ->assertInertia(fn (Assert $page) => $page
             ->where('objects.data.0.title', 'Warszawski zamek')
             ->missing('objects.data.1'));
@@ -42,7 +42,7 @@ it('filters by object type including descendants', function () {
     $excluded = SightseeingObject::factory()->published()->create(['title' => 'Excluded type']);
     $included->objectTypes()->attach($child);
 
-    $this->get('/katalog?objectType='.$parent->id)
+    $this->get('/katalog?'.http_build_query(['objectTypes' => [$parent->id]]))
         ->assertInertia(fn (Assert $page) => $page
             ->where('objects.data.0.title', 'Included child type')
             ->missing('objects.data.1'));
@@ -73,7 +73,7 @@ it('combines filters correctly', function () {
     SightseeingObject::factory()->published()->unesco()->for($voivodeship)->create(['title' => 'zamek UNESCO']);
     SightseeingObject::factory()->published()->for($voivodeship)->create(['title' => 'zamek zwykly']);
 
-    $this->get('/katalog?q=zamek&wojewodztwo=malopolskie&unesco=true')
+    $this->get('/katalog?'.http_build_query(['q' => 'zamek', 'voivodeships' => ['malopolskie'], 'unesco' => 'true']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('objects.data.0.title', 'zamek UNESCO')
             ->missing('objects.data.1'));
