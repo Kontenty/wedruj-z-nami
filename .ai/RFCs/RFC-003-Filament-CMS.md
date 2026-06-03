@@ -2,7 +2,7 @@
 
 > **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_; "news" = _aktualności_; technical news model/resource name = `Article`
 
-**Status:** Proposed  
+**Status:** Implemented  
 **Complexity:** High  
 **Predecessors:** RFC-001, RFC-002  
 **Successors:** RFC-004, RFC-005, RFC-006, RFC-007

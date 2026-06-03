@@ -13,6 +13,8 @@
 
 Build all Blade-based public pages: the homepage with project description and latest objects, the news listing page, and individual news detail pages. These pages use Blade templates and Tailwind CSS, and serve as the informational layer of the application.
 
+> **Grilling decisions applied:** Alpine.js via CDN for mobile menu, no dark mode, placeholder `#` links for object cards (RFC-006 dependency), no homepage caching, standard Laravel pagination, flat news listing with objects at bottom.
+
 ---
 
 ## Features / Requirements Addressed
@@ -24,6 +26,7 @@ Build all Blade-based public pages: the homepage with project description and la
 - Responsive design (mobile + desktop)
 - WCAG accessibility (basic)
 - MVP language: Polish-only interface copy
+- No dark mode for public Blade pages
 
 ---
 
@@ -66,30 +69,24 @@ Shared layout for all public pages:
     </head>
     <body class="bg-white text-gray-900 antialiased">
         {{-- Public Header --}}
-        <header>
-            <a href="{{ route('home') }}">Kanon</a>
-            <nav>
-                <a href="{{ route('home') }}">Strona glowna</a>
-                <a href="/katalog">Mapa</a>
-                <a href="/katalog?view=list">Katalog</a>
-                <a href="{{ route('news.index') }}">Aktualnosci</a>
-            </nav>
-        </header>
+        <x-public-header />
 
         {{-- Main Content --}}
         <main>@yield('content')</main>
 
         {{-- Public Footer --}}
-        <footer>
-            <div>
-                <p>Kanon — Katalog obiektow krajoznawczych Polski</p>
-            </div>
-        </footer>
+        <x-public-footer />
 
-        @stack('scripts')
+        {{-- Alpine.js via CDN for mobile menu --}}
+        <script
+            defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+        ></script>
     </body>
 </html>
 ```
+
+> **Note:** The existing `resources/views/app.blade.php` (Inertia root layout) remains untouched. It's only used by auth pages and dashboard.
 
 ### Homepage: `HomeController` + `resources/views/home.blade.php`
 
@@ -148,7 +145,7 @@ class NewsController extends Controller
             ->paginate(12);
 
         $latestObjects = SightseeingObject::published()
-            ->with('wojewodztwo')
+            ->with('voivodeship')
             ->orderByDesc('published_at')
             ->limit(4)
             ->get();
@@ -195,13 +192,18 @@ All labels and navigational copy should be in Polish.
 
 ### Markdown Rendering
 
-For news bodies, use Laravel's `Str::markdown()`:
+For news bodies, use Laravel's `Str::markdown()` with XSS protection:
 
 ```blade
 <div class="prose prose-lg max-w-none">
-    {!! Str::markdown($newsItem->body) !!}
+    {!! Str::markdown($newsItem->body, [
+        'html_input' => 'strip',
+        'allow_unsafe_links' => false,
+    ]) !!}
 </div>
 ```
+
+> **Security:** `html_input` strips raw HTML to prevent XSS. `allow_unsafe_links` prevents `javascript:` URIs. Use `html_input` with `strip` for editorial content.
 
 Add Tailwind Typography (`@tailwindcss/typography`) for the `prose` classes.
 
@@ -210,24 +212,38 @@ Add Tailwind Typography (`@tailwindcss/typography`) for the `prose` classes.
 Extract to `resources/views/components/public-header.blade.php`:
 
 ```blade
-<header class="sticky top-0 z-50 bg-white border-b border-gray-200">
+<header class="sticky top-0 z-50 bg-white border-b border-gray-200" x-data="{ open: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             <a href="{{ route('home') }}" class="text-xl font-bold">
                 Kanon
             </a>
             <nav class="hidden md:flex space-x-8">
-                <a href="/katalog" class="...">Mapa</a>
-                <a href="/katalog?view=list" class="...">Katalog</a>
-                <a href="{{ route('news.index') }}" class="...">Aktualnosci</a>
+                <a href="/katalog" class="text-gray-600 hover:text-gray-900">Mapa</a>
+                <a href="/katalog?view=list" class="text-gray-600 hover:text-gray-900">Katalog</a>
+                <a href="{{ route('news.index') }}" class="text-gray-600 hover:text-gray-900">Aktualnosci</a>
             </nav>
             {{-- Mobile hamburger menu --}}
-            <button class="md:hidden" aria-label="Menu">☰</button>
+            <button @click="open = !open" class="md:hidden p-2 text-gray-600 hover:text-gray-900" aria-label="Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path x-show="open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
     </div>
     {{-- Mobile nav dropdown --}}
+    <div x-show="open" x-transition class="md:hidden border-t border-gray-200 bg-white">
+        <div class="px-4 py-3 space-y-3">
+            <a href="/katalog" class="block text-gray-600 hover:text-gray-900">Mapa</a>
+            <a href="/katalog?view=list" class="block text-gray-600 hover:text-gray-900">Katalog</a>
+            <a href="{{ route('news.index') }}" class="block text-gray-600 hover:text-gray-900">Aktualnosci</a>
+        </div>
+    </div>
 </header>
 ```
+
+> **Decision:** Alpine.js via CDN powers the mobile menu toggle. No JavaScript files needed — all logic inline in the Blade component.
 
 ### Public Footer Component
 
@@ -322,12 +338,14 @@ Configure in CSS:
 ### Object Card (Homepage)
 
 ```blade
-<a href="{{ route('catalog.show', $object->slug) }}" class="group">
+<a href="#" class="group" title="Szczegóły obiektu będą dostępne wkrótce">
     <img src="{{ $object->thumbnail_url }}" alt="{{ $object->title }}" class="..." />
     <h3 class="...">{{ $object->title }}</h3>
-    <p class="...">{{ $object->wojewodztwo->name }}</p>
+    <p class="...">{{ $object->voivodeship->name }}</p>
 </a>
 ```
+
+> **Note:** Object card links use placeholder `#` until RFC-006 (Object Detail Page) creates the `catalog.show` route. Cards are non-functional placeholders pending that RFC.
 
 ### News Card
 
@@ -395,7 +413,7 @@ Configure in CSS:
 - Eager-load relationships (`voivodeship`, `objectTypes`) to prevent N+1 queries
 - Paginate news listing (12 per page)
 - Use `thumbnail` conversion for card images (smaller file sizes)
-- Cache latest objects and news queries for homepage (short TTL, e.g., 5 minutes)
+- **No caching for MVP** — simple queries (limit 4/3) don't warrant cache invalidation complexity
 
 ---
 

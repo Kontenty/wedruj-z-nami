@@ -54,7 +54,7 @@ RFC-007  Advanced Features (Nearby, Print, Polish)
 | ----------------------------------------- | ----------------------------------------- | -------------- | ---------- | ------------------------------------ | ------------------------- |
 | [RFC-001](RFC-001-Database-Foundation.md) | Database Foundation & Core Models         | ✅ Implemented | Medium     | —                                    | None                      |
 | [RFC-002](RFC-002-Media-Management.md)    | Media Management Layer                    | ✅ Implemented | Medium     | —                                    | RFC-001                   |
-| [RFC-003](RFC-003-Filament-CMS.md)        | Filament CMS                              | Pending        | High       | /cms/\*                              | RFC-001, RFC-002          |
+| [RFC-003](RFC-003-Filament-CMS.md)        | Filament CMS                              | ✅ Implemented | High       | /cms/\*                              | RFC-001, RFC-002          |
 | [RFC-004](RFC-004-Public-Pages.md)        | Public Pages (Homepage, News)             | Pending        | Medium     | /, /aktualnosci, /aktualnosci/[slug] | RFC-001, RFC-002          |
 | [RFC-005](RFC-005-Interactive-Catalog.md) | Interactive Catalog (Inertia + Svelte)    | Pending        | High       | /katalog                             | RFC-001, RFC-002          |
 | [RFC-006](RFC-006-Object-Detail.md)       | Object Detail Page                        | Pending        | Medium     | /katalog/[slug]                      | RFC-001, RFC-002, RFC-005 |
