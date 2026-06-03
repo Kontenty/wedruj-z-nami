@@ -2,7 +2,7 @@
 
 > **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "object type" = _typ obiektu_
 
-**Status:** Proposed  
+**Status:** Planned  
 **Complexity:** Medium  
 **Predecessors:** RFC-001, RFC-002, RFC-005  
 **Successors:** RFC-007
@@ -12,6 +12,8 @@
 ## Summary
 
 Build the object detail page at `/katalog/{slug}` using Inertia v3 with Svelte 5. This page displays all information about a single sightseeing object: title, description, image gallery with lightbox, location map (MapLibre), practical info, metadata, and a "back to catalog" link. The map is rendered via the same MapLibre/Svelte stack used in RFC-005. Print-friendly layout is prepared here with basic CSS; RFC-007 enhances it further.
+
+Public UI copy must be Polish. Code identifiers, classes, methods, filenames, and tests remain English.
 
 ---
 
@@ -39,7 +41,7 @@ Build the object detail page at `/katalog/{slug}` using Inertia v3 with Svelte 5
 
 ```php
 // routes/web.php
-Route::get('/katalog/{object:slug}', [ObjectController::class, 'show'])->name('catalog.show');
+Route::get('/katalog/{object:slug}', [CatalogController::class, 'show'])->name('catalog.show');
 ```
 
 This uses Laravel route model binding with a custom key. The SightseeingObject model must define:
@@ -55,42 +57,39 @@ public function getRouteKeyName(): string
 ### Controller
 
 ```php
+use App\Http\Resources\ObjectDetailResource;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ObjectController extends Controller
+class CatalogController extends Controller
 {
     public function show(SightseeingObject $object): Response
     {
-        abort_unless($object->published, 404);
-
-        $object->load(['voivodeship', 'objectTypes']);
-
-        $images = $object->getMedia('images')
-            ->map(fn ($media) => [
-                'url' => $media->getUrl(),
-                'thumb' => $media->getUrl('thumbnail'),
-                'card' => $media->getUrl('card'),
-                'alt' => $media->getCustomProperty('alt', $object->title),
-            ]);
-
-        $geojson = $object->geometry
-            ? DB::selectOne("SELECT ST_AsGeoJSON(?) as geojson", [$object->geometry])->geojson
-            : null;
+        $object = SightseeingObject::query()
+            ->published()
+            ->whereKey($object)
+            ->with(['voivodeship', 'objectTypes', 'media'])
+            ->select('sightseeing_objects.*')
+            ->selectRaw('ST_AsGeoJSON(geometry) as geojson')
+            ->firstOrFail();
 
         return Inertia::render('Catalog/Show', [
-            'object' => new SightseeingObjectResource($object),
-            'images' => $images,
-            'geojson' => $geojson,
+            'object' => new ObjectDetailResource($object),
+            'images' => $object->image_items,
+            'geojson' => $object->geojson,
         ]);
     }
 }
 ```
 
+The `images` prop uses the existing `SightseeingObject::image_items` accessor from RFC-002. Frontend image objects therefore use `thumbnail_url` and `card_url`, not `thumb` and `card`.
+
 ### API Resource
 
 ```php
-class SightseeingObjectResource extends JsonResource
+use Illuminate\Support\Str;
+
+class ObjectDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -99,7 +98,7 @@ class SightseeingObjectResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'lead' => $this->lead,
-            'description' => $this->description,
+            'description' => Str::markdown((string) $this->description),
             'locality' => $this->locality,
             'is_unesco' => $this->is_unesco,
             'opening_hours' => $this->opening_hours,
@@ -136,7 +135,8 @@ resources/js/pages/Catalog/Show.svelte
 
 ```svelte
 <script>
-    import { router, Link } from '@inertiajs/svelte';
+    import { Link } from '@inertiajs/svelte';
+    import { index as catalogIndex } from '@/routes/catalog';
     import ObjectMap from './ObjectMap.svelte';
     import ImageGallery from './ImageGallery.svelte';
     import PracticalInfo from './PracticalInfo.svelte';
@@ -154,8 +154,8 @@ resources/js/pages/Catalog/Show.svelte
 </svelte:head>
 
 <article class="max-w-4xl mx-auto px-4 py-8">
-    <Link href="/katalog" class="text-primary hover:underline mb-6 inline-block">
-        ← Back to Catalog
+    <Link href={catalogIndex.url()} class="text-primary hover:underline mb-6 inline-block">
+        ← Wróć do katalogu
     </Link>
 
     <h1 class="text-3xl font-bold mb-4">{object.title}</h1>
@@ -198,8 +198,8 @@ resources/js/pages/Catalog/Show.svelte
         website={object.website}
     />
 
-    <button onclick={printPage} class="btn btn-secondary mb-8">
-        Print Page
+    <button onclick={printPage} class="btn btn-secondary mb-8 print-hidden">
+        Drukuj
     </button>
 
     <NearbyObjects slug={object.slug} />
@@ -226,8 +226,10 @@ resources/js/pages/Catalog/Show.svelte
         });
 
         map.on('load', () => {
-            if (geojson && geojson.type === 'Polygon') {
-                map.addSource('object-area', { type: 'geojson', data: geojson });
+            const geometry = typeof geojson === 'string' ? JSON.parse(geojson) : geojson;
+
+            if (geometry && ['Polygon', 'MultiPolygon'].includes(geometry.type)) {
+                map.addSource('object-area', { type: 'geojson', data: geometry });
                 map.addLayer({
                     id: 'object-area-fill',
                     type: 'fill',
@@ -241,7 +243,8 @@ resources/js/pages/Catalog/Show.svelte
                     paint: { 'line-color': '#2563eb', 'line-width': 2 },
                 });
                 const bounds = new maplibregl.LngLatBounds();
-                geojson.coordinates[0].forEach(c => bounds.extend(c));
+                const coordinates = geometry.type === 'Polygon' ? geometry.coordinates[0] : geometry.coordinates[0][0];
+                coordinates.forEach(c => bounds.extend(c));
                 map.fitBounds(bounds, { padding: 32 });
             } else {
                 new maplibregl.Marker()
@@ -301,7 +304,7 @@ resources/js/pages/Catalog/Show.svelte
                 class="focus:ring-2 focus:ring-primary rounded"
             >
                 <img
-                    src={image.thumb}
+                    src={image.thumbnail_url}
                     alt={image.alt}
                     class="w-full h-32 object-cover rounded"
                     loading="lazy"
@@ -325,7 +328,7 @@ resources/js/pages/Catalog/Show.svelte
         />
         <button
             class="absolute top-4 right-4 text-white text-2xl"
-            aria-label="Close"
+            aria-label="Zamknij"
         >✕</button>
     </div>
 {/if}
@@ -342,23 +345,23 @@ resources/js/pages/Catalog/Show.svelte
 
 {#if hasData}
     <section class="bg-gray-50 rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Practical Information</h2>
+        <h2 class="text-xl font-semibold mb-4">Informacje praktyczne</h2>
         <dl class="space-y-3">
             {#if openingHours}
                 <div>
-                    <dt class="font-medium text-gray-700">Opening Hours</dt>
+                    <dt class="font-medium text-gray-700">Godziny otwarcia</dt>
                     <dd class="text-gray-600">{openingHours}</dd>
                 </div>
             {/if}
             {#if ticketPrices}
                 <div>
-                    <dt class="font-medium text-gray-700">Ticket Prices</dt>
+                    <dt class="font-medium text-gray-700">Ceny biletów</dt>
                     <dd class="text-gray-600">{ticketPrices}</dd>
                 </div>
             {/if}
             {#if website}
                 <div>
-                    <dt class="font-medium text-gray-700">Website</dt>
+                    <dt class="font-medium text-gray-700">Strona internetowa</dt>
                     <dd>
                         <a
                             href={website}
@@ -384,8 +387,8 @@ resources/js/pages/Catalog/Show.svelte
 </script>
 
 <section id="nearby-objects" class="mt-12">
-    <h2 class="text-xl font-semibold mb-4">Nearby Objects</h2>
-    <p class="text-gray-500">Loading...</p>
+    <h2 class="text-xl font-semibold mb-4">Obiekty w pobliżu</h2>
+    <p class="text-gray-500">Ładowanie…</p>
 </section>
 ```
 
@@ -396,7 +399,7 @@ RFC-007 replaces this stub with the actual nearby objects implementation.
 The `description` field is rendered server-side before being passed to Inertia, or rendered in Svelte using a Markdown library. The recommended approach is to render Markdown to HTML on the server:
 
 ```php
-// In SightseeingObjectResource
+// In ObjectDetailResource
 'description' => Str::markdown($this->description),
 ```
 
@@ -434,9 +437,9 @@ RFC-007 enhances the print layout significantly.
 ## Data Flow
 
 ```
-[RFC-001 Data] → ObjectController::show → Inertia::render → Catalog/Show.svelte
+[RFC-001 Data] → CatalogController::show → Inertia::render → Catalog/Show.svelte
   │
-  ├── object (SightseeingObjectResource with voivodeship, objectTypes, published=true)
+  ├── object (ObjectDetailResource with voivodeship, objectTypes, published=true)
   ├── images (Spatie Media Library, 'images' collection)
   ├── geojson (ST_AsGeoJSON from geometry column)
   └── Svelte renders:
@@ -461,7 +464,7 @@ RFC-007 enhances the print layout significantly.
 │  Header (Inertia app shell)                 │
 ├─────────────────────────────────────────────┤
 │                                             │
-│  ← Back to Catalog                          │
+│  ← Wróć do katalogu                         │
 │                                             │
 │  Object Title                               │
 │  [Voivodeship] [Locality] [Object Type]     │
@@ -493,18 +496,32 @@ RFC-007 enhances the print layout significantly.
 │  │ PRACTICAL INFORMATION               │    │
 │  │ Opening hours: ...                  │    │
 │  │ Ticket prices: ...                  │    │
-│  │ Website: link ↗                     │    │
+│  │ Strona internetowa: link ↗          │    │
 │  └─────────────────────────────────────┘    │
 │                                             │
-│  [Print Page]                               │
+│  [Drukuj]                                   │
 │                                             │
-│  NEARBY OBJECTS                             │
-│  (loaded dynamically - RFC-007)             │
+│  OBIEKTY W POBLIŻU                          │
+│  (ładowane dynamicznie - RFC-007)           │
 │                                             │
 ├─────────────────────────────────────────────┤
 │  Footer (Inertia app shell)                 │
 └─────────────────────────────────────────────┘
 ```
+
+---
+
+## Implementation Plan
+
+1. Extend `CatalogController` with `show()` and add the named `catalog.show` route.
+2. Add slug route binding to `SightseeingObject` via `getRouteKeyName()`.
+3. Create `ObjectDetailResource` for detail-page data; keep catalog-list `ObjectResource` unchanged.
+4. Use the existing `image_items` accessor for gallery data.
+5. Generate GeoJSON with `selectRaw('ST_AsGeoJSON(geometry) as geojson')`, matching RFC-005.
+6. Create Svelte components under `resources/js/pages/Catalog/` using Svelte 5 runes.
+7. Use Wayfinder route helpers for catalog navigation and regenerate routes after adding `catalog.show`.
+8. Add global print styles to the existing CSS entrypoint.
+9. Add Pest feature and resource tests, then run Pint and targeted tests.
 
 ---
 
@@ -527,11 +544,11 @@ RFC-007 enhances the print layout significantly.
 - [ ] External website link opens in new tab with `rel="noopener"`
 - [ ] Print button triggers `window.print()`
 - [ ] Print CSS hides header, footer, nav, interactive elements
-- [ ] Back link returns to catalog
+- [ ] Back link returns to catalog using Wayfinder-generated route helper
 - [ ] Page responsive on mobile and desktop
 - [ ] Nearby objects section container present (stub for now)
-- [ ] Pest tests for ObjectController::show (published, unpublished, non-existent)
-- [ ] Pest tests for SightseeingObjectResource
+- [ ] Pest tests for CatalogController::show (published, unpublished, non-existent)
+- [ ] Pest tests for ObjectDetailResource
 
 ---
 
@@ -543,8 +560,8 @@ RFC-007 enhances the print layout significantly.
 - Response contains correct props: object, images, geojson
 - 404 for non-existent slug
 - 404 for unpublished object slug
-- SightseeingObjectResource returns expected fields
-- Images array contains url, thumb, card, alt for each media item
+- ObjectDetailResource returns expected fields
+- Images array contains existing `image_items` fields: url, thumbnail_url, card_url, alt, author, source, order
 - GeoJSON returned for object with geometry
 - Null geojson for object without geometry
 
@@ -578,7 +595,7 @@ RFC-007 enhances the print layout significantly.
 - Heading hierarchy: h1 (title), h2 (sections)
 - Image alt text uses object title
 - Gallery thumbnails have descriptive alt text
-- Lightbox trap focus when open, return on close
+- Lightbox traps focus when open, returns focus on close, and uses Polish close label (`Zamknij`)
 - Print button has clear label
 - External links have `target="_blank"` with `rel="noopener"` and visible indicator (↗)
 - Map has text alternative (content is accessible without map rendering)

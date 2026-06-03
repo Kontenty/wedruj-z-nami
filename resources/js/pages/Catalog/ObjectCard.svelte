@@ -1,8 +1,18 @@
 <script>
-let { object, selected = false, onHover } = $props()
+    import { Link } from '@inertiajs/svelte';
+    import { show as catalogShow } from '@/routes/catalog';
+
+    let { object, selected = false, onHover } = $props();
 </script>
 
-<article id={`object-card-${object.id}`} class="overflow-hidden rounded-3xl border bg-white shadow-sm transition" class:border-emerald-500={selected} class:border-stone-200={!selected} onmouseenter={() => onHover?.(object.id)} onmouseleave={() => onHover?.(null)}>
+<Link
+    href={catalogShow.url(object.slug)}
+    class="block overflow-hidden rounded-3xl border bg-white shadow-sm transition focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+    class:border-emerald-500={selected}
+    class:border-stone-200={!selected}
+    onmouseenter={() => onHover?.(object.id)}
+    onmouseleave={() => onHover?.(null)}
+>
     <img class="h-44 w-full object-cover" src={object.thumbnail_url || '/images/placeholder-object-card.jpg'} alt={object.title} />
     <div class="flex flex-col gap-2 p-4">
         <div class="flex items-start justify-between gap-3">
@@ -12,4 +22,4 @@ let { object, selected = false, onHover } = $props()
         <p class="text-sm text-stone-600">{object.voivodeship?.name}</p>
         <p class="line-clamp-3 text-sm text-stone-700">{object.description}</p>
     </div>
-</article>
+</Link>

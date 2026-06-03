@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ObjectDetailResource;
 use App\Http\Resources\ObjectResource;
 use App\Http\Resources\ObjectTypeResource;
 use App\Models\ObjectType;
@@ -61,6 +62,23 @@ class CatalogController extends Controller
             'voivodeships' => Voivodeship::query()
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']),
+        ]);
+    }
+
+    public function show(SightseeingObject $object): Response
+    {
+        $object = SightseeingObject::query()
+            ->published()
+            ->whereKey($object)
+            ->with(['voivodeship', 'objectTypes', 'media'])
+            ->select('sightseeing_objects.*')
+            ->selectRaw('ST_AsGeoJSON(geometry) as geojson')
+            ->firstOrFail();
+
+        return Inertia::render('Catalog/Show', [
+            'object' => new ObjectDetailResource($object),
+            'images' => $object->image_items,
+            'geojson' => $object->geojson,
         ]);
     }
 }

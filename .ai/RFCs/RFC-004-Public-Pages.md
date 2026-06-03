@@ -2,7 +2,7 @@
 
 > **Terminology:** "sightseeing object" = _obiekt krajoznawczy_; "voivodeship" = _województwo_; "news" = _aktualności_
 
-**Status:** Proposed  
+**Status:** Implemented  
 **Complexity:** Medium  
 **Predecessors:** RFC-001, RFC-002  
 **Successors:** RFC-007

@@ -216,3 +216,27 @@
         @apply bg-background text-foreground;
     }
 }
+
+@media print {
+    header,
+    footer,
+    nav,
+    .print-hidden,
+    #nearby-objects {
+        display: none !important;
+    }
+
+    article {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    .prose {
+        font-size: 12pt !important;
+    }
+}

@@ -228,6 +228,11 @@ class SightseeingObject extends Model implements HasMedia
             ->limit($limit);
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     protected function getSlugSourceColumn(): string
     {
         return 'title';
