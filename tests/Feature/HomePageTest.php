@@ -2,9 +2,14 @@
 
 use App\Models\Article;
 use App\Models\SightseeingObject;
+use Illuminate\Support\Facades\Cache;
+
+beforeEach(function (): void {
+    Cache::flush();
+});
 
 test('homepage loads successfully', function () {
-    $this->get('/')->assertStatus(200);
+    $this->get('/')->assertSuccessful();
 });
 
 test('homepage contains hero section', function () {
@@ -23,7 +28,7 @@ test('homepage shows latest published objects', function () {
 
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertSuccessful();
     $response->assertSee('Najnowsze obiekty');
     expect($response->getContent())->toContain('Najnowsze obiekty');
 });
@@ -44,7 +49,7 @@ test('homepage shows latest published news', function () {
     Article::factory()->published()->create();
 
     $this->get('/')
-        ->assertStatus(200)
+        ->assertSuccessful()
         ->assertSee('Aktualności');
 });
 
@@ -83,4 +88,13 @@ test('homepage limits news to three', function () {
         ->assertSee('Newer News')
         ->assertSee('Newest News')
         ->assertDontSee('Old News');
+});
+
+test('nonexistent route renders the custom 404 page', function () {
+    $this->get('/nie-ma-takiej-strony')
+        ->assertNotFound()
+        ->assertSee('Nie znaleziono strony')
+        ->assertSee('Strona główna')
+        ->assertSee('Katalog')
+        ->assertSee('Aktualności');
 });

@@ -12,9 +12,10 @@
         @vite(['resources/css/app.css'])
     </head>
     <body class="bg-background text-foreground font-sans antialiased">
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-stone-950 focus:shadow-lg">Przejdź do treści</a>
         <x-public-header />
 
-        <main>
+        <main id="main-content" tabindex="-1">
             @yield('content')
         </main>
 

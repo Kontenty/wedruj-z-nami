@@ -23,6 +23,7 @@ class ObjectResource extends JsonResource
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'is_unesco' => $this->is_unesco,
+            'url' => route('catalog.show', $this->slug),
             'thumbnail_url' => $this->thumbnail_url ?: '/images/placeholder-object-thumb.jpg',
             'primary_image_url' => $this->primary_image_url ?: '/images/placeholder-object.jpg',
             'voivodeship' => $this->whenLoaded('voivodeship', fn (): ?array => $this->voivodeship ? [

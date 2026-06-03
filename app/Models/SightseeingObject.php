@@ -212,19 +212,24 @@ class SightseeingObject extends Model implements HasMedia
     }
 
     #[Scope]
-    protected function nearby(Builder $query, float $latitude, float $longitude, float $radiusKm = 20, int $limit = 3): void
+    protected function nearby(Builder $query, self|int $origin, float $radiusKm = 20, int $limit = 3): void
     {
-        $point = sprintf('POINT(%F %F)', $longitude, $latitude);
-        $origin = 'ST_GeomFromText(?, 4326)';
-        $searchableGeometry = "CASE WHEN ST_GeometryType(geometry) IN ('POLYGON', 'ST_POLYGON', 'MULTIPOLYGON', 'ST_MULTIPOLYGON') THEN ST_Centroid(geometry) ELSE geometry END";
-        $distanceExpression = "ST_Distance_Sphere({$searchableGeometry}, {$origin})";
+        $originId = $origin instanceof self ? $origin->getKey() : $origin;
+        $table = $this->getTable();
+        $qualifiedGeometryColumn = $this->qualifyColumn('geometry');
+
+        $candidateGeometryExpression = "CASE WHEN ST_GeometryType({$qualifiedGeometryColumn}) IN ('POLYGON', 'ST_POLYGON', 'MULTIPOLYGON', 'ST_MULTIPOLYGON') THEN ST_Centroid({$qualifiedGeometryColumn}) ELSE {$qualifiedGeometryColumn} END";
+        $originGeometryExpression = "(SELECT CASE WHEN ST_GeometryType(origin.geometry) IN ('POLYGON', 'ST_POLYGON', 'MULTIPOLYGON', 'ST_MULTIPOLYGON') THEN ST_Centroid(origin.geometry) ELSE origin.geometry END FROM {$table} AS origin WHERE origin.id = ? LIMIT 1)";
+        $distanceExpression = "ST_Distance_Sphere({$candidateGeometryExpression}, {$originGeometryExpression})";
 
         $query
             ->published()
-            ->select('sightseeing_objects.*')
-            ->selectRaw("{$distanceExpression} as distance_meters", [$point])
-            ->whereRaw("{$distanceExpression} <= ?", [$point, $radiusKm * 1000])
-            ->orderByRaw($distanceExpression, [$point])
+            ->where($this->qualifyColumn('id'), '!=', $originId)
+            ->whereNotNull($this->qualifyColumn('geometry'))
+            ->select("{$table}.*")
+            ->selectRaw("{$distanceExpression} as distance_meters", [$originId])
+            ->whereRaw("{$distanceExpression} <= ?", [$originId, $radiusKm * 1000])
+            ->orderByRaw($distanceExpression, [$originId])
             ->limit($limit);
     }
 

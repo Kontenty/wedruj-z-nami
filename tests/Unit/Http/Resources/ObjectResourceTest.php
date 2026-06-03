@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('exposes catalog object fields without detail url', function () {
+it('exposes catalog object fields with detail url', function () {
     $voivodeship = Voivodeship::factory()->create(['name' => 'Małopolskie', 'slug' => 'malopolskie']);
     $type = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->for($voivodeship)->create();
@@ -22,8 +22,8 @@ it('exposes catalog object fields without detail url', function () {
 
     expect($data)->toHaveKeys([
         'id', 'title', 'slug', 'description', 'latitude', 'longitude', 'is_unesco',
-        'thumbnail_url', 'primary_image_url', 'voivodeship', 'objectTypes', 'geojson',
-    ])->not->toHaveKey('url')
+        'url', 'thumbnail_url', 'primary_image_url', 'voivodeship', 'objectTypes', 'geojson',
+    ])->and($data['url'])->toBe(route('catalog.show', $object->slug))
         ->and($data['voivodeship']['name'])->toBe('Małopolskie')
         ->and($data['objectTypes'])->toHaveCount(1)
         ->and($data['thumbnail_url'])->toBe('/images/placeholder-object-thumb.jpg');

@@ -15,14 +15,14 @@
             </p>
             <div class="mt-8 flex flex-wrap gap-4">
                 <a
-                    href="/katalog"
-                    class="inline-flex items-center px-6 py-3 bg-white text-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                    href="{{ route('catalog.index') }}"
+                    class="inline-flex items-center rounded-lg bg-white px-6 py-3 font-semibold text-primary transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                 >
                     Pokaż mapę
                 </a>
                 <a
-                    href="/katalog?view=list"
-                    class="inline-flex items-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-colors"
+                    href="{{ route('catalog.index', ['view' => 'list']) }}"
+                    class="inline-flex items-center rounded-lg border-2 border-white/30 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                 >
                     Przeglądaj katalog
                 </a>
@@ -85,9 +85,8 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach($latestObjects as $object)
                         <a
-                            href="#"
-                            class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                            title="Szczegóły obiektu będą dostępne wkrótce"
+                            href="{{ route('catalog.show', $object->slug) }}"
+                            class="group overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                         >
                             <div class="aspect-[4/3] overflow-hidden">
                                 <img
@@ -124,7 +123,7 @@
                     </h2>
                     <a
                         href="{{ route('news.index') }}"
-                        class="text-primary hover:text-primary/80 font-medium transition-colors"
+                        class="font-medium text-primary transition-colors hover:text-primary/80 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                     >
                         Zobacz wszystkie &rarr;
                     </a>
@@ -133,13 +132,13 @@
                     @foreach($latestNews as $newsItem)
                         <a
                             href="{{ route('news.show', $newsItem->slug) }}"
-                            class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                            class="group overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                         >
                             @if($newsItem->has_cover_image)
                                 <div class="aspect-[3/2] overflow-hidden">
                                     <img
                                         src="{{ $newsItem->cover_thumbnail_url }}"
-                                        alt=""
+                                        alt="{{ $newsItem->title }}"
                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         loading="lazy"
                                     >

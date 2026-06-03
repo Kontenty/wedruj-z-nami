@@ -46,13 +46,13 @@
             </p>
             <div class="flex flex-wrap gap-4">
                 <a
-                    href="/katalog"
+                    href="{{ route('catalog.index') }}"
                     class="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors"
                 >
                     Pokaż mapę
                 </a>
                 <a
-                    href="/katalog?view=list"
+                    href="{{ route('catalog.index', ['view' => 'list']) }}"
                     class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                 >
                     Przeglądaj katalog

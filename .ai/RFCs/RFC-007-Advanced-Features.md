@@ -11,325 +11,288 @@
 
 ## Summary
 
-Implement the remaining beta features: nearby objects on the detail page, enhanced print layout, WCAG level A accessibility audit, performance optimization pass, and final polish. This RFC completes the beta scope defined in the PRD.
+Complete the remaining beta/PRD scope: nearby objects on the object detail page, missing practical accessibility information, polygon-safe detail maps, print polish, critical public accessibility fixes, homepage caching, and a custom 404 page.
+
+This RFC is an implementation checklist against the actual current codebase. Current object detail routing is handled by `CatalogController::show`, resources are `ObjectDetailResource` and `ObjectResource`, and `resources/js/pages/Catalog/NearbyObjects.svelte` currently exists as a loading stub.
 
 ---
 
 ## Features / Requirements Addressed
 
-- US-006: Nearby objects (up to 3 nearest published objects within 20 km radius)
-- US-009: Enhanced print layout for object detail
-- WCAG level A compliance pass
-- Final responsive design polish
-- Performance optimization
+- US-006: Object detail page, including up to 3 nearest published objects within 20 km.
+- PRD 5.3: Optional practical information, including opening hours, ticket prices, and accessibility.
+- PRD 6: Polygon support and centroid-based nearby calculation.
+- PRD 8: Responsive UX, WCAG level A target, performance, SEO-friendly error handling.
+- Final beta polish: print layout, caching, empty states, custom 404.
 
 ---
 
-## Previous / Next
+## Implementation Checklist
 
-- **Builds on:** RFC-001 (MariaDB spatial queries), RFC-005 (catalog page exists), RFC-006 (object detail page exists as Inertia/Svelte)
-- **Built by future:** — (final RFC; product is beta-complete)
+### 1. Backend: Nearby Objects
 
----
+**Files:**
 
-## Technical Approach
+- `app/Models/SightseeingObject.php`
+- `app/Http/Controllers/CatalogController.php`
+- `app/Http/Resources/ObjectResource.php`
+- `tests/Feature/CatalogShowTest.php`
 
-### Nearby Objects
+**Plan:**
 
-Since the object detail page is an Inertia/Svelte page (RFC-006), nearby objects are loaded server-side as Inertia props — no separate AJAX endpoint needed.
-
-#### Backend: Add nearby objects to Inertia props
-
-Update `ObjectController::show` from RFC-006 to include nearby objects:
+- [ ] Refactor/verify `SightseeingObject::nearby()` so it supports PRD geometry rules:
+  - origin point objects use their point geometry/coordinates;
+  - origin polygon objects use `ST_Centroid(geometry)`;
+  - candidate polygon objects use `ST_Centroid(geometry)`;
+  - candidate point objects use their point geometry;
+  - only published objects are returned;
+  - current object is excluded;
+  - results are within 20 km;
+  - results are ordered by distance ascending;
+  - at most 3 objects are returned.
+- [ ] Do not rely only on `latitude` / `longitude` for polygon origin objects. Use DB geometry/centroid as the source of truth for nearby calculations.
+- [ ] Keep nearby objects server-side as Inertia props. No separate AJAX endpoint is needed.
+- [ ] In `CatalogController::show`, eager-load relationships needed by cards and return:
 
 ```php
-class ObjectController extends Controller
-{
-    public function show(SightseeingObject $object): Response
-    {
-        abort_unless($object->published, 404);
-
-        $object->load(['voivodeship', 'objectTypes']);
-
-        $images = $object->getMedia('images')
-            ->map(fn ($media) => [
-                'url' => $media->getUrl(),
-                'thumb' => $media->getUrl('thumbnail'),
-                'card' => $media->getUrl('card'),
-                'alt' => $media->getCustomProperty('alt', $object->title),
-            ]);
-
-        $geojson = $object->geometry
-            ? DB::selectOne("SELECT ST_AsGeoJSON(?) as geojson", [$object->geometry])->geojson
-            : null;
-
-        $nearby = collect();
-        if ($object->latitude && $object->longitude) {
-            $nearby = SightseeingObject::published()
-                ->where('id', '!=', $object->id)
-                ->nearby($object->latitude, $object->longitude, 20)
-                ->limit(3)
-                ->with('voivodeship')
-                ->get();
-        }
-
-        return Inertia::render('Catalog/Show', [
-            'object' => new SightseeingObjectResource($object),
-            'images' => $images,
-            'geojson' => $geojson,
-            'nearby' => SightseeingObjectResource::collection($nearby),
-        ]);
-    }
-}
+'nearby' => ObjectResource::collection($nearby),
 ```
 
-#### Frontend: NearbyObjects.svelte
+- [ ] Ensure `ObjectResource` supports frontend linking. Either:
+  - add `url => route('catalog.show', $this->slug)`, or
+  - build detail URLs in Svelte using Wayfinder route helpers and `slug`.
+- [ ] Avoid N+1 queries for nearby cards by eager-loading `voivodeship`, `objectTypes`, and media if thumbnails are used.
 
-Replace the stub from RFC-006 with the actual component:
+**Tests:**
+
+- [ ] Object detail response includes `nearby` prop.
+- [ ] Returns up to 3 nearby objects.
+- [ ] Excludes the current object.
+- [ ] Excludes unpublished/draft objects.
+- [ ] Excludes objects outside 20 km.
+- [ ] Orders objects by distance.
+- [ ] Uses polygon centroid for polygon origin objects.
+- [ ] Uses polygon centroid for polygon candidate objects.
+- [ ] Returns an empty collection when no nearby objects exist.
+
+---
+
+### 2. Frontend: Nearby Objects UI
+
+**Files:**
+
+- `resources/js/pages/Catalog/Show.svelte`
+- `resources/js/pages/Catalog/NearbyObjects.svelte`
+
+**Plan:**
+
+- [ ] Update `Show.svelte` props:
 
 ```svelte
-<script>
-    import { Link } from '@inertiajs/svelte';
-
-    let { nearby } = $props();
-</script>
-
-<section id="nearby-objects" class="mt-12">
-    <h2 class="text-xl font-semibold mb-4">Nearby Objects</h2>
-
-    {#if nearby.length > 0}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {#each nearby as obj}
-                <Link
-                    href={obj.url}
-                    class="group block bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
-                >
-                    <img
-                        src={obj.thumbnail_url}
-                        alt={obj.title}
-                        class="w-full h-40 object-cover rounded-t-lg"
-                        loading="lazy"
-                    />
-                    <div class="p-3">
-                        <h3 class="font-semibold group-hover:text-primary">{obj.title}</h3>
-                        <p class="text-sm text-gray-500">{obj.voivodeship.name}</p>
-                        {#if obj.is_unesco}
-                            <span class="badge">UNESCO</span>
-                        {/if}
-                    </div>
-                </Link>
-            {/each}
-        </div>
-    {:else}
-        <p class="text-gray-500">No nearby objects found.</p>
-        <Link href="/katalog" class="text-primary hover:underline">
-            Browse Catalog →
-        </Link>
-    {/if}
-</section>
+let { object, images, geojson, nearby } = $props();
 ```
 
-### Enhanced Print Layout
-
-Build on the basic print CSS from RFC-006 with a dedicated print stylesheet:
-
-```css
-/* resources/css/print.css */
-
-@media print {
-    /* Hide everything except article content */
-    header,
-    footer,
-    nav,
-    aside,
-    .print-hidden,
-    #nearby-objects,
-    button[onclick*='print'],
-    .lightbox {
-        display: none !important;
-    }
-
-    /* Reset page */
-    body {
-        font-size: 12pt;
-        line-height: 1.5;
-        color: #000;
-        background: #fff;
-    }
-
-    article {
-        max-width: 100%;
-        padding: 0;
-        margin: 0;
-    }
-
-    /* Title */
-    h1 {
-        font-size: 24pt;
-        margin-bottom: 0.5em;
-    }
-
-    /* Metadata */
-    .metadata-row {
-        font-size: 10pt;
-        margin-bottom: 1em;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 0.5em;
-    }
-
-    /* Images */
-    img {
-        max-width: 100%;
-        height: auto;
-        page-break-inside: avoid;
-    }
-
-    figure {
-        margin-bottom: 1em;
-    }
-
-    /* Gallery: show inline, smaller */
-    .gallery-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 1em;
-    }
-    .gallery-grid img {
-        width: 120px;
-        height: 90px;
-        object-fit: cover;
-    }
-
-    /* Description */
-    .prose {
-        font-size: 11pt;
-        page-break-before: auto;
-    }
-
-    /* Practical info */
-    .practical-info {
-        border: 1px solid #ccc;
-        padding: 12px;
-        margin-bottom: 1em;
-        page-break-inside: avoid;
-    }
-
-    /* Page header/footer for print */
-    @page {
-        margin: 2cm;
-    }
-
-    /* URL after links */
-    a[href]:not([href^='javascript'])::after {
-        content: ' (' attr(href) ')';
-        font-size: 9pt;
-        color: #666;
-    }
-
-    /* Exclude external URL display for nav links */
-    nav a[href]::after,
-    header a[href]::after,
-    footer a[href]::after {
-        content: none;
-    }
-}
-```
-
-Add print-specific classes to the Svelte components:
+- [ ] Replace the current stub call:
 
 ```svelte
-<!-- In PracticalInfo.svelte, add print class -->
-<section class="practical-info bg-gray-50 rounded-lg p-6 mb-8 print:border print:bg-white">
-    ...
-</section>
+<NearbyObjects slug={object.slug} />
 ```
 
-### WCAG Level A Accessibility Audit
+with:
 
-Review and fix across all pages to meet WCAG level A:
+```svelte
+<NearbyObjects {nearby} />
+```
 
-**Global:**
+- [ ] Replace `NearbyObjects.svelte` loading stub with a real Polish UI.
+- [ ] Render each nearby object card with:
+  - image/thumbnail;
+  - title;
+  - voivodeship;
+  - UNESCO badge when applicable;
+  - link to object detail.
+- [ ] Add `loading="lazy"` to below-fold nearby images.
+- [ ] Show a helpful empty state and catalog link when no nearby objects are found.
 
-- Skip-to-content link on all pages
-- Landmark regions: `<header>`, `<nav>`, `<main>`, `<footer>`
-- Language attribute: `<html lang="pl">`
-- Page titles are descriptive and unique
+---
 
-**Forms:**
+### 3. PRD Gap: Practical Accessibility Information
 
-- All inputs have associated labels
-- Error messages linked to fields via `aria-describedby`
-- Required fields marked with `aria-required` or visible indicator
-- Form validation errors announced to screen readers
+The PRD requires object detail pages to show optional accessibility information. The current detail resource/UI omits it.
 
-**Navigation:**
+**Files:**
 
-- Keyboard navigable header and footer
-- Focus visible on all interactive elements (focus ring)
-- Current page indicated in nav (`aria-current="page"`)
+- `app/Http/Resources/ObjectDetailResource.php`
+- `resources/js/pages/Catalog/Show.svelte`
+- `resources/js/pages/Catalog/PracticalInfo.svelte`
+- `tests/Feature/CatalogShowTest.php`
 
-**Images:**
+**Plan:**
 
-- All `<img>` have meaningful `alt` text
-- Decorative images use `alt=""`
+- [ ] Add `accessibility` to `ObjectDetailResource`.
+- [ ] Pass `accessibility={object.accessibility}` to `PracticalInfo`.
+- [ ] Render accessibility information when present.
+- [ ] Keep practical-info section hidden or compact when all practical fields are empty.
 
-**Color:**
+**Tests:**
 
-- Information not conveyed by color alone (UNESCO badge has text, not just color)
+- [ ] Object detail Inertia props include `object.accessibility`.
+- [ ] Existing practical-info tests, if any, are updated for the new field.
 
-**Map:**
+---
 
-- Map has text alternative (the card grid serves as alternative)
-- Map does not trap keyboard focus
-- Map controls accessible by keyboard
+### 4. PRD Gap: Polygon-Safe Detail Map
 
-**Catalog filters:**
+Current detail UI only renders the map when `object.latitude && object.longitude`. Polygon objects must display their full area and fit the viewport, even if coordinates are missing.
 
-- Filter controls labeled properly
-- Object type accordion supports keyboard (Enter/Space to expand, arrow keys)
-- Active filter changes announced via `aria-live="polite"`
+**Files:**
 
-**Mobile:**
+- `resources/js/pages/Catalog/Show.svelte`
+- `resources/js/pages/Catalog/ObjectMap.svelte`
+- `tests/Feature/CatalogShowTest.php`
 
-- Bottom sheet traps focus while open
-- Focus returns to trigger element on sheet close
-- Touch targets ≥ 44×44px
+**Plan:**
 
-### Performance Optimization
+- [ ] Render `ObjectMap` when either coordinates exist or `geojson` exists.
+- [ ] Update `ObjectMap.svelte` to support polygon-only geometry.
+- [ ] For polygons/multipolygons:
+  - parse `geojson`;
+  - render fill and outline;
+  - fit bounds to geometry.
+- [ ] For points:
+  - render marker and popup as today.
+- [ ] Ensure map initialization failure degrades gracefully and does not break page content.
 
-1. **Eager loading:** Ensure all list/detail pages eager-load relationships
-2. **Image optimization:** Use `loading="lazy"` on below-fold images
-3. **CSS:** Ensure Tailwind purges unused styles (already configured)
-4. **Map:** Consider marker clustering if object count exceeds ~100
-5. **Caching:** Cache homepage queries (latest objects, latest news) with short TTL
-6. **Database:** Verify spatial indexes are used (EXPLAIN on nearby queries)
+**Tests:**
 
-### Final Polish
+- [ ] Polygon object detail response includes `geojson`.
+- [ ] Existing polygon detail test remains green.
 
-1. **Consistent spacing:** Ensure all pages use consistent Tailwind spacing tokens
-2. **Typography:** Verify heading hierarchy and font sizes across pages
-3. **Color consistency:** Primary color used consistently for CTAs and links
-4. **Loading states:** All async operations have loading indicators
-5. **Error states:** All error conditions have user-friendly messages
-6. **Empty states:** All empty conditions have helpful guidance
-7. **404 page:** Custom 404 page with navigation back to catalog/home
+---
+
+### 5. Print Layout Polish
+
+Current print styles live in `resources/css/app.css`. Extend the existing `@media print` block instead of adding a separate unreferenced stylesheet.
+
+**File:**
+
+- `resources/css/app.css`
+
+**Plan:**
+
+- [ ] Hide non-print UI:
+  - header;
+  - footer;
+  - nav;
+  - filter/sidebar UI;
+  - map controls/interactive map if needed;
+  - nearby section;
+  - print button;
+  - other `.print-hidden` elements.
+- [ ] Preserve printable content:
+  - title;
+  - metadata badges;
+  - images/gallery;
+  - lead;
+  - description;
+  - practical info;
+  - source/update data where available.
+- [ ] Add A4-readable rules:
+  - `@page` margin;
+  - print font sizes;
+  - image max-width;
+  - avoid page breaks inside figures/cards/practical-info;
+  - readable link URL display for external links.
+- [ ] Keep the existing `window.print()` button behavior.
+
+---
+
+### 6. Critical Public Accessibility Fixes
+
+Target critical WCAG-level public issues only: public Blade pages plus catalog/detail Inertia pages. This does not attempt a full CMS/auth audit.
+
+**Files:**
+
+- `resources/views/layouts/public.blade.php`
+- `resources/views/app.blade.php`
+- `resources/js/pages/Catalog/Index.svelte`
+- `resources/js/pages/Catalog/Show.svelte`
+- `resources/js/pages/Catalog/CatalogMap.svelte`
+- `resources/js/pages/Catalog/ObjectMap.svelte`
+- catalog filter components as needed
+
+**Plan:**
+
+- [ ] Add a skip-to-content link to the public Blade layout.
+- [ ] Add a skip-to-content link or equivalent in the Inertia shell.
+- [ ] Ensure public main content has a stable `id="main-content"` target.
+- [ ] Ensure visible focus states on public links, buttons, and form controls.
+- [ ] Ensure filter controls have labels or accessible names.
+- [ ] Keep/verify `aria-live="polite"` for catalog result count.
+- [ ] Add accessible labels or text alternatives for map regions.
+- [ ] Ensure the object grid/list remains the keyboard-accessible alternative to map interaction.
+- [ ] Ensure all public images have meaningful `alt` text, or `alt=""` when decorative.
+
+---
+
+### 7. Homepage Performance Caching
+
+**File:**
+
+- `app/Http/Controllers/HomeController.php`
+
+**Plan:**
+
+- [ ] Cache homepage latest objects query for a short TTL, e.g. 5 minutes.
+- [ ] Cache homepage latest news query for a short TTL, e.g. 5 minutes.
+- [ ] Keep eager-loading for latest objects.
+- [ ] Accept TTL-based freshness for beta unless explicit cache invalidation is later required.
+
+**Tests:**
+
+- [ ] Homepage still renders latest objects/news.
+- [ ] Existing `HomePageTest` remains green.
+
+---
+
+### 8. Custom 404 Page
+
+**File:**
+
+- `resources/views/errors/404.blade.php`
+
+**Plan:**
+
+- [ ] Add a Polish custom 404 page.
+- [ ] Match public visual style.
+- [ ] Include links to:
+  - homepage;
+  - catalog;
+  - news.
+- [ ] Keep page lightweight and accessible.
+
+**Tests:**
+
+- [ ] Nonexistent route returns 404 with custom page content.
 
 ---
 
 ## Data Flow
 
-```
+```text
 [Object Detail Page — Inertia/Svelte]
     │
-    ├── ObjectController::show
-    │   ├── SightseeingObject with voivodeship, objectTypes, images, geojson
-    │   └── SightseeingObject::published()->nearby($lat, $lng, 20)->limit(3)
+    ├── CatalogController::show
+    │   ├── loads published SightseeingObject with voivodeship, objectTypes, media, geojson
+    │   ├── computes nearby from DB geometry
+    │   │   ├── point origin: point geometry/coordinates
+    │   │   └── polygon origin: ST_Centroid(geometry)
+    │   └── returns ObjectDetailResource + ObjectResource::collection($nearby)
     │
     └── Inertia::render('Catalog/Show', [
             object, images, geojson, nearby
         ])
-        └── Svelte renders all sections including NearbyObjects
+        └── Svelte renders map, gallery, practical info, print button, nearby cards
 ```
 
 ---
@@ -338,48 +301,48 @@ Review and fix across all pages to meet WCAG level A:
 
 ### Nearby Objects
 
-- [ ] Up to 3 nearest published objects within 20 km shown on detail page
-- [ ] Current object excluded from results
-- [ ] Objects ordered by distance
-- [ ] Nearby objects loaded as Inertia props (no separate AJAX call)
-- [ ] Empty state with catalog link when no nearby objects within 20 km
-- [ ] Nearby section hidden when object has no coordinates
+- [ ] Up to 3 nearest published objects within 20 km shown on detail page.
+- [ ] Current object excluded from results.
+- [ ] Draft/unpublished objects excluded.
+- [ ] Objects ordered by distance ascending.
+- [ ] Polygon origin objects use DB centroid for nearby calculation.
+- [ ] Polygon candidate objects use DB centroid for nearby calculation.
+- [ ] Nearby objects loaded as Inertia props; no separate AJAX endpoint.
+- [ ] Empty state with catalog link shown when no nearby objects exist.
+
+### Object Detail PRD Completion
+
+- [ ] Accessibility practical information is included in detail props.
+- [ ] Accessibility practical information renders when present.
+- [ ] Polygon detail maps render full geometry and fit viewport.
+- [ ] Point detail maps continue to render marker/popup.
 
 ### Print Layout
 
-- [ ] Print CSS hides header, footer, nav, nearby objects section
-- [ ] Print preserves title, metadata, images, description, practical info
-- [ ] Print layout readable on A4
-- [ ] Print button triggers browser print dialog
-- [ ] External link URLs displayed in print version
-- [ ] Images scale to fit print width
-- [ ] Page break handling prevents orphaned sections
+- [ ] Print CSS hides header, footer, nav, nearby objects, and print button.
+- [ ] Print preserves title, metadata, images, lead, description, and practical info.
+- [ ] Print layout is readable on A4.
+- [ ] External link URLs display where useful.
+- [ ] Images scale to fit print width.
+- [ ] Page-break rules prevent orphaned sections where feasible.
 
-### Accessibility
+### Critical Accessibility
 
-- [ ] Skip-to-content link on all pages
-- [ ] All images have alt text
-- [ ] All form inputs have labels
-- [ ] Keyboard navigation works on all interactive elements
-- [ ] Focus states visible
-- [ ] Map does not trap keyboard focus
-- [ ] Bottom sheet traps focus correctly
-- [ ] Object type accordion keyboard accessible
-- [ ] Screen reader announces filter changes
+- [ ] Skip-to-content link exists on public Blade and Inertia-rendered pages.
+- [ ] Main content has a stable skip-link target.
+- [ ] Public form/filter controls have accessible names.
+- [ ] Focus states are visible on public interactive elements.
+- [ ] Map sections have accessible labels/text alternatives.
+- [ ] Catalog result changes are announced with `aria-live="polite"`.
+- [ ] Public images have appropriate alt text.
 
-### Performance
+### Performance / Polish
 
-- [ ] No N+1 queries on any page
-- [ ] Images lazy-loaded below the fold
-- [ ] Homepage queries cached
-- [ ] Spatial queries use SPATIAL index
-
-### Final Polish
-
-- [ ] Custom 404 page
-- [ ] Consistent design across all pages
-- [ ] Responsive on all breakpoints
-- [ ] All error/empty/loading states handled
+- [ ] No obvious N+1 queries on object detail, catalog, homepage.
+- [ ] Below-fold images lazy-load.
+- [ ] Homepage latest objects/news queries are cached.
+- [ ] Custom Polish 404 page exists.
+- [ ] Existing responsive layouts remain usable across mobile/tablet/desktop.
 
 ---
 
@@ -389,57 +352,85 @@ Review and fix across all pages to meet WCAG level A:
 
 **Nearby objects:**
 
-- Object detail response includes `nearby` prop
-- Returns up to 3 objects within 20 km
-- Excludes current object from results
-- Returns empty collection for object without coordinates
-- 404 for non-existent object
+- object detail response includes `nearby` prop;
+- max 3 nearby objects;
+- excludes current object;
+- excludes unpublished objects;
+- excludes objects outside 20 km;
+- orders by distance;
+- polygon origin uses centroid;
+- polygon candidates use centroid;
+- empty collection when no nearby objects exist.
 
-**Print:**
+**Object detail completion:**
 
-- Print CSS present in asset output
-- Object detail page includes print stylesheet
+- object detail includes `accessibility`;
+- polygon object detail includes `geojson`;
+- unpublished object still returns 404;
+- nonexistent slug still returns 404.
 
-**Accessibility:**
+**Homepage / 404:**
 
-- All pages have skip-to-content link
-- All images have alt attributes
-- Form inputs have labels (automated check)
+- homepage still renders latest objects/news;
+- nonexistent route renders custom 404 content.
 
-**404:**
+### Frontend Verification
 
-- Custom 404 page renders for non-existent routes
+- Run the project frontend build/type check after Svelte/CSS changes.
+- Manually verify print preview for an object detail page.
+- Manually verify keyboard access to catalog filters and nearby links.
 
 ---
 
 ## Error Handling
 
-- Nearby objects: empty collection when no results (no error)
-- Missing coordinates on object: nearby collection is empty
-- Map initialization error: graceful degradation, page content still works
+- Nearby objects: return an empty collection when no valid nearby objects exist.
+- Missing or invalid geometry: do not crash object detail page; return empty nearby collection if distance cannot be computed.
+- Map initialization error: page content remains readable and usable.
+- Missing images: use existing placeholder image behavior.
 
 ---
 
 ## Performance Considerations
 
-- Nearby objects loaded server-side with the detail page (single request)
-- Spatial query uses SPATIAL index for O(log n) performance
-- Limit nearby results to 3 to keep response small
-- Cache homepage queries with `Cache::remember()` (5 minute TTL)
+- Nearby objects are loaded server-side with the detail page.
+- Nearby queries are limited to 3 returned records.
+- Eager-load relationships used by object/detail/nearby cards.
+- Use existing `SPATIAL INDEX` on `geometry`; verify query plans if performance is poor.
+- Do not claim guaranteed O(log n) spatial performance for distance expressions over centroids; treat EXPLAIN verification as an optimization check.
+- Cache homepage queries with a short TTL.
 
 ---
 
 ## Security Considerations
 
-- Nearby objects only include published records
-- No user input reflected without escaping
+- Nearby objects include only published records.
+- Do not expose draft/unpublished object data in nearby props.
+- Continue escaping user-visible strings in Svelte/Blade.
+- Existing markdown-rendered descriptions should remain constrained to trusted/editorial content expectations.
 
 ---
 
 ## Implementation Constraints
 
-- Beta scope: no favorites, reviews, comments, tags, or advanced news features
-- Polish language only
-- No public user accounts
-- No complex CMS workflows
-- Data and images from team's own database only
+- Polish language only.
+- No public user accounts.
+- No favorites, reviews, comments, route planning, or personalization.
+- No advanced news/blog features beyond existing lightweight news.
+- Do not introduce new dependencies without approval.
+- Prefer existing structure and components over new base directories.
+
+---
+
+## Suggested Implementation Order
+
+1. Backend nearby query/resource/controller changes.
+2. Nearby feature tests.
+3. Svelte nearby UI wiring.
+4. Practical `accessibility` field fix.
+5. Polygon-safe detail map fix.
+6. Print CSS polish.
+7. Critical public accessibility fixes.
+8. Homepage caching.
+9. Custom 404 page.
+10. Focused test run, Pint for PHP changes, frontend build/type check.

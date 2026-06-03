@@ -1,11 +1,11 @@
 <script>
-    let { openingHours, ticketPrices, website } = $props();
+    let { openingHours, ticketPrices, accessibility, website } = $props();
 
-    let hasData = $derived(openingHours || ticketPrices || website);
+    let hasData = $derived(openingHours || ticketPrices || accessibility || website);
 </script>
 
 {#if hasData}
-    <section class="mb-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+    <section class="mb-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print-keep-together">
         <h2 class="mb-4 font-heading text-xl font-semibold">Informacje praktyczne</h2>
         <dl class="space-y-4">
             {#if openingHours}
@@ -20,6 +20,12 @@
                     <dd class="mt-1 text-stone-700">{ticketPrices}</dd>
                 </div>
             {/if}
+            {#if accessibility}
+                <div>
+                    <dt class="text-sm font-medium text-stone-500">Dostępność</dt>
+                    <dd class="mt-1 text-stone-700">{accessibility}</dd>
+                </div>
+            {/if}
             {#if website}
                 <div>
                     <dt class="text-sm font-medium text-stone-500">Strona internetowa</dt>
@@ -28,7 +34,7 @@
                             href={website}
                             target="_blank"
                             rel="noopener"
-                            class="inline-flex items-center gap-1 text-emerald-700 hover:underline"
+                            class="inline-flex items-center gap-1 text-emerald-700 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                         >
                             {website} ↗
                         </a>

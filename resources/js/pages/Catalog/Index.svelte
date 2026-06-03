@@ -58,7 +58,7 @@ function scrollToObject(objectId) {
                 <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Kanon</p>
                 <h1 class="text-3xl font-bold tracking-tight md:text-4xl">Katalog obiektów krajoznawczych</h1>
             </div>
-            <button class="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white shadow-sm md:hidden" onclick={() => (showMobileFilters = true)}>Filtry</button>
+            <button class="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 md:hidden" onclick={() => (showMobileFilters = true)}>Filtry</button>
         </div>
 
         <MobileViewToggle bind:activeView />
@@ -66,13 +66,15 @@ function scrollToObject(objectId) {
         <div class="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
             <FilterSidebar class="hidden lg:block" filters={activeFilters} {objectTypes} {voivodeships} onApply={visit} onClear={clearFilters} />
 
-            <main class="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
-                <section class={(activeView === 'map' ? 'block' : 'hidden') + ' h-[70vh] overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm md:block xl:sticky xl:top-4'}>
+            <main id="main-content" class="grid gap-4 focus:outline-none xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]" tabindex="-1">
+                <section class={(activeView === 'map' ? 'block' : 'hidden') + ' h-[70vh] overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm md:block xl:sticky xl:top-4'} aria-labelledby="catalog-map-heading">
+                    <h2 id="catalog-map-heading" class="sr-only">Mapa obiektów</h2>
                     <CatalogMap objects={mapObjects.data ?? mapObjects} {highlightedObjectId} {selectedObjectId} onSelect={scrollToObject} />
                 </section>
 
-                <section class={(activeView === 'list' ? 'block' : 'hidden') + ' md:block'}>
+                <section class={(activeView === 'list' ? 'block' : 'hidden') + ' md:block'} aria-labelledby="catalog-results-heading">
                     <div class="mb-3 flex items-center justify-between gap-3">
+                        <h2 id="catalog-results-heading" class="sr-only">Wyniki katalogu</h2>
                         <p class="text-sm font-semibold text-stone-700" aria-live="polite">Liczba wyników: {resultCount}</p>
                     </div>
                     <ActiveFilterChips filters={activeFilters} {voivodeships} {objectTypes} onChange={visit} onClear={clearFilters} />

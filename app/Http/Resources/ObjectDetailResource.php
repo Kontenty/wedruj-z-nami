@@ -29,7 +29,10 @@ class ObjectDetailResource extends JsonResource
             'is_unesco' => $this->is_unesco,
             'opening_hours' => $this->opening_hours,
             'ticket_prices' => $this->ticket_prices,
+            'accessibility' => $this->accessibility,
             'website' => $this->website,
+            'data_source' => $this->data_source,
+            'source_updated_at' => $this->source_updated_at?->locale('pl')->translatedFormat('j F Y'),
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'voivodeship' => [

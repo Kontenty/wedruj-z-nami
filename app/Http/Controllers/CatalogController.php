@@ -75,10 +75,16 @@ class CatalogController extends Controller
             ->selectRaw('ST_AsGeoJSON(geometry) as geojson')
             ->firstOrFail();
 
+        $nearby = SightseeingObject::query()
+            ->with(['voivodeship', 'objectTypes', 'media'])
+            ->nearby($object)
+            ->get();
+
         return Inertia::render('Catalog/Show', [
             'object' => new ObjectDetailResource($object),
             'images' => $object->image_items,
             'geojson' => $object->geojson,
+            'nearby' => ObjectResource::collection($nearby),
         ]);
     }
 }

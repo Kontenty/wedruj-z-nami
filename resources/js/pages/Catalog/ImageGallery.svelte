@@ -81,6 +81,7 @@
         role="dialog"
         aria-modal="true"
         aria-label="Podgląd zdjęcia"
+        tabindex="-1"
     >
         {#if images.length > 1}
             <button
@@ -92,13 +93,18 @@
             </button>
         {/if}
 
-        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-        <img
-            src={lightboxImage}
-            alt=""
-            class="max-h-[85vh] max-w-[90vw] rounded-lg"
+        <button
+            type="button"
+            class="contents"
             onclick={(e) => e.stopPropagation()}
-        />
+            aria-label="Aktualnie wyświetlane zdjęcie"
+        >
+            <img
+                src={lightboxImage}
+                alt=""
+                class="max-h-[85vh] max-w-[90vw] rounded-lg"
+            />
+        </button>
 
         {#if images.length > 1}
             <button
