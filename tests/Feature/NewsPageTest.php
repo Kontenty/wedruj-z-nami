@@ -89,6 +89,6 @@ test('news index title is correct', function () {
 
 test('public pages have header and footer', function () {
     $this->get('/')
-        ->assertSee('Kanon')
+        ->assertSee('Wędruj z Nami')
         ->assertSee('Katalog obiektów krajoznawczych Polski');
 });

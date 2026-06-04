@@ -15,10 +15,10 @@
 </script>
 
 <div
-    class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
+    class="bg-gradient-mist flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10"
 >
     <div class="w-full max-w-sm">
-        <div class="flex flex-col gap-8">
+        <div class="glass-panel flex flex-col gap-8 rounded-2xl p-8">
             <div class="flex flex-col items-center gap-4">
                 <a
                     href={home.url()}

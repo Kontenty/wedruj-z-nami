@@ -5,7 +5,7 @@
 </script>
 
 {#if hasData}
-    <section class="mb-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print-keep-together">
+    <section class="glass-panel mb-8 rounded-2xl p-6 print-keep-together">
         <h2 class="mb-4 font-heading text-xl font-semibold">Informacje praktyczne</h2>
         <dl class="space-y-4">
             {#if openingHours}

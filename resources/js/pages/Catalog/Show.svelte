@@ -14,32 +14,61 @@
 </script>
 
 <svelte:head>
-    <title>{object.title} — Kanon</title>
+    <title>{object.title} — Wędruj z Nami</title>
 </svelte:head>
 
-<div class="min-h-screen bg-stone-50 text-stone-950">
-    <article id="main-content" class="mx-auto max-w-4xl px-4 py-8 focus:outline-none lg:px-6" tabindex="-1">
-        <Link href={catalogIndex.url()} class="mb-6 inline-flex items-center gap-1 text-sm font-medium text-emerald-700 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
-            ← Wróć do katalogu
-        </Link>
+<div class="min-h-screen text-stone-950">
+    <header class="bg-gradient-mist px-4 py-10 lg:px-6">
+        <article
+            id="main-content"
+            class="mx-auto max-w-4xl focus:outline-none"
+            tabindex="-1"
+        >
+            <Link
+                href={catalogIndex.url()}
+                class="mb-6 inline-flex items-center gap-1 text-sm font-medium text-emerald-700 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+            >
+                ← Wróć do katalogu
+            </Link>
 
-        <h1 class="mb-4 font-heading text-3xl font-bold tracking-tight md:text-4xl">{object.title}</h1>
+            <h1
+                class="mb-4 font-heading text-3xl font-bold tracking-tight md:text-4xl"
+            >
+                {object.title}
+            </h1>
 
-        <div class="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-600">
-            <span class="rounded-full bg-stone-100 px-3 py-1">{object.voivodeship.name}</span>
-            {#if object.locality}
-                <span class="rounded-full bg-stone-100 px-3 py-1">{object.locality}</span>
-            {/if}
-            {#each object.objectTypes as type (type.id)}
-                <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">{type.name}</span>
-            {/each}
-            {#if object.is_unesco}
-                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">UNESCO</span>
-            {/if}
-        </div>
+            <div
+                class="flex flex-wrap items-center gap-2 text-sm text-stone-600"
+            >
+                <span class="glass-panel-light rounded-full px-3 py-1"
+                    >{object.voivodeship.name}</span
+                >
+                {#if object.locality}
+                    <span class="glass-panel-light rounded-full px-3 py-1"
+                        >{object.locality}</span
+                    >
+                {/if}
+                {#each object.objectTypes as type (type.id)}
+                    <span
+                        class="glass-panel-light rounded-full px-3 py-1 text-emerald-800"
+                        >{type.name}</span
+                    >
+                {/each}
+                {#if object.is_unesco}
+                    <span
+                        class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900"
+                        >UNESCO</span
+                    >
+                {/if}
+            </div>
+        </article>
+    </header>
 
+    <main class="mx-auto max-w-4xl px-4 py-8 lg:px-6">
         {#if object.lead}
-            <p class="mb-8 text-lg leading-relaxed text-stone-600">{object.lead}</p>
+            <p class="mb-8 text-lg leading-relaxed text-stone-600">
+                {object.lead}
+            </p>
         {/if}
 
         {#if object.latitude !== null || object.longitude !== null || geojson}
@@ -68,29 +97,48 @@
         />
 
         {#if object.data_source || object.source_updated_at}
-            <section class="mb-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm print-keep-together" aria-labelledby="object-metadata-heading">
-                <h2 id="object-metadata-heading" class="mb-4 font-heading text-xl font-semibold">Informacje o danych</h2>
+            <section
+                class="glass-panel mb-8 rounded-2xl p-6 print-keep-together"
+                aria-labelledby="object-metadata-heading"
+            >
+                <h2
+                    id="object-metadata-heading"
+                    class="mb-4 font-heading text-xl font-semibold"
+                >
+                    Informacje o danych
+                </h2>
                 <dl class="space-y-4">
                     {#if object.data_source}
                         <div>
-                            <dt class="text-sm font-medium text-stone-500">Źródło danych</dt>
-                            <dd class="mt-1 text-stone-700">{object.data_source}</dd>
+                            <dt class="text-sm font-medium text-stone-500">
+                                Źródło danych
+                            </dt>
+                            <dd class="mt-1 text-stone-700">
+                                {object.data_source}
+                            </dd>
                         </div>
                     {/if}
                     {#if object.source_updated_at}
                         <div>
-                            <dt class="text-sm font-medium text-stone-500">Aktualizacja danych</dt>
-                            <dd class="mt-1 text-stone-700">{object.source_updated_at}</dd>
+                            <dt class="text-sm font-medium text-stone-500">
+                                Aktualizacja danych
+                            </dt>
+                            <dd class="mt-1 text-stone-700">
+                                {object.source_updated_at}
+                            </dd>
                         </div>
                     {/if}
                 </dl>
             </section>
         {/if}
 
-        <button onclick={printPage} class="print-hidden mb-8 inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+        <button
+            onclick={printPage}
+            class="print-hidden mb-8 inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+        >
             🖨️ Drukuj
         </button>
 
         <NearbyObjects nearby={nearby?.data ?? nearby ?? []} />
-    </article>
+    </main>
 </div>

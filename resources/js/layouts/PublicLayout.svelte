@@ -27,7 +27,7 @@
                     href="/"
                     class="text-xl font-bold text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                 >
-                    Kanon
+                    Wędruj z Nami
                 </a>
 
                 <nav
@@ -117,8 +117,8 @@
                 class="flex flex-col items-center justify-between gap-4 md:flex-row"
             >
                 <p class="text-sm text-gray-600">
-                    &copy; {new Date().getFullYear()} Kanon — Katalog obiektów krajoznawczych
-                    Polski
+                    &copy; {new Date().getFullYear()} Wędruj z Nami — Katalog obiektów
+                    krajoznawczych Polski
                 </p>
                 <div class="flex gap-4">
                     <a

@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('cms')
-            ->brandName('Kanon PTTK CMS')
+            ->brandName('Wędruj z Nami CMS')
             ->authGuard('web')
             ->login()
             ->bootUsing(function (): void {

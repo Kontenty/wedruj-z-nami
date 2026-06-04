@@ -39,7 +39,7 @@
     };
 
     const classes = () => {
-        const activeClasses = isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : '';
+        const activeClasses = isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground sidebar-active-accent' : '';
         return cn(base, sizeClasses[size], activeClasses, className);
     };
 </script>
