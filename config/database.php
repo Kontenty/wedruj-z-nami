@@ -19,6 +19,12 @@ return [
 
     'default' => env('DB_CONNECTION', 'mariadb'),
 
+    'root_password' => env('DB_ROOT_PASSWORD', ''),
+
+    'root_host' => env('DB_ROOT_HOST', '%'),
+
+    'testing_database' => env('DB_TEST_DATABASE', 'wedruj_z_nami_testing'),
+
     /*
     |--------------------------------------------------------------------------
     | Database Connections

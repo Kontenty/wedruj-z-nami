@@ -71,6 +71,7 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
+            "@php artisan test:prepare-database --ansi",
             "@lint:check",
             "@php artisan test"
         ],

@@ -26,7 +26,7 @@
         <env name="DB_CONNECTION" value="mariadb"/>
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="3306"/>
-        <env name="DB_DATABASE" value="wedruj_z_nami"/>
+        <env name="DB_DATABASE" value="wedruj_z_nami_testing"/>
         <env name="DB_USER" value="user"/>
         <env name="DB_PASSWORD" value="user"/>
         <env name="DB_URL" value=""/>

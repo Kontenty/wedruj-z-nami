@@ -58,6 +58,23 @@ it('filters by unesco', function () {
             ->missing('objects.data.1'));
 });
 
+it('includes the unesco flag in catalog objects', function () {
+    SightseeingObject::factory()->published()->unesco()->create([
+        'published_at' => now(),
+        'title' => 'UNESCO object',
+    ]);
+
+    SightseeingObject::factory()->published()->create([
+        'published_at' => now()->subDay(),
+        'title' => 'Regular object',
+    ]);
+
+    $this->get('/katalog')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('objects.data.0.is_unesco', true)
+            ->where('objects.data.1.is_unesco', false));
+});
+
 it('searches by partial title phrase', function () {
     SightseeingObject::factory()->published()->create(['title' => 'Zamek w Malborku']);
     SightseeingObject::factory()->published()->create(['title' => 'Muzeum regionalne']);
