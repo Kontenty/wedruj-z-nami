@@ -2,6 +2,7 @@
     import maplibregl from 'maplibre-gl';
     import { onMount } from 'svelte';
     import 'maplibre-gl/dist/maplibre-gl.css';
+    import { setPolishLanguage } from '@/lib/map-language';
 
     let { lat, lng, geojson, title } = $props();
     let container = $state();
@@ -25,7 +26,10 @@
             return;
         }
 
-        if (typeof coordinates[0] === 'number' && typeof coordinates[1] === 'number') {
+        if (
+            typeof coordinates[0] === 'number' &&
+            typeof coordinates[1] === 'number'
+        ) {
             bounds.extend([coordinates[0], coordinates[1]]);
 
             return;
@@ -37,12 +41,16 @@
     onMount(() => {
         try {
             const geometry = parseGeometry();
-            const hasCoordinates = lat !== null && lat !== undefined && lng !== null && lng !== undefined;
+            const hasCoordinates =
+                lat !== null &&
+                lat !== undefined &&
+                lng !== null &&
+                lng !== undefined;
             const center = hasCoordinates
                 ? [Number(lng), Number(lat)]
                 : geometry?.type === 'Point'
-                    ? geometry.coordinates
-                    : [19.1, 52.1];
+                  ? geometry.coordinates
+                  : [19.1, 52.1];
 
             map = new maplibregl.Map({
                 container,
@@ -54,8 +62,16 @@
             map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
             map.on('load', () => {
-                if (geometry && ['Polygon', 'MultiPolygon'].includes(geometry.type)) {
-                    map.addSource('object-area', { type: 'geojson', data: geometry });
+                setPolishLanguage(map);
+
+                if (
+                    geometry &&
+                    ['Polygon', 'MultiPolygon'].includes(geometry.type)
+                ) {
+                    map.addSource('object-area', {
+                        type: 'geojson',
+                        data: geometry,
+                    });
                     map.addLayer({
                         id: 'object-area-fill',
                         type: 'fill',
@@ -82,8 +98,8 @@
                 const pointCoordinates = hasCoordinates
                     ? [Number(lng), Number(lat)]
                     : geometry?.type === 'Point'
-                        ? geometry.coordinates
-                        : null;
+                      ? geometry.coordinates
+                      : null;
 
                 if (!pointCoordinates) {
                     return;
@@ -91,7 +107,11 @@
 
                 new maplibregl.Marker({ color: '#dc2626' })
                     .setLngLat(pointCoordinates)
-                    .setPopup(new maplibregl.Popup().setHTML(`<strong>${title}</strong>`))
+                    .setPopup(
+                        new maplibregl.Popup().setHTML(
+                            `<strong>${title}</strong>`,
+                        ),
+                    )
                     .addTo(map);
             });
 
@@ -106,12 +126,22 @@
     });
 </script>
 
-<section class="mb-8 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm print-hidden" aria-labelledby="object-map-heading">
+<section
+    class="mb-8 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm print-hidden"
+    aria-labelledby="object-map-heading"
+>
     <h2 id="object-map-heading" class="sr-only">Mapa obiektu</h2>
 
     {#if hasMapError}
-        <p class="p-4 text-sm text-stone-600">Mapa jest chwilowo niedostępna. Pozostałe informacje o obiekcie są dostępne poniżej.</p>
+        <p class="p-4 text-sm text-stone-600">
+            Mapa jest chwilowo niedostępna. Pozostałe informacje o obiekcie są
+            dostępne poniżej.
+        </p>
     {:else}
-        <div bind:this={container} class="h-64 w-full md:h-80" aria-label={`Mapa obiektu ${title}`}></div>
+        <div
+            bind:this={container}
+            class="h-64 w-full md:h-80"
+            aria-label={`Mapa obiektu ${title}`}
+        ></div>
     {/if}
 </section>
