@@ -1,5 +1,6 @@
 <script>
     import { Link } from '@inertiajs/svelte';
+    import MapPin from 'lucide-svelte/icons/map-pin';
     import UNESCOIcon from '@/components/UNESCOIcon.svelte';
     import { show as catalogShow } from '@/routes/catalog';
 
@@ -31,11 +32,11 @@
                 loading="lazy"
             />
             <div
-                class="absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-[#1a4a26]/35 to-transparent"
+                class="absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-[#1a4a26]/15 to-transparent"
             ></div>
         </div>
 
-        <div class="min-w-0 flex-1">
+        <div class="flex flex-col ftitlmin-w-0 flex-1">
             <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                     <h3
@@ -44,7 +45,10 @@
                         {object.title}
                     </h3>
                     {#if locationLabel}
-                        <p class="mt-1 text-sm font-semibold text-emerald-800">
+                        <p
+                            class="mt-3 flex items-center gap-1 text-sm font-semibold text-emerald-800"
+                        >
+                            <MapPin class="size-4 shrink-0" />
                             {locationLabel}
                         </p>
                     {/if}
@@ -61,7 +65,7 @@
                 {/if}
             </div>
 
-            <div class="mt-3 flex justify-end">
+            <div class="flex justify-end mt-auto">
                 <span
                     class="inline-flex items-center gap-2 text-sm font-black text-emerald-700 transition-colors group-hover:text-emerald-800"
                 >
