@@ -1,13 +1,21 @@
 <script>
+  import MapPinned from 'lucide-svelte/icons/map-pinned';
   import maplibregl from 'maplibre-gl';
   import { onMount } from 'svelte';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { setPolishLanguage } from '@/lib/map-language';
 
-  let { lat, lng, geojson, title } = $props();
+  let { lat, lng, geojson, title, locality = null, voivodeship = null } =
+    $props();
   let container = $state();
   let map;
   let hasMapError = $state(false);
+
+  const locationLabel = $derived(
+    [locality, voivodeship && `woj. ${voivodeship}`]
+      .filter(Boolean)
+      .join(', '),
+  );
 
   function parseGeometry() {
     if (!geojson) {
@@ -99,7 +107,7 @@
           return;
         }
 
-        new maplibregl.Marker({ color: '#dc2626' })
+        new maplibregl.Marker({ color: '#136a27' })
           .setLngLat(pointCoordinates)
           .setPopup(new maplibregl.Popup().setHTML(`<strong>${title}</strong>`))
           .addTo(map);
@@ -117,20 +125,43 @@
 </script>
 
 <section
-  class="mb-8 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm print-hidden"
+  class="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm print-hidden"
   aria-labelledby="object-map-heading"
 >
-  <h2 id="object-map-heading" class="sr-only">Mapa obiektu</h2>
+  <div
+    class="flex flex-col gap-3 border-b border-stone-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <h2
+        id="object-map-heading"
+        class="font-heading text-2xl font-bold text-stone-950"
+      >
+        Lokalizacja
+      </h2>
+      {#if locationLabel}
+        <p class="mt-1 text-sm text-stone-500">{locationLabel}</p>
+      {/if}
+    </div>
+
+    {#if locationLabel}
+      <div
+        class="inline-flex items-center gap-2 text-sm font-semibold text-stone-600"
+      >
+        <MapPinned class="size-4 text-emerald-700" />
+        {locationLabel}
+      </div>
+    {/if}
+  </div>
 
   {#if hasMapError}
-    <p class="p-4 text-sm text-stone-600">
+    <p class="p-6 text-sm text-stone-600">
       Mapa jest chwilowo niedostępna. Pozostałe informacje o obiekcie są
       dostępne poniżej.
     </p>
   {:else}
     <div
       bind:this={container}
-      class="h-64 w-full md:h-80"
+      class="h-72 w-full sm:h-80 lg:h-[25rem]"
       aria-label={`Mapa obiektu ${title}`}
     ></div>
   {/if}

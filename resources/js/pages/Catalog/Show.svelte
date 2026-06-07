@@ -1,5 +1,9 @@
 <script>
   import { Link } from '@inertiajs/svelte';
+  import ChevronRight from 'lucide-svelte/icons/chevron-right';
+  import MapPin from 'lucide-svelte/icons/map-pin';
+  import Printer from 'lucide-svelte/icons/printer';
+  import UNESCOIcon from '@/components/UNESCOIcon.svelte';
   import { index as catalogIndex } from '@/routes/catalog';
   import ImageGallery from './ImageGallery.svelte';
   import NearbyObjects from './NearbyObjects.svelte';
@@ -7,6 +11,12 @@
   import PracticalInfo from './PracticalInfo.svelte';
 
   let { object, images, geojson, nearby } = $props();
+
+  const locationLabel = $derived(
+    [object.locality, object.voivodeship?.name && `woj. ${object.voivodeship.name}`]
+      .filter(Boolean)
+      .join(', '),
+  );
 
   function printPage() {
     window.print();
@@ -17,124 +27,148 @@
   <title>{object.title} — Wędruj z Nami</title>
 </svelte:head>
 
-<div class="min-h-screen text-stone-950">
-  <header class="bg-gradient-mist px-4 py-10 lg:px-6">
-    <article
-      id="main-content"
-      class="mx-auto max-w-4xl focus:outline-none"
-      tabindex="-1"
-    >
-      <Link
-        href={catalogIndex.url()}
-        class="mb-6 inline-flex items-center gap-1 text-sm font-medium text-emerald-700 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-      >
-        ← Wróć do katalogu
-      </Link>
-
-      <h1
-        class="mb-4 font-heading text-3xl font-bold tracking-tight md:text-4xl"
-      >
-        {object.title}
-      </h1>
-
-      <div class="flex flex-wrap items-center gap-2 text-sm text-stone-600">
-        <span class="glass-panel-light rounded-full px-3 py-1"
-          >{object.voivodeship.name}</span
+<div class="bg-[radial-gradient(circle_at_top,#eef6e8_0%,#fcfaf5_34%,#fcfaf5_100%)]">
+  <article class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <header class="mb-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+      <div class="min-w-0">
+        <nav
+          aria-label="Okruszki"
+          class="mb-4 flex flex-wrap items-center gap-2 text-sm text-stone-500"
         >
-        {#if object.locality}
-          <span class="glass-panel-light rounded-full px-3 py-1"
-            >{object.locality}</span
+          <Link
+            href={catalogIndex.url()}
+            class="font-medium text-stone-600 transition-colors hover:text-emerald-800 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
-        {/if}
-        {#each object.objectTypes as type (type.id)}
-          <span
-            class="glass-panel-light rounded-full px-3 py-1 text-emerald-800"
-            >{type.name}</span
+            Katalog
+          </Link>
+          <ChevronRight class="size-4 shrink-0 text-stone-400" />
+          <span>{object.voivodeship.name}</span>
+          <ChevronRight class="size-4 shrink-0 text-stone-400" />
+          <span class="font-medium text-emerald-800">{object.title}</span>
+        </nav>
+
+        <div class="space-y-4">
+          <h1
+            class="max-w-4xl font-heading text-4xl font-black tracking-tight text-stone-950 sm:text-5xl"
           >
-        {/each}
-        {#if object.is_unesco}
-          <span
-            class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900"
-            >UNESCO</span
-          >
-        {/if}
+            {object.title}
+          </h1>
+
+          <div class="flex flex-wrap items-center gap-3">
+            {#each object.objectTypes as type (type.id)}
+              <span
+                class="rounded-full border border-sky-200 bg-sky-100/70 px-4 py-2 text-sm font-semibold text-stone-700"
+              >
+                {type.name}
+              </span>
+            {/each}
+
+            {#if locationLabel}
+              <span
+                class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-4 py-2 text-sm font-semibold text-stone-700 shadow-xs"
+              >
+                <MapPin class="size-4 text-emerald-700" />
+                {locationLabel}
+              </span>
+            {/if}
+          </div>
+        </div>
       </div>
-    </article>
-  </header>
 
-  <main class="mx-auto max-w-4xl px-4 py-8 lg:px-6">
-    {#if object.lead}
-      <p class="mb-8 text-lg leading-relaxed text-stone-600">
-        {object.lead}
-      </p>
-    {/if}
-
-    {#if object.latitude !== null || object.longitude !== null || geojson}
-      <ObjectMap
-        lat={object.latitude}
-        lng={object.longitude}
-        {geojson}
-        title={object.title}
-      />
-    {/if}
+      {#if object.is_unesco}
+        <div
+          class="flex items-center gap-4 self-start rounded-3xl border border-amber-300/70 bg-white p-4 shadow-sm lg:self-auto"
+        >
+          <div
+            class="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-amber-300 via-amber-100 to-stone-50 text-amber-700"
+          >
+            <UNESCOIcon class="size-8" title="Obiekt UNESCO" />
+          </div>
+          <div class="min-w-0">
+            <p
+              class="text-xs font-bold uppercase tracking-[0.24em] text-amber-700"
+            >
+              Lista Swiatowego Dziedzictwa
+            </p>
+            <p class="font-heading text-lg font-bold text-stone-950">
+              Obiekt UNESCO
+            </p>
+          </div>
+        </div>
+      {/if}
+    </header>
 
     <ImageGallery {images} title={object.title} />
 
-    {#if object.description}
-      <div class="prose prose-lg prose-stone mb-8 max-w-none">
-        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-        {@html object.description}
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
+      <div class="space-y-10">
+        <section class="space-y-6">
+          {#if object.lead}
+            <p
+              class="border-l-4 border-emerald-700 pl-5 text-lg leading-8 text-stone-700 sm:pl-6 sm:text-xl"
+            >
+              {object.lead}
+            </p>
+          {/if}
+
+          {#if object.description}
+            <div
+              class="prose prose-stone max-w-none prose-headings:font-heading prose-headings:text-stone-950 prose-p:leading-8 prose-a:text-emerald-800"
+            >
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+              {@html object.description}
+            </div>
+          {/if}
+        </section>
+
+        {#if object.latitude !== null || object.longitude !== null || geojson}
+          <ObjectMap
+            lat={object.latitude}
+            lng={object.longitude}
+            {geojson}
+            title={object.title}
+            locality={object.locality}
+            voivodeship={object.voivodeship.name}
+          />
+        {/if}
       </div>
-    {/if}
 
-    <PracticalInfo
-      openingHours={object.opening_hours}
-      ticketPrices={object.ticket_prices}
-      accessibility={object.accessibility}
-      website={object.website}
-    />
+      <aside class="space-y-8">
+        <PracticalInfo
+          openingHours={object.opening_hours}
+          ticketPrices={object.ticket_prices}
+          accessibility={object.accessibility}
+          website={object.website}
+        />
 
-    {#if object.data_source || object.source_updated_at}
-      <section
-        class="glass-panel mb-8 rounded-2xl p-6 print-keep-together"
-        aria-labelledby="object-metadata-heading"
-      >
-        <h2
-          id="object-metadata-heading"
-          class="mb-4 font-heading text-xl font-semibold"
-        >
-          Informacje o danych
-        </h2>
-        <dl class="space-y-4">
-          {#if object.data_source}
-            <div>
-              <dt class="text-sm font-medium text-stone-500">Źródło danych</dt>
-              <dd class="mt-1 text-stone-700">
-                {object.data_source}
-              </dd>
-            </div>
-          {/if}
-          {#if object.source_updated_at}
-            <div>
-              <dt class="text-sm font-medium text-stone-500">
-                Aktualizacja danych
-              </dt>
-              <dd class="mt-1 text-stone-700">
-                {object.source_updated_at}
-              </dd>
-            </div>
-          {/if}
-        </dl>
-      </section>
-    {/if}
+        <NearbyObjects nearby={nearby?.data ?? nearby ?? []} />
+      </aside>
+    </div>
 
-    <button
-      onclick={printPage}
-      class="print-hidden mb-8 inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+    <footer
+      class="mt-14 flex flex-col gap-5 border-t border-stone-200 pt-8 text-sm text-stone-600 md:flex-row md:items-center md:justify-between"
     >
-      🖨️ Drukuj
-    </button>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        {#if object.data_source}
+          <p>Źródło: {object.data_source}</p>
+        {/if}
+        {#if object.data_source && object.source_updated_at}
+          <span class="hidden h-1 w-1 rounded-full bg-stone-300 md:block"></span>
+        {/if}
+        {#if object.source_updated_at}
+          <p>Ostatnia aktualizacja: {object.source_updated_at}</p>
+        {/if}
+      </div>
 
-    <NearbyObjects nearby={nearby?.data ?? nearby ?? []} />
-  </main>
+      <div class="flex items-center gap-3">
+        <button
+          onclick={printPage}
+          class="print-hidden inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2 font-semibold text-stone-700 shadow-xs transition hover:border-emerald-300 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+        >
+          <Printer class="size-4" />
+          Drukuj
+        </button>
+      </div>
+    </footer>
+  </article>
 </div>

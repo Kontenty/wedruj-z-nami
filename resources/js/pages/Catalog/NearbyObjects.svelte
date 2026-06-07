@@ -1,61 +1,69 @@
 <script>
   import { Link } from '@inertiajs/svelte';
+  import MapPin from 'lucide-svelte/icons/map-pin';
+  import UNESCOIcon from '@/components/UNESCOIcon.svelte';
   import { index as catalogIndex } from '@/routes/catalog';
 
   let { nearby = [] } = $props();
+
+  function locationLabel(nearbyObject) {
+    return [nearbyObject.locality, nearbyObject.voivodeship?.name]
+      .filter(Boolean)
+      .join(', ');
+  }
 </script>
 
-<section
-  id="nearby-objects"
-  class="mt-12 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
-  aria-labelledby="nearby-objects-heading"
->
-  <div class="mb-4 flex items-start justify-between gap-4">
-    <div>
-      <h2
-        id="nearby-objects-heading"
-        class="font-heading text-xl font-semibold"
-      >
-        Obiekty w pobliżu
-      </h2>
-      <p class="mt-1 text-sm text-stone-500">
-        Do 3 najbliższych opublikowanych obiektów w promieniu 20 km.
-      </p>
-    </div>
+<section aria-labelledby="nearby-objects-heading">
+  <div class="mb-5">
+    <h2
+      id="nearby-objects-heading"
+      class="font-heading text-2xl font-bold text-stone-950"
+    >
+      W pobliżu
+    </h2>
+    <p class="mt-1 text-sm text-stone-500">
+      Do 3 najbliższych opublikowanych obiektów w promieniu 20 km.
+    </p>
   </div>
 
   {#if nearby.length > 0}
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="space-y-4">
       {#each nearby as nearbyObject (nearbyObject.id)}
         <Link
           href={nearbyObject.url}
-          class="group overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 transition hover:border-emerald-300 hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          class="group flex gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
-          <img
-            src={nearbyObject.thumbnail_url ||
-              '/images/placeholder-object-thumb.jpg'}
-            alt={nearbyObject.title}
-            class="h-40 w-full object-cover"
-            loading="lazy"
-          />
-          <div class="flex flex-col gap-2 p-4">
+          <div class="h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] bg-stone-100">
+            <img
+              src={nearbyObject.thumbnail_url ||
+                '/images/placeholder-object-thumb.jpg'}
+              alt={nearbyObject.title}
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="flex min-w-0 flex-1 flex-col justify-center">
             <div class="flex items-start justify-between gap-3">
               <h3
-                class="font-semibold leading-tight text-stone-900 group-hover:text-emerald-800"
+                class="text-sm font-bold leading-5 text-stone-950 transition-colors group-hover:text-emerald-800"
               >
                 {nearbyObject.title}
               </h3>
+
               {#if nearbyObject.is_unesco}
                 <span
-                  class="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-900"
-                  >UNESCO</span
+                  class="inline-flex shrink-0 rounded-full bg-amber-100 p-2 text-amber-700 ring-1 ring-amber-300"
                 >
+                  <UNESCOIcon class="size-3.5" title="Obiekt UNESCO" />
+                </span>
               {/if}
             </div>
 
-            {#if nearbyObject.voivodeship?.name}
-              <p class="text-sm text-stone-600">
-                {nearbyObject.voivodeship.name}
+            {#if locationLabel(nearbyObject)}
+              <p class="mt-2 flex items-center gap-1.5 text-sm text-stone-500">
+                <MapPin class="size-3.5 shrink-0 text-emerald-700" />
+                {locationLabel(nearbyObject)}
               </p>
             {/if}
           </div>
@@ -63,11 +71,11 @@
       {/each}
     </div>
   {:else}
-    <div class="rounded-2xl bg-stone-50 p-5 text-sm text-stone-600">
+    <div class="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-5 text-sm text-stone-600">
       <p>Nie znaleźliśmy innych opublikowanych obiektów w pobliżu.</p>
       <Link
         href={catalogIndex.url()}
-        class="mt-3 inline-flex items-center gap-1 font-medium text-emerald-700 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+        class="mt-3 inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
       >
         Przejdź do katalogu →
       </Link>

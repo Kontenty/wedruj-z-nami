@@ -1,8 +1,13 @@
 <script>
+  import Images from 'lucide-svelte/icons/images';
+
   let { images, title } = $props();
   let lightboxOpen = $state(false);
   let lightboxImage = $state('');
   let lightboxIndex = $state(0);
+
+  const previewImages = $derived(images.slice(1, 4));
+  const remainingImages = $derived(Math.max(images.length - 4, 0));
 
   function openLightbox(url, index) {
     lightboxImage = url;
@@ -54,41 +59,90 @@
 <svelte:window onkeydown={onKeydown} />
 
 {#if images.length > 0}
-  <figure class="mb-4">
-    <img
-      src={images[0].url}
-      alt={images[0].alt || title}
-      class="h-auto w-full rounded-2xl object-cover"
-    />
-    {#if images[0].author || images[0].source}
-      <figcaption class="mt-2 text-xs text-stone-500">
-        {#if images[0].author}Foto: {images[0].author}{/if}
-        {#if images[0].author && images[0].source}
-          ·
-        {/if}
-        {#if images[0].source}Źródło: {images[0].source}{/if}
-      </figcaption>
-    {/if}
-  </figure>
-{/if}
+  <section class="mb-12">
+    <figure>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:[grid-auto-rows:minmax(0,1fr)]">
+        <button
+          type="button"
+          onclick={() => openLightbox(images[0].url, 0)}
+          class="group relative overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3 lg:min-h-[32rem]"
+        >
+          <img
+            src={images[0].url}
+            alt={images[0].alt || title}
+            class="h-80 w-full object-cover transition duration-700 group-hover:scale-105 lg:h-full"
+          />
+          <div
+            class="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-black/65 via-black/15 to-transparent"
+          ></div>
+          <div
+            class="absolute bottom-5 left-5 inline-flex items-center gap-2 rounded-2xl bg-black/35 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm"
+          >
+            <Images class="size-4" />
+            {images[0].alt || title}
+          </div>
+        </button>
 
-{#if images.length > 1}
-  <div class="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-    {#each images as image, index (image.url ?? index)}
-      <button
-        type="button"
-        onclick={() => openLightbox(image.url, index)}
-        class="group overflow-hidden rounded-xl focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-      >
-        <img
-          src={image.thumbnail_url}
-          alt={image.alt || title}
-          class="h-28 w-full object-cover transition group-hover:scale-105"
-          loading="lazy"
-        />
-      </button>
-    {/each}
-  </div>
+        {#if previewImages.length > 0}
+          <div class="hidden gap-4 lg:grid">
+            {#each previewImages as image, index (image.url ?? index)}
+              <button
+                type="button"
+                onclick={() => openLightbox(image.url, index + 1)}
+                class="group relative min-h-0 overflow-hidden rounded-[1.5rem] border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+              >
+                <img
+                  src={image.card_url || image.thumbnail_url}
+                  alt={image.alt || title}
+                  class="h-full min-h-40 w-full object-cover transition duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+
+                {#if remainingImages > 0 && index === previewImages.length - 1}
+                  <div
+                    class="absolute inset-0 flex items-center justify-center bg-black/55 text-white"
+                  >
+                    <span class="font-heading text-3xl font-bold">
+                      +{remainingImages}
+                    </span>
+                  </div>
+                {/if}
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      {#if images[0].author || images[0].source}
+        <figcaption class="mt-3 text-sm text-stone-500">
+          {#if images[0].author}Foto: {images[0].author}{/if}
+          {#if images[0].author && images[0].source}
+            ·
+          {/if}
+          {#if images[0].source}Źródło: {images[0].source}{/if}
+        </figcaption>
+      {/if}
+    </figure>
+
+    {#if images.length > 1}
+      <div class="mt-4 grid grid-cols-2 gap-3 lg:hidden">
+        {#each images.slice(1) as image, index (image.url ?? index)}
+          <button
+            type="button"
+            onclick={() => openLightbox(image.url, index + 1)}
+            class="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          >
+            <img
+              src={image.thumbnail_url}
+              alt={image.alt || title}
+              class="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
+              loading="lazy"
+            />
+          </button>
+        {/each}
+      </div>
+    {/if}
+  </section>
 {/if}
 
 {#if lightboxOpen}
