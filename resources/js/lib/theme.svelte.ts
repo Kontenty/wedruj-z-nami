@@ -10,68 +10,19 @@ export type ThemeState = {
   updateAppearance: (value: Appearance) => void;
 };
 
-const appearance = $state<{ value: Appearance }>({ value: 'system' });
+const appearance = $state<{ value: Appearance }>({ value: 'light' });
 
-let themeChangeMediaQuery: MediaQueryList | null = null;
-
-const prefersDark = (): boolean => {
-  if (typeof window === 'undefined') {
-    return false;
+const applyLightTheme = (): void => {
+  if (typeof document === 'undefined') {
+    return;
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-};
-
-const isDarkMode = (value: Appearance): boolean => {
-  return value === 'dark' || (value === 'system' && prefersDark());
+  document.documentElement.classList.remove('dark');
+  document.documentElement.style.colorScheme = 'light';
 };
 
 const getResolvedAppearance = (): ResolvedAppearance => {
-  return isDarkMode(appearance.value) ? 'dark' : 'light';
-};
-
-const setCookie = (name: string, value: string, days = 365): void => {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  const maxAge = days * 24 * 60 * 60;
-  document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
-};
-
-const applyTheme = (value: Appearance): void => {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  const isDark = isDarkMode(value);
-  document.documentElement.classList.toggle('dark', isDark);
-  document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
-};
-
-const getStoredAppearance = (): Appearance => {
-  if (typeof window === 'undefined') {
-    return 'system';
-  }
-
-  const stored = localStorage.getItem('appearance');
-
-  return stored === 'light' || stored === 'dark' || stored === 'system'
-    ? stored
-    : 'system';
-};
-
-const handleSystemThemeChange = (): void => {
-  applyTheme(appearance.value);
-};
-
-const detachThemeChangeListener = (): void => {
-  if (!themeChangeMediaQuery) {
-    return;
-  }
-
-  themeChangeMediaQuery.removeEventListener('change', handleSystemThemeChange);
-  themeChangeMediaQuery = null;
+  return 'light';
 };
 
 export function initializeTheme(): () => void {
@@ -79,30 +30,15 @@ export function initializeTheme(): () => void {
     return () => {};
   }
 
-  if (!localStorage.getItem('appearance')) {
-    localStorage.setItem('appearance', 'system');
-    setCookie('appearance', 'system');
-  }
+  appearance.value = 'light';
+  applyLightTheme();
 
-  appearance.value = getStoredAppearance();
-  applyTheme(appearance.value);
-
-  detachThemeChangeListener();
-  themeChangeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  themeChangeMediaQuery.addEventListener('change', handleSystemThemeChange);
-
-  return detachThemeChangeListener;
+  return () => {};
 }
 
-export function updateAppearance(value: Appearance): void {
-  appearance.value = value;
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('appearance', value);
-  }
-
-  setCookie('appearance', value);
-  applyTheme(value);
+export function updateAppearance(_value: Appearance): void {
+  appearance.value = 'light';
+  applyLightTheme();
 }
 
 export function themeState(): ThemeState {

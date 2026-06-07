@@ -12,7 +12,6 @@
 </script>
 
 <script lang="ts">
-  import AppearanceTabs from '@/components/AppearanceTabs.svelte';
   import AppHead from '@/components/AppHead.svelte';
   import Heading from '@/components/Heading.svelte';
 </script>
@@ -25,7 +24,12 @@
   <Heading
     variant="small"
     title="Appearance settings"
-    description="Update the appearance settings for your account"
+    description="The app is currently fixed to light mode."
   />
-  <AppearanceTabs />
+
+  <div
+    class="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground"
+  >
+    Dark mode is disabled for now to keep the interface consistent.
+  </div>
 </div>
