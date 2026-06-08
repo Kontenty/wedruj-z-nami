@@ -9,6 +9,7 @@
     highlightedObjectId = null,
     selectedObjectId = null,
     onSelect,
+    shouldFitBounds = false,
   } = $props();
   let container = $state();
   let map;
@@ -60,6 +61,41 @@
       })
       .filter(Boolean),
   );
+
+  function extendBounds(bounds, coordinates) {
+    if (!Array.isArray(coordinates)) {
+      return;
+    }
+
+    if (
+      typeof coordinates[0] === 'number' &&
+      typeof coordinates[1] === 'number'
+    ) {
+      bounds.extend([coordinates[0], coordinates[1]]);
+
+      return;
+    }
+
+    coordinates.forEach((coordinate) => extendBounds(bounds, coordinate));
+  }
+
+  function calculateBounds() {
+    if (objects.length === 0) {
+      return null;
+    }
+
+    const bounds = new maplibregl.LngLatBounds();
+
+    for (const feature of pointFeatures) {
+      bounds.extend(feature.geometry.coordinates);
+    }
+
+    for (const feature of polygonFeatures) {
+      extendBounds(bounds, feature.geometry.coordinates);
+    }
+
+    return bounds.isEmpty() ? null : bounds;
+  }
 
   function popupHtml(object) {
     return `<div class="w-56 overflow-hidden rounded-xl bg-white"><img class="h-28 w-full object-cover" src="${object.thumbnail_url || '/images/placeholder-object-thumb.jpg'}" alt=""><div class="p-3"><h3 class="font-bold leading-tight">${object.title}</h3><p class="mt-1 text-sm text-stone-600">${object.voivodeship?.name ?? ''}</p></div></div>`;
@@ -259,6 +295,27 @@
   });
   $effect(() => {
     refreshHighlightLayers();
+  });
+  $effect(() => {
+    if (!shouldFitBounds) {
+      return;
+    }
+
+    if (!map?.isStyleLoaded()) {
+      return;
+    }
+
+    if (objects.length === 0) {
+      map.flyTo({ center: [19.1, 52.1], zoom: 5, duration: 1000 });
+    } else {
+      const bounds = calculateBounds();
+
+      if (bounds) {
+        map.fitBounds(bounds, { padding: 50, duration: 1000 });
+      }
+    }
+
+
   });
 </script>
 

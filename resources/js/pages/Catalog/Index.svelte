@@ -16,6 +16,7 @@
   let selectedObjectId = $state(null);
   let showMobileFilters = $state(false);
   let isLoading = $state(false);
+  let shouldFitBounds = $state(false);
 
   const activeFilters = $derived({
     q: filters.q || '',
@@ -23,7 +24,16 @@
     objectTypes: filters.objectTypes || [],
     unesco: filters.unesco === true,
   });
+  const hasPreFilters = $derived(
+    !!(filters.q || filters.voivodeships?.length || filters.objectTypes?.length || filters.unesco),
+  );
   const resultCount = $derived(objects.meta?.total ?? (objects.data ?? []).length);
+
+  $effect(() => {
+    if (hasPreFilters) {
+      shouldFitBounds = true;
+    }
+  });
 
   function visit(nextFilters) {
     const query = Object.fromEntries(
@@ -41,7 +51,10 @@
       replace: true,
       only: ['objects', 'mapObjects', 'filters'],
       onStart: () => (isLoading = true),
-      onFinish: () => (isLoading = false),
+      onFinish: () => {
+        isLoading = false;
+        shouldFitBounds = true;
+      },
     });
   }
 
@@ -129,6 +142,7 @@
           {highlightedObjectId}
           {selectedObjectId}
           onSelect={scrollToObject}
+          {shouldFitBounds}
         />
       </section>
 
