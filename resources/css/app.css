@@ -433,6 +433,11 @@
   h6 {
     font-family: var(--font-heading);
   }
+
+  button {
+    cursor: pointer;
+  }
+
   a,
   button,
   input,

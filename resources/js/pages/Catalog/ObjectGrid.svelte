@@ -1,5 +1,5 @@
 <script>
-  import { Link } from '@inertiajs/svelte';
+  import Pagination from '@/components/Pagination.svelte';
   import ObjectCard from './ObjectCard.svelte';
 
   let {
@@ -7,9 +7,11 @@
     isLoading = false,
     selectedObjectId = null,
     onHover,
+    onPageChange,
   } = $props();
 
   const items = $derived(objects.data ?? []);
+  const meta = $derived(objects.meta ?? {});
 </script>
 
 {#if isLoading}
@@ -42,25 +44,11 @@
       />
     {/each}
   </div>
-  {#if objects.links}
-    <nav class="mt-6 flex flex-wrap justify-center gap-2">
-      {#each objects.links as link, index (link.url ?? link.label ?? index)}
-        {#if link.url}
-          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-          <Link
-            href={link.url}
-            preserve-scroll
-            class={'rounded-xl border px-3 py-2 text-sm ' +
-              (link.active ? 'bg-emerald-700 text-white' : '')}
-            >{@html link.label}</Link
-          >
-        {:else}
-          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-          <span class="rounded-xl border px-3 py-2 text-sm opacity-40"
-            >{@html link.label}</span
-          >
-        {/if}
-      {/each}
-    </nav>
+  {#if meta.last_page > 1}
+    <Pagination
+      currentPage={meta.current_page}
+      lastPage={meta.last_page}
+      {onPageChange}
+    />
   {/if}
 {/if}

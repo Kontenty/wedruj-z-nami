@@ -23,7 +23,7 @@
     objectTypes: filters.objectTypes || [],
     unesco: filters.unesco === true,
   });
-  const resultCount = $derived(objects.total ?? (objects.data ?? []).length);
+  const resultCount = $derived(objects.meta?.total ?? (objects.data ?? []).length);
 
   function visit(nextFilters) {
     const query = Object.fromEntries(
@@ -35,6 +35,29 @@
           value !== undefined,
       ),
     );
+
+    router.get(catalogIndex.url(), query, {
+      preserveState: true,
+      replace: true,
+      only: ['objects', 'mapObjects', 'filters'],
+      onStart: () => (isLoading = true),
+      onFinish: () => (isLoading = false),
+    });
+  }
+
+  function handlePageChange(page) {
+    const query = {
+      ...Object.fromEntries(
+        Object.entries(filters).filter(
+          ([, value]) =>
+            value !== '' &&
+            value !== false &&
+            value !== null &&
+            value !== undefined,
+        ),
+      ),
+      page,
+    };
 
     router.get(catalogIndex.url(), query, {
       preserveState: true,
@@ -134,6 +157,7 @@
             {isLoading}
             {selectedObjectId}
             onHover={(id) => (highlightedObjectId = id)}
+            onPageChange={handlePageChange}
           />
         {/if}
       </section>
