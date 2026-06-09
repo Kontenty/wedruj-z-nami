@@ -1,8 +1,9 @@
 <script>
   import maplibregl from 'maplibre-gl';
-  import { onMount } from 'svelte';
+  import { mount, onMount, unmount } from 'svelte';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { setPolishLanguage } from '@/lib/map-language';
+  import MapPopup from './MapPopup.svelte';
 
   let {
     objects = [],
@@ -14,6 +15,7 @@
   let container = $state();
   let map;
   let popup;
+  let popupComponent;
   let hasMapError = $state(false);
 
   const pointFeatures = $derived(
@@ -97,8 +99,43 @@
     return bounds.isEmpty() ? null : bounds;
   }
 
-  function popupHtml(object) {
-    return `<div class="w-56 overflow-hidden rounded-xl bg-white"><img class="h-28 w-full object-cover" src="${object.thumbnail_url || '/images/placeholder-object-thumb.jpg'}" alt=""><div class="p-3"><h3 class="font-bold leading-tight">${object.title}</h3><p class="mt-1 text-sm text-stone-600">${object.voivodeship?.name ?? ''}</p></div></div>`;
+  function closePopup() {
+    const currentPopup = popup;
+    const currentPopupComponent = popupComponent;
+
+    popup = null;
+    popupComponent = null;
+
+    currentPopup?.remove();
+
+    if (currentPopupComponent) {
+      unmount(currentPopupComponent);
+    }
+  }
+
+  function openPopup(object, coordinates) {
+    closePopup();
+
+    const popupContainer = document.createElement('div');
+
+    popupComponent = mount(MapPopup, {
+      target: popupContainer,
+      props: { object, onClose: closePopup },
+    });
+
+    popup = new maplibregl.Popup({ closeButton: false })
+      .setLngLat(coordinates)
+      .setDOMContent(popupContainer)
+      .addTo(map);
+
+    popup.on('close', () => {
+      if (popupComponent) {
+        unmount(popupComponent);
+        popupComponent = null;
+      }
+
+      popup = null;
+    });
   }
 
   function refreshSources() {
@@ -256,12 +293,7 @@
               return;
             }
 
-            const coordinates = event.lngLat;
-            popup?.remove();
-            popup = new maplibregl.Popup()
-              .setLngLat(coordinates)
-              .setHTML(popupHtml(object))
-              .addTo(map);
+            openPopup(object, event.lngLat);
             onSelect?.(id);
           });
           map.on(
@@ -285,7 +317,7 @@
     }
 
     return () => {
-      popup?.remove();
+      closePopup();
       map?.remove();
     };
   });

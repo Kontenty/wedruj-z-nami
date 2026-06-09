@@ -124,10 +124,11 @@ The design style follows a **Corporate / Modern** approach with a strong **Tacti
 
 ## Colors
 
-The palette is anchored by a deep, trustworthy **Forest Green** (Primary), representing the core identity of PTTK. This is complemented by a series of nature-derived pastels that provide organizational clarity without adding visual noise.
+The palette uses a **dual-green** system anchored by PTTK's brand identity. A functional primary handles interactive elements, while the PTTK brand green creates atmospheric and brand moments.
 
 ### Palette Application
-- **Primary (#42934A):** Used for key actions, brand touchpoints, and the "published/official" status markers.
+- **Functional Primary (#136a27):** Used for buttons, links, form elements, and focus rings. Provides strong contrast on light backgrounds.
+- **PTTK Brand Green (#42934A):** Used for gradient endpoints, sidebar accent bars, hero headers, and atmospheric overlays. The recognizable PTTK identity color.
 - **Secondary / Sage (#E2E8CE):** Used for large container backgrounds and decorative elements to soften the interface.
 - **Sky Blue (#BAE1FF):** Reserved for technical/practical information, weather-related UI, or water-based natural sites.
 - **Earthy Sand (#F4EBD0):** Employed for historical site categorization or secondary call-to-action sections.
@@ -154,12 +155,14 @@ This design system utilizes a **Fluid Grid** with fixed maximum constraints to e
 
 ## Elevation & Depth
 
-Hierarchy is established through **Tonal Layers** and **Ambient Shadows**. This approach mimics the way maps or physical brochures are layered.
+Hierarchy is established through **Glassmorphism** and **Ambient Glow**. This approach mimics the way maps or physical brochures are layered, with translucent panels creating natural depth.
 
-- **Level 0 (Base):** The `surface-cream` background.
-- **Level 1 (Cards/Containers):** Elevated slightly with a very soft, diffused shadow (10% opacity Primary color tint) to distinguish objects from the background.
-- **Level 2 (Navigation/Popups):** Higher elevation using a slightly tighter shadow to indicate interactivity and "floating" map markers.
-- **Interactivity:** Buttons and interactive cards should use a subtle "press" effect (reducing shadow or shifting color) rather than a heavy lift, maintaining the grounded, reliable feel of the brand.
+- **Level 0 (Base):** The `surface-cream` background or gradient atmospheric background.
+- **Level 1 (Cards/Containers):** Glass panel with `backdrop-filter: blur(12px) saturate(1.5)`, semi-transparent background, subtle border, and ambient glow shadow (`--glow-level-1`).
+- **Level 2 (Navigation/Floating):** Stronger blur (16px), higher opacity, gradient border accent using the forest gradient. Used for sidebar, modals, and popups.
+- **Interactivity:** Buttons and interactive cards use a `glass-hover` effect — transitioning from solid to glass on hover with a 200ms ease.
+- **Fallback:** Browsers without `backdrop-filter` support receive solid backgrounds matching the light/dark theme.
+- **Print:** Glass and gradient effects are stripped in print styles, falling back to solid backgrounds.
 
 ## Shapes
 
@@ -191,3 +194,35 @@ The shape language is consistently **Rounded**, reflecting a friendly and approa
 ### Map Elements
 - **Clustering:** Markers cluster into rounded circles with a Primary Green border and a numerical count.
 - **Popup:** Clean, white background with a small thumbnail, title, and "View Details" button. High elevation to sit clearly above map layers.
+
+## Glassmorphism & Gradients
+
+### Gradient Utilities
+Nature-inspired gradients available as CSS utility classes:
+
+| Class | Gradient | Use Case |
+|-------|----------|----------|
+| `bg-gradient-forest` | `#1a4a26` → `#2d6b38` → `#42934A` | Hero backgrounds, sidebar, brand moments |
+| `bg-gradient-mist` | `#e8f0e4` → `#f7fbf1` → `#dfe5cb` | Section dividers, header backgrounds |
+| `bg-gradient-sunrise` | `#d4af37` → `#c84c4c` → `#9a3a5b` | Accent highlights, badges |
+| `bg-gradient-sky` | `#bae1ff` → `#e0f0ff` → `#f7fbf1` | Weather sections, info panels |
+| `bg-gradient-glass` | `rgba(255,255,255,0.6)` → `rgba(255,255,255,0.2)` | Glassmorphism base |
+
+### Glass Panel Utilities
+Translucent panels with backdrop blur:
+
+| Class | Opacity | Use Case |
+|-------|---------|----------|
+| `glass-panel` | 70% | Standard cards, sidebar |
+| `glass-panel-light` | 50% | Chips, badges, subtle containers |
+| `glass-panel-strong` | 85% | Modals, high-emphasis panels |
+| `glass-hover` | transitions on hover | Interactive cards |
+
+### Elevation Utilities
+
+| Class | Effect | Use Case |
+|-------|--------|----------|
+| `glow-level-1` | Soft green ambient glow | Cards, containers |
+| `glow-level-2` | Stronger green glow | Navigation, floating panels |
+| `gradient-border` | Forest gradient border via pseudo-element | Level 2 elevated elements |
+| `sidebar-active-accent` | Left gradient accent bar | Active sidebar nav items |
