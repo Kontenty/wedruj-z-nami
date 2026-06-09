@@ -52,33 +52,33 @@
       type="button"
       aria-label="Zamknij popup"
       onclick={() => onClose?.()}
-      class="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-white/95 text-stone-700 shadow-lg shadow-stone-950/20 ring-1 ring-stone-900/10 transition hover:bg-white hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950/30"
+      class="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-white/95 text-stone-700 shadow-lg shadow-stone-950/20 ring-1 ring-stone-900/10 transition hover:bg-stone-100 hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950/30"
     >
-      <X class="size-4" />
+      <X class="size-4 hover:size-5" />
     </button>
   </div>
 
   <div class="space-y-3 p-4">
     <div class="flex items-center gap-2">
       <span
-        class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-800"
+        class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800"
       >
         <Info class="size-3.5 shrink-0" />
-        <span class="truncate">{infoLabel}</span>
+        <span class="truncate font-heading">{infoLabel}</span>
       </span>
     </div>
 
     <div class="space-y-2">
-      <h3 class="font-heading text-lg font-black leading-tight text-stone-950">
+      <h3 class="text-base font-semibold leading-tight text-stone-900">
         {object.title}
       </h3>
 
       {#if locationLabel}
         <p
-          class="flex items-start gap-1.5 text-sm font-semibold text-stone-600"
+          class="flex items-start gap-1.5 text-sm font-semibold"
         >
           <MapPin class="mt-0.5 size-4 shrink-0 text-emerald-700" />
-          <span>{locationLabel}</span>
+          <span class="text-emerald-600">{locationLabel}</span>
         </p>
       {/if}
     </div>

@@ -532,3 +532,9 @@
     box-shadow: none !important;
   }
 }
+
+.wzn-map-popup .maplibregl-popup-content {
+  background: transparent;
+  outline: none;
+  padding: 0;
+}

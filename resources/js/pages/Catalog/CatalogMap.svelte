@@ -1,5 +1,5 @@
 <script>
-  import maplibregl from 'maplibre-gl';
+  import maplibreGl from 'maplibre-gl';
   import { mount, onMount, unmount } from 'svelte';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { setPolishLanguage } from '@/lib/map-language';
@@ -86,7 +86,7 @@
       return null;
     }
 
-    const bounds = new maplibregl.LngLatBounds();
+    const bounds = new maplibreGl.LngLatBounds();
 
     for (const feature of pointFeatures) {
       bounds.extend(feature.geometry.coordinates);
@@ -123,7 +123,7 @@
       props: { object, onClose: closePopup },
     });
 
-    popup = new maplibregl.Popup({ closeButton: false })
+    popup = new maplibreGl.Popup({ closeButton: false, className: 'wzn-map-popup' })
       .setLngLat(coordinates)
       .setDOMContent(popupContainer)
       .addTo(map);
@@ -178,13 +178,13 @@
 
   onMount(() => {
     try {
-      map = new maplibregl.Map({
+      map = new maplibreGl.Map({
         container,
         style: 'https://tiles.openfreemap.org/styles/liberty',
         center: [19.1, 52.1],
         zoom: 5,
       });
-      map.addControl(new maplibregl.NavigationControl(), 'top-right');
+      map.addControl(new maplibreGl.NavigationControl(), 'top-right');
       map.on('load', () => {
         setPolishLanguage(map);
         map.addSource('points', {
@@ -353,14 +353,14 @@
 
 {#if hasMapError}
   <div
-    class="flex h-full min-h-[28rem] items-center justify-center p-6 text-center text-sm text-stone-600"
+    class="flex h-full min-h-112 items-center justify-center p-6 text-center text-sm text-stone-600"
   >
     Mapa jest chwilowo niedostępna. Użyj listy wyników poniżej.
   </div>
 {:else}
   <div
     bind:this={container}
-    class="h-full min-h-[28rem] w-full"
+    class="h-full min-h-112 w-full"
     aria-label="Interaktywna mapa obiektów. Lista wyników pozostaje alternatywą dostępną z klawiatury."
   ></div>
 {/if}
