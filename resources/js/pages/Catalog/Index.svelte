@@ -92,12 +92,7 @@
     visit({ q: '', voivodeships: [], objectTypes: [], unesco: false });
   }
 
-  function scrollToObject(objectId) {
-    selectedObjectId = objectId;
-    document
-      .getElementById(`object-card-${objectId}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+  function scrollToObject() {}
 </script>
 
 <svelte:head><title>Katalog</title></svelte:head>
