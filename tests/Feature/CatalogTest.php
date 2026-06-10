@@ -19,8 +19,27 @@ it('returns the catalog inertia page', function () {
             ->has('objects')
             ->has('mapObjects')
             ->has('filters')
+            ->where('initialView', null)
             ->has('objectTypes')
             ->has('voivodeships'));
+});
+
+it('passes the requested catalog view when it is valid', function () {
+    SightseeingObject::factory()->published()->create();
+
+    $this->get('/katalog?view=list')
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('initialView', 'list'));
+});
+
+it('ignores unsupported catalog view values', function () {
+    SightseeingObject::factory()->published()->create();
+
+    $this->get('/katalog?view=atlas')
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('initialView', null));
 });
 
 it('filters by voivodeship slug', function () {
@@ -106,7 +125,7 @@ it('excludes unpublished objects from list and map', function () {
             ->has('mapObjects.data', 1));
 });
 
-it('paginates objects at 24 per page and keeps map unpaginated', function () {
+it('paginates objects at 12 per page and keeps map unpaginated', function () {
     $voivodeship = Voivodeship::factory()->create();
 
     foreach (range(1, 25) as $index) {
@@ -115,6 +134,6 @@ it('paginates objects at 24 per page and keeps map unpaginated', function () {
 
     $this->get('/katalog')
         ->assertInertia(fn (Assert $page) => $page
-            ->has('objects.data', 24)
+            ->has('objects.data', 12)
             ->has('mapObjects.data', 25));
 });

@@ -18,6 +18,9 @@ class CatalogController extends Controller
 {
     public function __invoke(Request $request): Response
     {
+        $initialView = in_array($request->query('view'), ['map', 'list', 'split'], true)
+            ? $request->query('view')
+            : null;
         $voivodeships = array_values(array_filter(Arr::wrap($request->query('voivodeships', []))));
         $objectTypes = array_values(array_filter(array_map('intval', Arr::wrap($request->query('objectTypes', [])))));
 
@@ -26,16 +29,16 @@ class CatalogController extends Controller
             ->with(['voivodeship', 'objectTypes'])
             ->select('sightseeing_objects.*')
             ->searchByTitle($request->query('q'))
-            ->when($voivodeships !== [], fn(Builder $query) => $query->whereHas('voivodeship', fn(Builder $query) => $query->whereIn('slug', $voivodeships)))
+            ->when($voivodeships !== [], fn (Builder $query) => $query->whereHas('voivodeship', fn (Builder $query) => $query->whereIn('slug', $voivodeships)))
             ->when($objectTypes !== [], function (Builder $query) use ($objectTypes): void {
                 $descendantIds = ObjectType::query()
                     ->whereIn('id', $objectTypes)
                     ->get()
-                    ->flatMap(fn(ObjectType $objectType) => $objectType->descendantIds()->prepend($objectType->getKey()))
+                    ->flatMap(fn (ObjectType $objectType) => $objectType->descendantIds()->prepend($objectType->getKey()))
                     ->unique()
                     ->values();
 
-                $query->whereHas('objectTypes', fn(Builder $query) => $query->whereIn('object_types.id', $descendantIds));
+                $query->whereHas('objectTypes', fn (Builder $query) => $query->whereIn('object_types.id', $descendantIds));
             })
             ->unesco($request->boolean('unesco'));
 
@@ -65,6 +68,7 @@ class CatalogController extends Controller
                 'objectTypes' => array_map('strval', $objectTypes),
                 'unesco' => $request->boolean('unesco'),
             ],
+            'initialView' => $initialView,
             'objectTypes' => ObjectTypeResource::collection(
                 ObjectType::query()
                     ->whereNull('parent_id')

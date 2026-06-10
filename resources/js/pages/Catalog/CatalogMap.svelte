@@ -10,12 +10,13 @@
     highlightedObjectId = null,
     selectedObjectId = null,
     onSelect,
-    shouldFitBounds = false,
+    fitBoundsVersion = 0,
   } = $props();
   let container = $state();
   let map;
   let popup;
   let popupComponent;
+  let resizeObserver;
   let hasMapError = $state(false);
 
   const pointFeatures = $derived(
@@ -78,7 +79,9 @@
       return;
     }
 
-    coordinates.forEach((coordinate) => extendBounds(bounds, coordinate));
+    coordinates.forEach((coordinate) => {
+      extendBounds(bounds, coordinate);
+    });
   }
 
   function calculateBounds() {
@@ -315,12 +318,21 @@
       map.on('error', () => {
         hasMapError = true;
       });
+
+      resizeObserver = new ResizeObserver(() => {
+        map?.resize();
+      });
+
+      if (container) {
+        resizeObserver.observe(container);
+      }
     } catch {
       hasMapError = true;
     }
 
     return () => {
       closePopup();
+      resizeObserver?.disconnect();
       map?.remove();
     };
   });
@@ -332,7 +344,7 @@
     refreshHighlightLayers();
   });
   $effect(() => {
-    if (!shouldFitBounds) {
+    if (fitBoundsVersion === 0) {
       return;
     }
 

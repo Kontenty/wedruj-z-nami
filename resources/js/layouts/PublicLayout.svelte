@@ -35,12 +35,12 @@
           aria-label="Nawigacja główna"
         >
           <Link
-            href="/katalog"
+            href="/katalog?view=map"
             class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >Mapa</Link
           >
           <Link
-            href="/katalog?view=list"
+            href="/katalog"
             class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >Katalog</Link
           >
@@ -88,7 +88,7 @@
       <div class="border-t border-gray-200 bg-white md:hidden">
         <nav class="space-y-3 px-4 py-3" aria-label="Nawigacja mobilna">
           <Link
-            href="/katalog"
+            href="/katalog?view=map"
             class="block py-1 text-gray-600 hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >Mapa</Link
           >

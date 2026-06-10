@@ -1,22 +1,42 @@
 <script>
   import { router } from '@inertiajs/svelte';
+  import { onMount } from 'svelte';
   import { index as catalogIndex } from '@/routes/catalog';
   import ActiveFilterChips from './ActiveFilterChips.svelte';
   import CatalogMap from './CatalogMap.svelte';
+  import CatalogViewToggle from './CatalogViewToggle.svelte';
   import EmptyState from './EmptyState.svelte';
   import MobileFilterSheet from './MobileFilterSheet.svelte';
-  import MobileViewToggle from './MobileViewToggle.svelte';
   import ObjectGrid from './ObjectGrid.svelte';
   import TopFilterBar from './TopFilterBar.svelte';
 
-  let { objects, mapObjects, filters, objectTypes, voivodeships } = $props();
+  let {
+    objects,
+    mapObjects,
+    filters,
+    objectTypes,
+    voivodeships,
+    initialView = null,
+  } = $props();
 
-  let activeView = $state('map');
+  const desktopMediaQuery = '(min-width: 768px)';
+
+  let activeView = $state(
+    typeof window !== 'undefined' &&
+      window.matchMedia(desktopMediaQuery).matches
+      ? 'split'
+      : 'map',
+  );
+  let hasExplicitView = $state(false);
   let highlightedObjectId = $state(null);
   let selectedObjectId = $state(null);
   let showMobileFilters = $state(false);
   let isLoading = $state(false);
-  let shouldFitBounds = $state(false);
+  let fitBoundsVersion = $state(0);
+
+  const showsMap = $derived(activeView === 'map' || activeView === 'split');
+  const showsList = $derived(activeView === 'list' || activeView === 'split');
+  const isSplitView = $derived(activeView === 'split');
 
   const activeFilters = $derived({
     q: filters.q || '',
@@ -38,54 +58,123 @@
 
   $effect(() => {
     if (hasPreFilters) {
-      shouldFitBounds = true;
+      fitBoundsVersion += 1;
     }
   });
 
-  function visit(nextFilters) {
-    const query = Object.fromEntries(
-      Object.entries(nextFilters).filter(
-        ([, value]) =>
+  $effect(() => {
+    hasExplicitView = initialView !== null;
+
+    if (initialView !== null) {
+      activeView = initialView;
+    }
+  });
+
+  onMount(() => {
+    if (hasExplicitView) {
+      return;
+    }
+
+    const media = window.matchMedia(desktopMediaQuery);
+
+    const syncView = () => {
+      activeView = media.matches ? 'split' : 'map';
+    };
+
+    syncView();
+    media.addEventListener('change', syncView);
+
+    return () => {
+      media.removeEventListener('change', syncView);
+    };
+  });
+
+  function sanitizeQuery(nextQuery) {
+    return Object.fromEntries(
+      Object.entries(nextQuery).filter(([, value]) => {
+        if (Array.isArray(value)) {
+          return value.length > 0;
+        }
+
+        return (
           value !== '' &&
           value !== false &&
           value !== null &&
-          value !== undefined,
-      ),
+          value !== undefined
+        );
+      }),
     );
+  }
+
+  function currentQuery() {
+    return sanitizeQuery({
+      ...filters,
+      view: activeView,
+    });
+  }
+
+  function requestFitBounds() {
+    fitBoundsVersion += 1;
+  }
+
+  function visit(nextFilters) {
+    const query = sanitizeQuery({
+      ...nextFilters,
+      view: activeView,
+    });
 
     router.get(catalogIndex.url(), query, {
       preserveState: true,
       replace: true,
-      only: ['objects', 'mapObjects', 'filters'],
+      only: ['objects', 'mapObjects', 'filters', 'initialView'],
       onStart: () => (isLoading = true),
       onFinish: () => {
         isLoading = false;
-        shouldFitBounds = true;
+        requestFitBounds();
       },
     });
   }
 
   function handlePageChange(page) {
-    const query = {
-      ...Object.fromEntries(
-        Object.entries(filters).filter(
-          ([, value]) =>
-            value !== '' &&
-            value !== false &&
-            value !== null &&
-            value !== undefined,
-        ),
-      ),
+    const query = sanitizeQuery({
+      ...filters,
+      view: activeView,
       page,
-    };
+    });
 
     router.get(catalogIndex.url(), query, {
       preserveState: true,
       replace: true,
-      only: ['objects', 'mapObjects', 'filters'],
+      only: ['objects', 'mapObjects', 'filters', 'initialView'],
       onStart: () => (isLoading = true),
       onFinish: () => (isLoading = false),
     });
+  }
+
+  function handleViewChange(nextView) {
+    if (nextView === activeView) {
+      return;
+    }
+
+    activeView = nextView;
+    hasExplicitView = true;
+
+    if (nextView !== 'list') {
+      requestFitBounds();
+    }
+
+    router.get(
+      catalogIndex.url(),
+      sanitizeQuery({
+        ...currentQuery(),
+        view: nextView,
+      }),
+      {
+        preserveState: true,
+        replace: true,
+        only: ['initialView'],
+      },
+    );
   }
 
   function clearFilters() {
@@ -126,57 +215,74 @@
       onClear={clearFilters}
     />
 
-    <MobileViewToggle bind:activeView />
+    <CatalogViewToggle
+      bind:activeView
+      onChange={handleViewChange}
+      class="md:hidden"
+    />
+
+    <div class="hidden md:flex md:justify-end">
+      <CatalogViewToggle
+        bind:activeView
+        onChange={handleViewChange}
+        class="md:w-fit"
+      />
+    </div>
 
     <main
       id="main-content"
-      class="grid gap-4 focus:outline-none lg:grid-cols-[minmax(0,65fr)_minmax(22rem,35fr)]"
+      class={isSplitView
+        ? 'grid gap-4 focus:outline-none lg:grid-cols-[minmax(0,65fr)_minmax(22rem,35fr)]'
+        : 'grid gap-4 focus:outline-none'}
       tabindex="-1"
     >
-      <section
-        class={(activeView === 'map' ? 'block' : 'hidden') +
-          ' h-[70vh] overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm md:block lg:sticky lg:top-4'}
-        aria-labelledby="catalog-map-heading"
-      >
-        <h2 id="catalog-map-heading" class="sr-only">Mapa obiektów</h2>
-        <CatalogMap
-          objects={mapObjects.data ?? mapObjects}
-          {highlightedObjectId}
-          {selectedObjectId}
-          onSelect={scrollToObject}
-          {shouldFitBounds}
-        />
-      </section>
-
-      <section
-        class={(activeView === 'list' ? 'block' : 'hidden') + ' md:block'}
-        aria-labelledby="catalog-results-heading"
-      >
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <h2 id="catalog-results-heading" class="sr-only">Wyniki katalogu</h2>
-          <p class="text-sm font-semibold text-stone-700" aria-live="polite">
-            Liczba wyników: {resultCount}
-          </p>
-        </div>
-        <ActiveFilterChips
-          filters={activeFilters}
-          {voivodeships}
-          {objectTypes}
-          onChange={visit}
-          onClear={clearFilters}
-        />
-        {#if (objects.data ?? []).length === 0 && !isLoading}
-          <EmptyState onClear={clearFilters} />
-        {:else}
-          <ObjectGrid
-            {objects}
-            {isLoading}
+      {#if showsMap}
+        <section
+          class={'h-[70vh] overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm ' +
+            (isSplitView ? 'lg:sticky lg:top-4' : '')}
+          aria-labelledby="catalog-map-heading"
+        >
+          <h2 id="catalog-map-heading" class="sr-only">Mapa obiektów</h2>
+          <CatalogMap
+            objects={mapObjects.data ?? mapObjects}
+            {highlightedObjectId}
             {selectedObjectId}
-            onHover={(id) => (highlightedObjectId = id)}
-            onPageChange={handlePageChange}
+            onSelect={scrollToObject}
+            {fitBoundsVersion}
           />
-        {/if}
-      </section>
+        </section>
+      {/if}
+
+      {#if showsList}
+        <section aria-labelledby="catalog-results-heading">
+          <div class="mb-3 flex items-center gap-3">
+            <h2 id="catalog-results-heading" class="sr-only">
+              Wyniki katalogu
+            </h2>
+            <p class="text-sm font-semibold text-stone-700" aria-live="polite">
+              Liczba wyników: {resultCount}
+            </p>
+          </div>
+          <ActiveFilterChips
+            filters={activeFilters}
+            {voivodeships}
+            {objectTypes}
+            onChange={visit}
+            onClear={clearFilters}
+          />
+          {#if (objects.data ?? []).length === 0 && !isLoading}
+            <EmptyState onClear={clearFilters} />
+          {:else}
+            <ObjectGrid
+              {objects}
+              {isLoading}
+              {selectedObjectId}
+              onHover={(id) => (highlightedObjectId = id)}
+              onPageChange={handlePageChange}
+            />
+          {/if}
+        </section>
+      {/if}
     </main>
   </div>
 </div>
