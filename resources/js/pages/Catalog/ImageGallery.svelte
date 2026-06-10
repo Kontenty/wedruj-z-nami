@@ -61,7 +61,9 @@
 {#if images.length > 0}
   <section class="mb-12">
     <figure>
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:[grid-auto-rows:minmax(0,1fr)]">
+      <div
+        class="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:[grid-auto-rows:minmax(0,1fr)]"
+      >
         <button
           type="button"
           onclick={() => openLightbox(images[0].url, 0)}

@@ -5,16 +5,20 @@
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { setPolishLanguage } from '@/lib/map-language';
 
-  let { lat, lng, geojson, title, locality = null, voivodeship = null } =
-    $props();
+  let {
+    lat,
+    lng,
+    geojson,
+    title,
+    locality = null,
+    voivodeship = null,
+  } = $props();
   let container = $state();
   let map;
   let hasMapError = $state(false);
 
   const locationLabel = $derived(
-    [locality, voivodeship && `woj. ${voivodeship}`]
-      .filter(Boolean)
-      .join(', '),
+    [locality, voivodeship && `woj. ${voivodeship}`].filter(Boolean).join(', '),
   );
 
   function parseGeometry() {

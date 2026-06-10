@@ -13,7 +13,10 @@
   let { object, images, geojson, nearby } = $props();
 
   const locationLabel = $derived(
-    [object.locality, object.voivodeship?.name && `woj. ${object.voivodeship.name}`]
+    [
+      object.locality,
+      object.voivodeship?.name && `woj. ${object.voivodeship.name}`,
+    ]
       .filter(Boolean)
       .join(', '),
   );
@@ -27,9 +30,13 @@
   <title>{object.title} — Wędruj z Nami</title>
 </svelte:head>
 
-<div class="bg-[radial-gradient(circle_at_top,#eef6e8_0%,#fcfaf5_34%,#fcfaf5_100%)]">
+<div
+  class="bg-[radial-gradient(circle_at_top,#eef6e8_0%,#fcfaf5_34%,#fcfaf5_100%)]"
+>
   <article class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-    <header class="mb-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+    <header
+      class="mb-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"
+    >
       <div class="min-w-0">
         <nav
           aria-label="Okruszki"
@@ -100,7 +107,9 @@
 
     <ImageGallery {images} title={object.title} />
 
-    <div class="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
+    <div
+      class="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start"
+    >
       <div class="space-y-10">
         <section class="space-y-6">
           {#if object.lead}
@@ -153,7 +162,8 @@
           <p>Źródło: {object.data_source}</p>
         {/if}
         {#if object.data_source && object.source_updated_at}
-          <span class="hidden h-1 w-1 rounded-full bg-stone-300 md:block"></span>
+          <span class="hidden h-1 w-1 rounded-full bg-stone-300 md:block"
+          ></span>
         {/if}
         {#if object.source_updated_at}
           <p>Ostatnia aktualizacja: {object.source_updated_at}</p>

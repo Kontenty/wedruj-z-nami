@@ -123,7 +123,10 @@
       props: { object, onClose: closePopup },
     });
 
-    popup = new maplibreGl.Popup({ closeButton: false, className: 'wzn-map-popup' })
+    popup = new maplibreGl.Popup({
+      closeButton: false,
+      className: 'wzn-map-popup',
+    })
       .setLngLat(coordinates)
       .setDOMContent(popupContainer)
       .addTo(map);
@@ -346,8 +349,6 @@
         map.fitBounds(bounds, { padding: 50, duration: 1000 });
       }
     }
-
-
   });
 </script>
 

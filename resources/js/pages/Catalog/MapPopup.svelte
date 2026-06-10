@@ -74,9 +74,7 @@
       </h3>
 
       {#if locationLabel}
-        <p
-          class="flex items-start gap-1.5 text-sm font-semibold"
-        >
+        <p class="flex items-start gap-1.5 text-sm font-semibold">
           <MapPin class="mt-0.5 size-4 shrink-0 text-emerald-700" />
           <span class="text-emerald-600">{locationLabel}</span>
         </p>

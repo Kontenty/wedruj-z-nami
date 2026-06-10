@@ -33,7 +33,9 @@
           href={nearbyObject.url}
           class="group flex gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
-          <div class="h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] bg-stone-100">
+          <div
+            class="h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] bg-stone-100"
+          >
             <img
               src={nearbyObject.thumbnail_url ||
                 '/images/placeholder-object-thumb.jpg'}
@@ -71,7 +73,9 @@
       {/each}
     </div>
   {:else}
-    <div class="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-5 text-sm text-stone-600">
+    <div
+      class="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-5 text-sm text-stone-600"
+    >
       <p>Nie znaleźliśmy innych opublikowanych obiektów w pobliżu.</p>
       <Link
         href={catalogIndex.url()}

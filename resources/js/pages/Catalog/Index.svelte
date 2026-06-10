@@ -25,9 +25,16 @@
     unesco: filters.unesco === true,
   });
   const hasPreFilters = $derived(
-    !!(filters.q || filters.voivodeships?.length || filters.objectTypes?.length || filters.unesco),
+    !!(
+      filters.q ||
+      filters.voivodeships?.length ||
+      filters.objectTypes?.length ||
+      filters.unesco
+    ),
   );
-  const resultCount = $derived(objects.meta?.total ?? (objects.data ?? []).length);
+  const resultCount = $derived(
+    objects.meta?.total ?? (objects.data ?? []).length,
+  );
 
   $effect(() => {
     if (hasPreFilters) {
