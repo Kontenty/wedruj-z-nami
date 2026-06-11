@@ -1,0 +1,24 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - run: npx eslint --fix '{staged_files}'
+      glob:
+        - '*.ts'
+        - '*.js'
+        - '*.tsx'
+        - '*.jsx'
+        - '*.svelte'
+      stage_fixed: true
+    - run: npx prettier --write '{staged_files}'
+      glob:
+        - '*.ts'
+        - '*.js'
+        - '*.tsx'
+        - '*.jsx'
+        - '*.svelte'
+        - '*.css'
+        - '*.json'
+        - '*.md'
+        - '*.yml'
+        - '*.yaml'
+      stage_fixed: true
