@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Article;
+use App\Models\ObjectType;
 use App\Models\SightseeingObject;
+use App\Models\Voivodeship;
 use Illuminate\Support\Facades\Cache;
 
 beforeEach(function (): void {
@@ -14,7 +16,7 @@ test('homepage loads successfully', function () {
 
 test('homepage contains hero section', function () {
     $this->get('/')
-        ->assertSee('Katalog obiektów krajoznawczych Polski')
+        ->assertSee('Odkrywaj Polskę przez mapę, miejsca i gotowe tropy podróży.')
         ->assertSee('Pokaż mapę')
         ->assertSee('Przeglądaj katalog');
 });
@@ -29,8 +31,8 @@ test('homepage shows latest published objects', function () {
     $response = $this->get('/');
 
     $response->assertSuccessful();
-    $response->assertSee('Najnowsze obiekty');
-    expect($response->getContent())->toContain('Najnowsze obiekty');
+    $response->assertSee('Najnowsze obiekty dodane do katalogu');
+    expect($response->getContent())->toContain('Najnowsze obiekty dodane do katalogu');
 });
 
 test('homepage does not show unpublished objects', function () {
@@ -54,12 +56,20 @@ test('homepage shows latest published news', function () {
 });
 
 test('homepage does not show unpublished news', function () {
-    Article::factory()->published()->create(['title' => 'Published News']);
+    Article::factory()->published()->count(3)->create();
     Article::factory()->create(['title' => 'Draft News']);
 
     $this->get('/')
-        ->assertSee('Published News')
+        ->assertSee('Aktualności')
         ->assertDontSee('Draft News');
+});
+
+test('homepage hides news section until at least three published articles exist', function () {
+    Article::factory()->published()->count(2)->create();
+
+    $this->get('/')
+        ->assertSuccessful()
+        ->assertDontSee('Co nowego w katalogu i wokół niego');
 });
 
 test('homepage limits objects to four', function () {
@@ -95,10 +105,37 @@ test('homepage works with the database cache store on repeated requests', functi
     Cache::flush();
 
     SightseeingObject::factory()->published()->create();
-    Article::factory()->published()->create();
+    Article::factory()->published()->count(3)->create();
 
     $this->get('/')->assertSuccessful();
     $this->get('/')->assertSuccessful();
+});
+
+test('homepage shows trust band counts and browse by type links', function () {
+    $voivodeship = Voivodeship::factory()->create(['name' => 'Pomorskie']);
+    $castle = ObjectType::factory()->create(['name' => 'Zamki']);
+    $museum = ObjectType::factory()->create(['name' => 'Muzea']);
+
+    $castleObjects = SightseeingObject::factory()
+        ->count(2)
+        ->published()
+        ->create(['voivodeship_id' => $voivodeship->getKey()]);
+    $museumObject = SightseeingObject::factory()
+        ->published()
+        ->create(['voivodeship_id' => $voivodeship->getKey()]);
+
+    $castle->sightseeingObjects()->attach($castleObjects->modelKeys());
+    $museum->sightseeingObjects()->attach($museumObject->getKey());
+
+    $this->get('/')
+        ->assertSuccessful()
+        ->assertSee('Opublikowane obiekty')
+        ->assertSee('Typy do przeglądania')
+        ->assertSee('Województwa w katalogu')
+        ->assertSee('Zamki')
+        ->assertSee('Muzea')
+        ->assertSee("objectTypes%5B0%5D={$castle->getKey()}", false)
+        ->assertSee("objectTypes%5B0%5D={$museum->getKey()}", false);
 });
 
 test('nonexistent route renders the custom 404 page', function () {
