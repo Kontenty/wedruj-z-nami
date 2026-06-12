@@ -15,10 +15,10 @@
 </script>
 
 {#if isLoading}
-  <div class="grid gap-3">
-    {#each Array(6) as _, index (index)}
+  <div class="object-grid">
+    {#each Array(12) as _, index (index)}
       <div
-        class="flex animate-pulse items-center gap-3 rounded-[1.5rem] border border-stone-200 bg-white p-3 sm:gap-4 sm:p-4"
+        class="flex animate-pulse items-center gap-3 rounded-3xl border border-stone-200 bg-white p-3 sm:gap-4 sm:p-4"
       >
         <div
           class="h-24 w-24 shrink-0 rounded-[1.125rem] bg-stone-200 sm:h-28 sm:w-28"
@@ -35,7 +35,7 @@
     {/each}
   </div>
 {:else}
-  <div class="grid gap-3">
+  <div class="object-grid">
     {#each items as object (object.id)}
       <ObjectCard
         {object}
@@ -52,3 +52,11 @@
     />
   {/if}
 {/if}
+
+<style>
+  .object-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+    gap: 0.75rem;
+  }
+</style>
