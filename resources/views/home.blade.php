@@ -3,19 +3,21 @@
 @section('title', 'Wędruj z Nami — Katalog obiektów krajoznawczych Polski')
 
 @section('content')
+@vite('resources/css/home.css')
 <section class="homepage-hero relative isolate overflow-hidden bg-stone-950 text-stone-50">
     <div class="absolute inset-0">
         <img
-            src="{{ asset('images/wawel/main.jpg') }}"
-            alt="Panorama Wawelu nad Wisłą"
+            src="{{ asset('images/tyniec/main.jpg') }}"
+            alt="Panorama Tyniecka z Wisłą i klasztorem w tle"
+            author="Fot. Magdalena Grabowska"
             class="h-full w-full object-cover object-center">
         <div
-            class="absolute inset-0 bg-linear-to-r from-primary/90 to-transparent"></div>
+            class="absolute inset-0 bg-linear-to-r from-primary/50 to-transparent"></div>
     </div>
     <div class="homepage-grid-overlay absolute inset-0 opacity-70" aria-hidden="true"></div>
     <div class="relative mx-auto flex min-h-[78svh] max-w-7xl items-end px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div class="max-w-3xl">
-            <p class="mb-4 text-sm font-semibold uppercase tracking-[0.32em] text-emerald-200">
+            <p class="mb-4 section-label section-label--light">
                 PTTK • Polska sieć odkrywania
             </p>
             <h1 class="font-heading max-w-2xl text-4xl font-bold leading-none text-balance sm:text-5xl lg:text-7xl">
@@ -28,12 +30,12 @@
             <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a
                     href="{{ route('catalog.index') }}"
-                    class="inline-flex min-h-11 items-center justify-center rounded-full bg-emerald-300 px-6 py-3 text-sm font-semibold text-stone-950 transition hover:bg-emerald-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950">
+                    class="btn-primary">
                     Pokaż mapę
                 </a>
                 <a
                     href="{{ route('catalog.index', ['view' => 'list']) }}"
-                    class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/30 bg-white/8 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950">
+                    class="btn-glass">
                     Przeglądaj katalog
                 </a>
             </div>
@@ -44,21 +46,21 @@
 <section class="border-y border-stone-200/80 bg-stone-50">
     <div class="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)] lg:px-8 lg:py-8">
         <div class="max-w-xl">
-            <p class="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700">Zaufane źródło PTTK</p>
+            <p class="section-label">Zaufane źródło PTTK</p>
             <h2 class="font-heading mt-2 text-2xl font-semibold text-stone-950 sm:text-3xl">
                 Katalog budowany na realnych obiektach i zasięgu całego kraju.
             </h2>
         </div>
         <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-3xl border border-stone-200 bg-white px-5 py-4 shadow-sm">
+            <div class="stat-card">
                 <p class="text-sm text-stone-500">Opublikowane obiekty</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['objects'], 0, ',', ' ') }}</p>
             </div>
-            <div class="rounded-3xl border border-stone-200 bg-white px-5 py-4 shadow-sm">
+            <div class="stat-card">
                 <p class="text-sm text-stone-500">Typy do przeglądania</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['object_types'], 0, ',', ' ') }}</p>
             </div>
-            <div class="rounded-3xl border border-stone-200 bg-white px-5 py-4 shadow-sm">
+            <div class="stat-card">
                 <p class="text-sm text-stone-500">Województwa w katalogu</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['voivodeships'], 0, ',', ' ') }}</p>
             </div>
@@ -67,12 +69,12 @@
 </section>
 
 @if($latestObjects->isNotEmpty())
-<section class="bg-[radial-gradient(circle_at_top_left,_rgba(17,94,89,0.14),_transparent_42%),linear-gradient(180deg,_#fcfaf5_0%,_#f1efe6_100%)] py-16 sm:py-20">
+<section class="home-latest-bg py-16 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 pb-8 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl">
-                <p class="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700">Pierwszy trop</p>
-                <h2 class="font-heading mt-2 text-3xl font-semibold text-stone-950 sm:text-4xl">
+                <p class="section-label">Pierwszy trop</p>
+                <h2 class="section-heading">
                     Najnowsze obiekty dodane do katalogu
                 </h2>
                 <p class="mt-3 text-base leading-7 text-stone-600">
@@ -81,7 +83,7 @@
             </div>
             <a
                 href="{{ route('catalog.index', ['view' => 'list']) }}"
-                class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-stone-900 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                class="btn-outline">
                 Zobacz cały katalog
             </a>
         </div>
@@ -89,8 +91,8 @@
             @foreach($latestObjects as $object)
             <a
                 href="{{ route('catalog.show', $object->slug) }}"
-                class="group overflow-hidden rounded-[2rem] border border-stone-200/80 bg-white shadow-[0_24px_60px_-32px_rgba(24,29,23,0.4)] transition hover:-translate-y-1 hover:shadow-[0_28px_70px_-30px_rgba(20,83,45,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
-                <div class="aspect-[4/3] overflow-hidden bg-stone-200">
+                class="home-card-shadow group overflow-hidden rounded-4xl border border-stone-200/80 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                <div class="aspect-4/3 overflow-hidden bg-stone-200">
                     <img
                         src="{{ $object->card_url }}"
                         alt="{{ $object->title }}"
@@ -128,8 +130,8 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)] lg:items-start">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-200">Przeglądaj według typu</p>
-                <h2 class="font-heading mt-2 text-3xl font-semibold text-balance sm:text-4xl">
+                <p class="section-label section-label--light">Przeglądaj według typu</p>
+                <h2 class="section-heading">
                     Wejdź do katalogu przez kategorię, nie przypadek.
                 </h2>
                 <p class="mt-3 max-w-md text-base leading-7 text-stone-300">
@@ -140,7 +142,7 @@
                 @foreach($browseTypes as $objectType)
                 <a
                     href="{{ route('catalog.index', ['view' => 'list', 'objectTypes' => [$objectType->getKey()]]) }}"
-                    class="group flex min-h-44 flex-col justify-between rounded-[1.75rem] border border-white/12 bg-white/6 p-5 transition hover:border-emerald-200/50 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950">
+                    class="browse-type-card group">
                     <div>
                         <p class="text-sm text-stone-300">Typ obiektu</p>
                         <h3 class="font-heading mt-3 text-2xl font-semibold text-white">{{ $objectType->name }}</h3>
@@ -164,9 +166,9 @@
 
 <section class="overflow-hidden bg-stone-100 py-16 sm:py-20">
     <div class="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
-        <div class="rounded-[2rem] bg-stone-900 px-6 py-8 text-stone-50 sm:px-8 sm:py-10">
-            <p class="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-200">Szlak na mapie</p>
-            <h2 class="font-heading mt-2 text-3xl font-semibold text-balance sm:text-4xl">
+        <div class="rounded-4xl bg-stone-900 px-6 py-8 text-stone-50 sm:px-8 sm:py-10">
+            <p class="section-label section-label--light">Szlak na mapie</p>
+            <h2 class="section-heading">
                 Zobacz, jak obiekty układają się w realną trasę i sąsiedztwa.
             </h2>
             <p class="mt-4 max-w-xl text-base leading-7 text-stone-300">
@@ -174,28 +176,28 @@
             </p>
             <a
                 href="{{ route('catalog.index') }}"
-                class="mt-8 inline-flex min-h-11 items-center justify-center rounded-full bg-emerald-300 px-6 py-3 text-sm font-semibold text-stone-950 transition hover:bg-emerald-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900">
+                class="mt-8 btn-primary">
                 Otwórz mapę katalogu
             </a>
         </div>
-        <div class="homepage-map-glow relative rounded-[2rem] border border-stone-200 bg-[linear-gradient(160deg,_rgba(252,250,245,0.95)_0%,_rgba(221,240,226,0.92)_48%,_rgba(247,243,230,0.96)_100%)] p-6 shadow-[0_30px_80px_-45px_rgba(24,29,23,0.5)] sm:p-8">
+        <div class="homepage-map-glow relative rounded-4xl border border-stone-200 p-6 sm:p-8">
             <div class="grid gap-4 sm:grid-cols-2">
-                <div class="rounded-[1.5rem] border border-stone-200 bg-white/80 p-4 backdrop-blur-sm">
+                <div class="rounded-3xl border border-stone-200 bg-white/80 p-4 backdrop-blur-sm">
                     <p class="text-sm text-stone-500">Szybki start</p>
                     <p class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa</p>
                     <p class="mt-2 text-sm leading-6 text-stone-600">Przesuwaj widok i otwieraj obiekty bez opuszczania kontekstu regionu.</p>
                 </div>
-                <div class="rounded-[1.5rem] border border-stone-200 bg-stone-950 p-4 text-stone-50">
+                <div class="rounded-3xl border border-stone-200 bg-stone-950 p-4 text-stone-50">
                     <p class="text-sm text-stone-300">Przełącznik widoków</p>
                     <p class="mt-3 font-heading text-2xl font-semibold">Mapa • Lista • Split</p>
                     <p class="mt-2 text-sm leading-6 text-stone-300">Ten sam katalog, różne sposoby przeglądania zależnie od etapu planowania.</p>
                 </div>
             </div>
             <div class="mt-5 grid gap-3">
-                <div class="rounded-[1.5rem] border border-emerald-200/60 bg-emerald-50 px-4 py-4 text-sm leading-6 text-emerald-950">
+                <div class="rounded-3xl border border-emerald-200/60 bg-emerald-50 px-4 py-4 text-sm leading-6 text-emerald-950">
                     Szukaj po województwach, typach obiektów i oznaczeniu UNESCO, aby szybciej zawęzić trasę.
                 </div>
-                <div class="rounded-[1.5rem] border border-dashed border-stone-300 px-4 py-4 text-sm leading-6 text-stone-600">
+                <div class="rounded-3xl border border-dashed border-stone-300 px-4 py-4 text-sm leading-6 text-stone-600">
                     Widok mapy jest najlepszym wejściem, gdy plan zaczyna się od miejsca, a nie od konkretnej nazwy obiektu.
                 </div>
             </div>
@@ -208,14 +210,14 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl">
-                <p class="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700">Aktualności</p>
-                <h2 class="font-heading mt-2 text-3xl font-semibold text-stone-950 sm:text-4xl">
+                <p class="section-label">Aktualności</p>
+                <h2 class="section-heading">
                     Co nowego w katalogu i wokół niego
                 </h2>
             </div>
             <a
                 href="{{ route('news.index') }}"
-                class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-stone-900 hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                class="btn-outline hover:bg-stone-50">
                 Zobacz wszystkie
             </a>
         </div>
@@ -223,9 +225,9 @@
             @foreach($latestNews as $newsItem)
             <a
                 href="{{ route('news.show', $newsItem->slug) }}"
-                class="group overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-[0_24px_60px_-36px_rgba(24,29,23,0.35)] transition hover:-translate-y-1 hover:shadow-[0_28px_70px_-36px_rgba(20,83,45,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                class="news-card-shadow group overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
                 @if($newsItem->has_cover_image)
-                <div class="aspect-[3/2] overflow-hidden bg-stone-200">
+                <div class="aspect-3/2 overflow-hidden bg-stone-200">
                     <img
                         src="{{ $newsItem->cover_thumbnail_url }}"
                         alt="{{ $newsItem->title }}"
