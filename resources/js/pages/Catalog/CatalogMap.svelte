@@ -18,6 +18,7 @@
   let popupComponent;
   let resizeObserver;
   let hasMapError = $state(false);
+  let mapLoaded = $state(false);
 
   const pointFeatures = $derived(
     (objects ?? [])
@@ -145,7 +146,7 @@
   }
 
   function refreshSources() {
-    if (!map?.isStyleLoaded()) {
+    if (!map || !mapLoaded) {
       return;
     }
 
@@ -172,7 +173,7 @@
   }
 
   function refreshHighlightLayers() {
-    if (!map?.isStyleLoaded() || !map.getLayer('highlighted-point')) {
+    if (!map || !mapLoaded || !map.getLayer('highlighted-point')) {
       return;
     }
 
@@ -192,6 +193,7 @@
       });
       map.addControl(new maplibreGl.NavigationControl(), 'top-right');
       map.on('load', () => {
+        mapLoaded = true;
         setPolishLanguage(map);
         map.addSource('points', {
           type: 'geojson',
@@ -338,17 +340,28 @@
   });
 
   $effect(() => {
+    void pointFeatures;
+    void polygonFeatures;
+    void mapLoaded;
+
     refreshSources();
   });
   $effect(() => {
+    void highlightedObjectId;
+    void selectedObjectId;
+
     refreshHighlightLayers();
   });
   $effect(() => {
+    void fitBoundsVersion;
+    void objects;
+    void mapLoaded;
+
     if (fitBoundsVersion === 0) {
       return;
     }
 
-    if (!map?.isStyleLoaded()) {
+    if (!map || !mapLoaded) {
       return;
     }
 
@@ -358,7 +371,7 @@
       const bounds = calculateBounds();
 
       if (bounds) {
-        map.fitBounds(bounds, { padding: 50, duration: 1000 });
+        map.fitBounds(bounds, { padding: 50, maxZoom: 12, duration: 1000 });
       }
     }
   });

@@ -1,6 +1,6 @@
 <script>
   import { router } from '@inertiajs/svelte';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { index as catalogIndex } from '@/routes/catalog';
   import ActiveFilterChips from './ActiveFilterChips.svelte';
   import CatalogMap from './CatalogMap.svelte';
@@ -58,7 +58,9 @@
 
   $effect(() => {
     if (hasPreFilters) {
-      fitBoundsVersion += 1;
+      untrack(() => {
+        fitBoundsVersion += 1;
+      });
     }
   });
 

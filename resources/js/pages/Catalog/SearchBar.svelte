@@ -12,6 +12,11 @@
 
   function handleInput() {
     clearTimeout(timer);
+
+    if (value.length < 2) {
+      return;
+    }
+
     timer = setTimeout(() => onSearch?.(value), debounceDelay);
   }
 </script>
