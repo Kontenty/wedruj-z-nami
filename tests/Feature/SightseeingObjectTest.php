@@ -21,11 +21,10 @@ test('published scope only returns published objects', function () {
     expect(SightseeingObject::published()->orderBy('id')->pluck('id')->all())->toBe([$published->id]);
 });
 
-test('catalog filter scopes constrain objects by voivodeship unesco title and type descendants', function () {
+test('catalog filter scopes constrain objects by voivodeship unesco title and type', function () {
     $voivodeship = Voivodeship::factory()->create(['name' => 'małopolskie']);
     $otherVoivodeship = Voivodeship::factory()->create(['name' => 'pomorskie']);
-    $parentType = ObjectType::factory()->create(['name' => 'Zabytki architektury']);
-    $childType = ObjectType::factory()->childOf($parentType)->create(['name' => 'Zamki']);
+    $type = ObjectType::factory()->create(['name' => 'Zamki i pałace']);
     $matching = SightseeingObject::factory()
         ->for($voivodeship)
         ->published()
@@ -36,14 +35,14 @@ test('catalog filter scopes constrain objects by voivodeship unesco title and ty
         ->published()
         ->create(['title' => 'Westerplatte']);
 
-    $matching->objectTypes()->attach($childType);
-    $nonMatching->objectTypes()->attach($parentType);
+    $matching->objectTypes()->attach($type);
+    $nonMatching->objectTypes()->attach($type);
 
     $results = SightseeingObject::query()
         ->inVoivodeship('malopolskie')
         ->unesco()
         ->searchByTitle('wawel')
-        ->inCategory($parentType)
+        ->inCategory($type)
         ->pluck('id')
         ->all();
 

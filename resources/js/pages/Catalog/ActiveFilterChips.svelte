@@ -1,14 +1,7 @@
 <script>
   let { filters, voivodeships, objectTypes, onChange, onClear } = $props();
 
-  function flattenTypes(types) {
-    return (types ?? []).flatMap((type) => [
-      type,
-      ...flattenTypes(type.children ?? []),
-    ]);
-  }
-
-  const flatTypes = $derived(flattenTypes(objectTypes.data ?? objectTypes));
+  const flatTypes = $derived(objectTypes.data ?? objectTypes);
   const chips = $derived(
     [
       filters.q

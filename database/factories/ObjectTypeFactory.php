@@ -18,16 +18,8 @@ class ObjectTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'parent_id' => null,
             'name' => fake()->unique()->words(2, true),
             'description' => fake()->optional()->sentence(),
         ];
-    }
-
-    public function childOf(ObjectType $parent): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'parent_id' => $parent->id,
-        ]);
     }
 }

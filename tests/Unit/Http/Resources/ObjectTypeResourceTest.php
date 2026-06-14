@@ -8,15 +8,13 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('exposes recursive children', function () {
-    $parent = ObjectType::factory()->create(['name' => 'Parent']);
-    $child = ObjectType::factory()->for($parent, 'parent')->create(['name' => 'Child']);
-    ObjectType::factory()->for($child, 'parent')->create(['name' => 'Grandchild']);
+it('exposes flat type attributes', function () {
+    $type = ObjectType::factory()->create(['name' => 'Zamki i pałace']);
 
-    $parent->load('childrenRecursive');
+    $data = (new ObjectTypeResource($type))->resolve(Request::create('/'));
 
-    $data = (new ObjectTypeResource($parent))->resolve(Request::create('/'));
-
-    expect($data['children'])->toHaveCount(1)
-        ->and($data['children'][0]['children'])->toHaveCount(1);
+    expect($data['id'])->toBe($type->id)
+        ->and($data['name'])->toBe('Zamki i pałace')
+        ->and($data['slug'])->toBe($type->slug)
+        ->and($data)->not->toHaveKey('children');
 });

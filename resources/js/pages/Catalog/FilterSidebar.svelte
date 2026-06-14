@@ -42,49 +42,13 @@
         class="flex max-h-80 flex-col gap-1 overflow-auto rounded-2xl border border-stone-200 p-2"
       >
         {#each objectTypes.data ?? objectTypes as type (type.id)}
-          <details open>
-            <summary
-              class="cursor-pointer rounded-xl px-2 py-1 font-medium hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-              >{type.name}</summary
-            >
-            <button
-              type="button"
-              class="ml-3 rounded-lg px-2 py-1 text-left text-sm hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-              class:bg-emerald-100={String(filters.objectType) ===
-                String(type.id)}
-              aria-pressed={String(filters.objectType) === String(type.id)}
-              onclick={() => apply({ objectType: type.id })}>{type.name}</button
-            >
-            {#each type.children ?? [] as child (child.id)}
-              <details class="ml-3" open>
-                <summary
-                  class="cursor-pointer rounded-xl px-2 py-1 text-sm hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-                  >{child.name}</summary
-                >
-                <button
-                  type="button"
-                  class="ml-3 rounded-lg px-2 py-1 text-left text-sm hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-                  class:bg-emerald-100={String(filters.objectType) ===
-                    String(child.id)}
-                  aria-pressed={String(filters.objectType) === String(child.id)}
-                  onclick={() => apply({ objectType: child.id })}
-                  >{child.name}</button
-                >
-                {#each child.children ?? [] as grandchild (grandchild.id)}
-                  <button
-                    type="button"
-                    class="ml-6 rounded-lg px-2 py-1 text-left text-sm hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-                    class:bg-emerald-100={String(filters.objectType) ===
-                      String(grandchild.id)}
-                    aria-pressed={String(filters.objectType) ===
-                      String(grandchild.id)}
-                    onclick={() => apply({ objectType: grandchild.id })}
-                    >{grandchild.name}</button
-                  >
-                {/each}
-              </details>
-            {/each}
-          </details>
+          <button
+            type="button"
+            class="rounded-lg px-2 py-1 text-left text-sm hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+            class:bg-emerald-100={String(filters.objectType) === String(type.id)}
+            aria-pressed={String(filters.objectType) === String(type.id)}
+            onclick={() => apply({ objectType: type.id })}>{type.name}</button
+          >
         {/each}
       </div>
     </fieldset>

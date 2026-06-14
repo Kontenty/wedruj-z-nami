@@ -123,13 +123,3 @@ test('published sightseeing objects require an image in the cms form', function 
         ->call('create')
         ->assertHasFormErrors(['images']);
 });
-
-test('object type hierarchy blocks loops and more than three levels', function () {
-    $root = ObjectType::factory()->create();
-    $child = ObjectType::factory()->childOf($root)->create();
-    $grandchild = ObjectType::factory()->childOf($child)->create();
-
-    expect($root->wouldCreateParentLoop($grandchild->id))->toBeTrue()
-        ->and((new ObjectType)->wouldExceedMaximumDepth($grandchild->id))->toBeTrue()
-        ->and((new ObjectType)->wouldExceedMaximumDepth($child->id))->toBeFalse();
-});

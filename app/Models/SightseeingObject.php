@@ -290,14 +290,8 @@ class SightseeingObject extends Model implements HasMedia
             return;
         }
 
-        $objectType = $objectType instanceof ObjectType ? $objectType : ObjectType::query()->find($objectType);
+        $typeId = $objectType instanceof ObjectType ? $objectType->getKey() : $objectType;
 
-        if (! $objectType instanceof ObjectType) {
-            return;
-        }
-
-        $typeIds = $objectType->descendantIds()->prepend($objectType->getKey());
-
-        $query->whereHas('objectTypes', fn (Builder $query) => $query->whereIn('object_types.id', $typeIds));
+        $query->whereHas('objectTypes', fn (Builder $query) => $query->where('object_types.id', $typeId));
     }
 }

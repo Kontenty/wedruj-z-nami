@@ -47,18 +47,16 @@ class DatabaseSeeder extends Seeder
             $name => Voivodeship::query()->firstOrCreate(['name' => $name]),
         ]);
 
-        $architecture = $this->ensureObjectType('Zabytki architektury');
-        $castlesAndFortifications = $this->ensureObjectType('Zamki i fortyfikacje', $architecture);
-        $castles = $this->ensureObjectType('Zamki', $castlesAndFortifications);
-        $religiousSites = $this->ensureObjectType('Obiekty sakralne', $architecture);
-
-        $museums = $this->ensureObjectType('Muzea i skanseny');
-        $openAirMuseums = $this->ensureObjectType('Skanseny', $museums);
-
-        $nature = $this->ensureObjectType('Obiekty przyrodnicze');
-        $nationalParks = $this->ensureObjectType('Parki narodowe', $nature);
-
-        $memorials = $this->ensureObjectType('Pomniki i miejsca pamięci');
+        $pomnikiHistorii = $this->ensureObjectType('Pomniki Historii');
+        $parkiNarodowe = $this->ensureObjectType('Parki narodowe');
+        $glowneMiasta = $this->ensureObjectType('Główne miasta');
+        $obiektySakralne = $this->ensureObjectType('Obiekty sakralne');
+        $zamkiPalace = $this->ensureObjectType('Zamki i pałace');
+        $zabytkiTechniki = $this->ensureObjectType('Zabytki techniki');
+        $muzea = $this->ensureObjectType('Muzea');
+        $skanseny = $this->ensureObjectType('Skanseny');
+        $obiektyPrzyrodnicze = $this->ensureObjectType('Obiekty przyrodnicze');
+        $polaBitew = $this->ensureObjectType('Pola bitew');
 
         $wawel = $this->createSightseeingObject([
             'title' => 'Wawel - Zamek Królewski',
@@ -79,7 +77,7 @@ class DatabaseSeeder extends Seeder
             'published_at' => now()->subDays(12),
             'data_source' => 'PTTK',
             'source_updated_at' => now()->subMonth(),
-        ], [$castles->id]);
+        ], [$zamkiPalace->id]);
 
         $this->attachImages($wawel, 'wawel', 'Wawel - Zamek Królewski');
 
@@ -97,7 +95,7 @@ class DatabaseSeeder extends Seeder
             'published_at' => now()->subDays(8),
             'data_source' => 'PTTK',
             'source_updated_at' => now()->subWeeks(2),
-        ], [$museums->id]);
+        ], [$muzea->id]);
 
         $this->attachImages($kozlowka, 'kozlowka', 'Muzeum Zamoyskich w Kozłówce');
 
@@ -115,7 +113,7 @@ class DatabaseSeeder extends Seeder
             'published_at' => now()->subDays(5),
             'data_source' => 'PTTK',
             'source_updated_at' => now()->subWeeks(3),
-        ], [$nationalParks->id]);
+        ], [$parkiNarodowe->id]);
 
         $this->attachImages($bialowieza, 'bialowieza', 'Białowieski Park Narodowy');
 
@@ -133,7 +131,7 @@ class DatabaseSeeder extends Seeder
             'published_at' => now()->subDays(6),
             'data_source' => 'PTTK',
             'source_updated_at' => now()->subWeeks(3),
-        ], [$nationalParks->id]);
+        ], [$parkiNarodowe->id]);
 
         $this->attachImages($biebrza, 'biebrza', 'Biebrzański Park Narodowy');
 
@@ -151,7 +149,7 @@ class DatabaseSeeder extends Seeder
             'published_at' => now()->subDays(3),
             'data_source' => 'PTTK',
             'source_updated_at' => now()->subDays(20),
-        ], [$religiousSites->id]);
+        ], [$obiektySakralne->id]);
 
         $this->attachImages($jasnaGora, 'jasna-gora', 'Jasna Góra');
 
@@ -169,7 +167,7 @@ class DatabaseSeeder extends Seeder
             'published_at' => null,
             'data_source' => 'PTTK',
             'source_updated_at' => now()->subDays(10),
-        ], [$memorials->id]);
+        ], [$pomnikiHistorii->id]);
 
         $this->attachImages($westerplatte, 'westerplatte', 'Westerplatte');
 
@@ -190,7 +188,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(18),
                 ],
-                'objectTypeIds' => [$architecture->id],
+                'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
                 'attributes' => [
@@ -208,7 +206,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(19),
                 ],
-                'objectTypeIds' => [$religiousSites->id],
+                'objectTypeIds' => [$obiektySakralne->id],
             ],
             [
                 'attributes' => [
@@ -226,7 +224,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(20),
                 ],
-                'objectTypeIds' => [$museums->id],
+                'objectTypeIds' => [$muzea->id],
             ],
             [
                 'attributes' => [
@@ -244,7 +242,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(21),
                 ],
-                'objectTypeIds' => [$castles->id],
+                'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
                 'attributes' => [
@@ -262,7 +260,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(22),
                 ],
-                'objectTypeIds' => [$architecture->id],
+                'objectTypeIds' => [$zabytkiTechniki->id],
             ],
             [
                 'attributes' => [
@@ -280,7 +278,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(23),
                 ],
-                'objectTypeIds' => [$museums->id],
+                'objectTypeIds' => [$muzea->id],
             ],
             [
                 'attributes' => [
@@ -298,7 +296,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(24),
                 ],
-                'objectTypeIds' => [$memorials->id],
+                'objectTypeIds' => [$pomnikiHistorii->id],
             ],
             [
                 'attributes' => [
@@ -317,7 +315,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(25),
                 ],
-                'objectTypeIds' => [$castles->id],
+                'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
                 'attributes' => [
@@ -336,7 +334,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(26),
                 ],
-                'objectTypeIds' => [$architecture->id],
+                'objectTypeIds' => [$zabytkiTechniki->id],
             ],
             [
                 'attributes' => [
@@ -355,7 +353,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(27),
                 ],
-                'objectTypeIds' => [$architecture->id],
+                'objectTypeIds' => [$glowneMiasta->id],
             ],
             [
                 'attributes' => [
@@ -373,7 +371,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(28),
                 ],
-                'objectTypeIds' => [$religiousSites->id],
+                'objectTypeIds' => [$obiektySakralne->id],
             ],
             [
                 'attributes' => [
@@ -391,7 +389,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(29),
                 ],
-                'objectTypeIds' => [$openAirMuseums->id],
+                'objectTypeIds' => [$skanseny->id],
             ],
             [
                 'attributes' => [
@@ -409,7 +407,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(30),
                 ],
-                'objectTypeIds' => [$memorials->id],
+                'objectTypeIds' => [$pomnikiHistorii->id],
             ],
             [
                 'attributes' => [
@@ -427,7 +425,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(31),
                 ],
-                'objectTypeIds' => [$religiousSites->id],
+                'objectTypeIds' => [$obiektySakralne->id],
             ],
             [
                 'attributes' => [
@@ -445,7 +443,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(32),
                 ],
-                'objectTypeIds' => [$museums->id],
+                'objectTypeIds' => [$muzea->id],
             ],
             [
                 'attributes' => [
@@ -464,7 +462,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(33),
                 ],
-                'objectTypeIds' => [$architecture->id],
+                'objectTypeIds' => [$zabytkiTechniki->id],
             ],
             [
                 'attributes' => [
@@ -482,7 +480,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(34),
                 ],
-                'objectTypeIds' => [$nationalParks->id],
+                'objectTypeIds' => [$parkiNarodowe->id],
             ],
             [
                 'attributes' => [
@@ -500,7 +498,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(35),
                 ],
-                'objectTypeIds' => [$castles->id],
+                'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
                 'attributes' => [
@@ -518,7 +516,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(36),
                 ],
-                'objectTypeIds' => [$castles->id],
+                'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
                 'attributes' => [
@@ -536,7 +534,7 @@ class DatabaseSeeder extends Seeder
                     'data_source' => 'PTTK',
                     'source_updated_at' => now()->subDays(37),
                 ],
-                'objectTypeIds' => [$openAirMuseums->id],
+                'objectTypeIds' => [$skanseny->id],
             ],
         ] as $definition) {
             $this->createSightseeingObject($definition['attributes'], $definition['objectTypeIds']);
@@ -612,18 +610,16 @@ class DatabaseSeeder extends Seeder
                 continue;
             }
 
-            $object->addMedia($imagePath)
+            $object->copyMedia($imagePath)
                 ->withCustomProperties($mediaProperties)
                 ->toMediaCollection('images');
         }
     }
 
-    private function ensureObjectType(string $name, ?ObjectType $parent = null): ObjectType
+    private function ensureObjectType(string $name): ObjectType
     {
         return ObjectType::query()->updateOrCreate([
             'name' => $name,
-        ], [
-            'parent_id' => $parent?->id,
         ]);
     }
 }

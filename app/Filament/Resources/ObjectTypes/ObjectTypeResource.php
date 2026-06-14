@@ -36,7 +36,7 @@ class ObjectTypeResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('parent');
+        return parent::getEloquentQuery();
     }
 
     public static function form(Schema $schema): Schema

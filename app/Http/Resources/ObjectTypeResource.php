@@ -18,7 +18,6 @@ class ObjectTypeResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'children' => ObjectTypeResource::collection($this->whenLoaded('childrenRecursive')),
         ];
     }
 }

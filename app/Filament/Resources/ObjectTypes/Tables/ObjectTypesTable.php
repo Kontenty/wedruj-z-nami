@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\ObjectTypes\Tables;
 
-use App\Models\ObjectType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -21,13 +20,6 @@ class ObjectTypesTable
                     ->label('Nazwa')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('parent.name')
-                    ->label('Typ nadrzędny')
-                    ->placeholder('Brak'),
-                TextColumn::make('path')
-                    ->label('Ścieżka')
-                    ->state(fn (ObjectType $record): string => collect($record->breadcrumb())->pluck('name')->join(' > '))
-                    ->wrap(),
                 TextColumn::make('sightseeing_objects_count')
                     ->label('Obiekty')
                     ->sortable(),

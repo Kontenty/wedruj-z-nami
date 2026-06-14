@@ -11,14 +11,12 @@
     class: className = '',
   } = $props();
 
-  function flattenTypes(types, depth = 0) {
-    return (types ?? []).flatMap((type) => [
-      { value: type.id, label: `${'— '.repeat(depth)}${type.name}` },
-      ...flattenTypes(type.children ?? [], depth + 1),
-    ]);
-  }
-
-  const typeOptions = $derived(flattenTypes(objectTypes.data ?? objectTypes));
+  const typeOptions = $derived(
+    (objectTypes.data ?? objectTypes).map((type) => ({
+      value: type.id,
+      label: type.name,
+    })),
+  );
   const voivodeshipOptions = $derived(
     (voivodeships ?? []).map((voivodeship) => ({
       value: voivodeship.slug,

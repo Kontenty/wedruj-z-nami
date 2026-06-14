@@ -17,7 +17,7 @@ test('database seeder attaches object types to seeded sightseeing objects', func
     $this->seed(DatabaseSeeder::class);
 
     $wawel = SightseeingObject::query()->where('title', 'Wawel - Zamek Królewski')->firstOrFail();
-    $castleType = ObjectType::query()->where('name', 'Zamki')->firstOrFail();
+    $castleType = ObjectType::query()->where('name', 'Zamki i pałace')->firstOrFail();
 
     expect($wawel->objectTypes()->whereKey($castleType->id)->exists())->toBeTrue();
 });

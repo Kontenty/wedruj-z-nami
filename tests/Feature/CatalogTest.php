@@ -54,16 +54,15 @@ it('filters by voivodeship slug', function () {
             ->missing('objects.data.1'));
 });
 
-it('filters by object type including descendants', function () {
-    $parent = ObjectType::factory()->create();
-    $child = ObjectType::factory()->for($parent, 'parent')->create();
-    $included = SightseeingObject::factory()->published()->create(['title' => 'Included child type']);
+it('filters by object type', function () {
+    $type = ObjectType::factory()->create();
+    $included = SightseeingObject::factory()->published()->create(['title' => 'Included type']);
     $excluded = SightseeingObject::factory()->published()->create(['title' => 'Excluded type']);
-    $included->objectTypes()->attach($child);
+    $included->objectTypes()->attach($type);
 
-    $this->get('/katalog?'.http_build_query(['objectTypes' => [$parent->id]]))
+    $this->get('/katalog?'.http_build_query(['objectTypes' => [$type->id]]))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('objects.data.0.title', 'Included child type')
+            ->where('objects.data.0.title', 'Included type')
             ->missing('objects.data.1'));
 });
 

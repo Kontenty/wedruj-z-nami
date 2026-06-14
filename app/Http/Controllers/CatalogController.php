@@ -31,14 +31,7 @@ class CatalogController extends Controller
             ->searchByTitle($request->query('q'))
             ->when($voivodeships !== [], fn (Builder $query) => $query->whereHas('voivodeship', fn (Builder $query) => $query->whereIn('slug', $voivodeships)))
             ->when($objectTypes !== [], function (Builder $query) use ($objectTypes): void {
-                $descendantIds = ObjectType::query()
-                    ->whereIn('id', $objectTypes)
-                    ->get()
-                    ->flatMap(fn (ObjectType $objectType) => $objectType->descendantIds()->prepend($objectType->getKey()))
-                    ->unique()
-                    ->values();
-
-                $query->whereHas('objectTypes', fn (Builder $query) => $query->whereIn('object_types.id', $descendantIds));
+                $query->whereHas('objectTypes', fn (Builder $query) => $query->whereIn('object_types.id', $objectTypes));
             })
             ->unesco($request->boolean('unesco'));
 
@@ -71,8 +64,6 @@ class CatalogController extends Controller
             'initialView' => $initialView,
             'objectTypes' => ObjectTypeResource::collection(
                 ObjectType::query()
-                    ->whereNull('parent_id')
-                    ->with('childrenRecursive')
                     ->orderBy('name')
                     ->get()
             ),
