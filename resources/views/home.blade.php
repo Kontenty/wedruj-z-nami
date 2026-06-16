@@ -4,7 +4,7 @@
 
 @section('content')
 @vite('resources/css/home.css')
-<section class="homepage-hero relative isolate overflow-hidden bg-stone-950 text-stone-50">
+<section class="homepage-hero relative isolate overflow-hidden dark-box">
     <div class="absolute inset-0">
         <img
             src="{{ asset('images/tyniec/main.jpg') }}"
@@ -14,9 +14,9 @@
         <div
             class="absolute inset-0 bg-linear-to-r from-primary/50 to-transparent"></div>
     </div>
-    <div class="homepage-grid-overlay absolute inset-0 opacity-70" aria-hidden="true"></div>
-    <div class="relative mx-auto flex min-h-[78svh] max-w-7xl items-end px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-        <div class="max-w-3xl">
+    <div class="homepage-grid-overlay opacity-70" aria-hidden="true"></div>
+    <div class=" relative mx-auto flex min-h-[78svh] max-w-7xl items-end px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div class="hero-content bg-black/10 backdrop-blur-xs rounded-3xl max-w-3xl p-16">
             <p class="mb-4 section-label section-label--light">
                 PTTK • Polska sieć odkrywania
             </p>
@@ -126,7 +126,7 @@
 @endif
 
 @if($browseTypes->isNotEmpty())
-<section class="bg-stone-950 py-16 text-stone-50 sm:py-20">
+<section class="dark-box py-16 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)] lg:items-start">
             <div>
@@ -166,7 +166,7 @@
 
 <section class="overflow-hidden bg-stone-100 py-16 sm:py-20">
     <div class="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
-        <div class="rounded-4xl bg-stone-900 px-6 py-8 text-stone-50 sm:px-8 sm:py-10">
+        <div class="dark-box rounded-4xl  px-6 py-8 sm:px-8 sm:py-10">
             <p class="section-label section-label--light">Szlak na mapie</p>
             <h2 class="section-heading">
                 Zobacz, jak obiekty układają się w realną trasę i sąsiedztwa.
@@ -187,9 +187,9 @@
                     <p class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa</p>
                     <p class="mt-2 text-sm leading-6 text-stone-600">Przesuwaj widok i otwieraj obiekty bez opuszczania kontekstu regionu.</p>
                 </div>
-                <div class="rounded-3xl border border-stone-200 bg-stone-950 p-4 text-stone-50">
+                <div class="rounded-3xl border border-stone-200 dark-box p-4">
                     <p class="text-sm text-stone-300">Przełącznik widoków</p>
-                    <p class="mt-3 font-heading text-2xl font-semibold">Mapa • Lista • Split</p>
+                    <h4 class="mt-3 font-heading text-2xl font-semibold">Mapa • Lista • Obie</h4>
                     <p class="mt-2 text-sm leading-6 text-stone-300">Ten sam katalog, różne sposoby przeglądania zależnie od etapu planowania.</p>
                 </div>
             </div>

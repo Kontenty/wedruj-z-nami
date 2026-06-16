@@ -40,10 +40,10 @@
     <SearchBar value={filters.q} onSearch={(q) => apply({ q })} />
 
     <MultiSelectCombobox
-      label="Typ obiektu"
+      label="Kategoria obiektu"
       options={typeOptions}
       selected={filters.objectTypes}
-      placeholder="Wybierz typy"
+      placeholder="Wybierz kategorię"
       onChange={(objectTypes) => apply({ objectTypes })}
     />
 

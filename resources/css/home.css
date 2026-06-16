@@ -1,19 +1,19 @@
-.homepage-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(10, 15, 11, 0.82) 0%,
-      rgba(10, 15, 11, 0.66) 40%,
-      rgba(10, 15, 11, 0.28) 100%
-    ),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.5) 100%);
-  pointer-events: none;
+.homepage-hero > .absolute {
+  mask-image: radial-gradient(
+    ellipse 80% 80% at 50% 60%,
+    black 40%,
+    transparent 100%
+  );
+}
+
+.hero-content {
+  mask-image: radial-gradient(ellipse at, black 60%, transparent 100%);
 }
 
 .homepage-grid-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
@@ -168,7 +168,7 @@
   font-size: 1.875rem;
   line-height: 2.25rem;
   font-weight: var(--font-weight-semibold);
-  color: var(--color-stone-50);
+  color: var(--color-stone-950);
   text-wrap: balance;
 }
 @media (min-width: 640px) {
@@ -202,4 +202,12 @@
     rgba(16, 185, 129, 0) 72%
   );
   pointer-events: none;
+}
+
+.dark-box {
+  background-color: var(--color-stone-950);
+  color: var(--color-stone-50);
+}
+.dark-box .section-heading {
+  color: var(--color-stone-50);
 }
