@@ -10,21 +10,21 @@
             src="{{ asset('images/tyniec/main.jpg') }}"
             alt="Panorama Tyniecka z Wisłą i klasztorem w tle"
             author="Fot. Magdalena Grabowska"
-            class="h-full w-full object-cover object-center">
-        <div
-            class="absolute inset-0 bg-linear-to-r from-pine-800/20 to-transparent"></div>
+            class="h-full w-full object-cover object-center"
+            fetchpriority="high">
+        <div class="absolute inset-0 bg-linear-to-r from-pine-950/30 via-pine-900/12 to-transparent"></div>
     </div>
     <div class="homepage-grid-overlay opacity-70" aria-hidden="true"></div>
-    <div class=" relative mx-auto flex min-h-[78svh] max-w-7xl items-end px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-        <div class="hero-content">
+    <div class="relative mx-auto flex min-h-[72svh] max-w-7xl items-end px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <div class="hero-panel max-w-2xl">
             <p class="hero-eyebrow mb-5 section-label">
                 PTTK • Katalog obiektów krajoznawczych
             </p>
             <h1 class="text-pine-900 max-w-3xl text-3xl leading-[0.94] text-balance sm:text-5xl lg:text-4xl xl:text-5xl">
                 Odkrywaj Polskę
             </h1>
-            <p class="mt-6 max-w-lg text-base leading-7 text-stone-800/90 sm:text-lg">
-                Zabytki, rezerwaty, muzea i miejsca, które warto zobaczyć — zebrane w jednym katalogu przez PTTK.
+            <p class="mt-6 max-w-xl text-base leading-7 text-stone-800/90 sm:text-lg">
+                Zabytki, rezerwaty, muzea i miejsca pamięci zebrane w jednym katalogu PTTK — gotowe do przeglądania na mapie i w liście.
             </p>
             <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
@@ -38,33 +38,31 @@
                     Przeglądaj katalog
                 </a>
             </div>
-            <div class="hero-trust-row mt-7">
-                <span>{{ number_format($catalogStats['objects'], 0, ',', ' ') }} obiektów w katalogu</span>
-                <span>{{ number_format($catalogStats['voivodeships'], 0, ',', ' ') }} województw</span>
-                <span>Zobacz na mapie lub przejdź do listy</span>
-            </div>
         </div>
     </div>
 </section>
 
 <section class="border-y border-stone-200/80 bg-sand-50">
-    <div class="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)] lg:px-8 lg:py-8">
+    <div class="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1.92fr)] lg:items-start lg:px-8 lg:py-12">
         <div class="max-w-xl">
             <p class="section-label">Zaufane źródło PTTK</p>
             <h2 class="font-heading mt-2 text-2xl font-semibold text-stone-950 sm:text-3xl">
                 Katalog oparty na rzetelnej bazie obiektów z całego kraju.
             </h2>
+            <p class="mt-4 text-base leading-7 text-stone-600">
+                Selekcja i opis obiektów pomagają szybko przejść od inspiracji do planu trasy.
+            </p>
         </div>
-        <div class="grid gap-3 sm:grid-cols-3">
-            <div class="stat-card">
+        <div class="metric-grid">
+            <div class="metric-card">
                 <p class="text-sm text-stone-500">Opublikowane obiekty</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['objects'], 0, ',', ' ') }}</p>
             </div>
-            <div class="stat-card">
+            <div class="metric-card">
                 <p class="text-sm text-stone-500">Kategorie miejsc</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['object_types'], 0, ',', ' ') }}</p>
             </div>
-            <div class="stat-card">
+            <div class="metric-card">
                 <p class="text-sm text-stone-500">Województwa w katalogu</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['voivodeships'], 0, ',', ' ') }}</p>
             </div>
@@ -77,12 +75,12 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 pb-8 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl">
-                <p class="section-label">Nowe w katalogu</p>
+                <p class="section-label">Kuratorski wybór</p>
                 <h2 class="section-heading">
                     Najnowsze obiekty dodane do katalogu
                 </h2>
                 <p class="mt-3 text-base leading-7 text-stone-600">
-                    Świeże dodatki w katalogu — sprawdź, co nowego pojawiło się na mapie.
+                    Świeże dodatki w katalogu — sprawdź, co warto zapisać na mapę.
                 </p>
             </div>
             <a
@@ -95,7 +93,7 @@
             @foreach($latestObjects as $object)
             <a
                 href="{{ route('catalog.show', $object->slug) }}"
-                class="home-card-shadow group overflow-hidden rounded-4xl border border-stone-200/80 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine-700 focus-visible:ring-offset-2">
+                class="home-card-shadow group overflow-hidden rounded-4xl border border-stone-200/80 bg-[#fffdf9] transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine-700 focus-visible:ring-offset-2">
                 <div class="aspect-4/3 overflow-hidden bg-stone-200">
                     <img
                         src="{{ $object->card_url }}"
@@ -136,10 +134,10 @@
             <div>
                 <p class="section-label">Przeglądaj według typu</p>
                 <h2 class="section-heading">
-                    Przeglądaj katalog wg kategorii obiektu.
+                    Wybierz kategorię i zawęź trasę.
                 </h2>
                 <p class="mt-3 max-w-md text-base leading-7 text-stone-600">
-                    Zamki, muzea, rezerwaty, fortyfikacje — wybierz kategorię i przeglądaj.
+                    Zamki, muzea, rezerwaty i obiekty sakralne — wybierz kategorię i odkrywaj dalej.
                 </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -168,15 +166,15 @@
 </section>
 @endif
 
-<section class="overflow-hidden bg-sand-50 py-16 sm:py-20">
+<section class="home-map-section overflow-hidden bg-sand-50 py-16 sm:py-20">
     <div class="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
-        <div class="rounded-4xl bg-white border border-stone-200 px-6 py-8 sm:px-8 sm:py-10 shadow-sm">
+        <div class="rounded-4xl border border-stone-200 bg-white px-6 py-8 shadow-sm sm:px-8 sm:py-10">
             <p class="section-label">Szlak na mapie</p>
             <h2 class="section-heading">
                 Zobacz, które obiekty są blisko siebie i zaplanuj objazd.
             </h2>
             <p class="mt-4 max-w-xl text-base leading-7 text-stone-600">
-                Widok mapy pomaga planować objazdy, odkrywać klastry atrakcji i szukać miejsc między kolejnymi etapami podróży.
+                Widok mapy pomaga odkrywać klastry atrakcji, łączyć miejsca w sensowne pętle i planować kolejne etapy podróży.
             </p>
             <a
                 href="{{ route('catalog.index') }}"
@@ -184,21 +182,21 @@
                 Otwórz mapę katalogu
             </a>
         </div>
-        <div class="homepage-map-glow relative rounded-4xl border border-stone-200 p-6 sm:p-8">
+        <div class="map-panel relative rounded-4xl border border-stone-200 p-5 shadow-sm sm:p-6">
             <div class="grid gap-4 sm:grid-cols-2">
-                <div class="rounded-3xl border border-stone-200 bg-white/80 p-4 backdrop-blur-sm shadow-sm">
+                <div class="map-feature-card rounded-3xl border border-stone-200 bg-white/85 p-4 shadow-sm backdrop-blur-sm">
                     <p class="text-sm text-stone-500">Szybki start</p>
                     <p class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa</p>
                     <p class="mt-2 text-sm leading-6 text-stone-600">Przesuwaj mapę i klikaj w obiekty — cały czas widzisz region.</p>
                 </div>
-                <div class="rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
+                <div class="map-feature-card rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
                     <p class="text-sm text-stone-500">Przełącznik widoków</p>
                     <h4 class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa • Lista • Obie</h4>
                     <p class="mt-2 text-sm leading-6 text-stone-600">Ten sam katalog w dwóch wersjach: mapa do planowania, lista do przeglądania.</p>
                 </div>
             </div>
             <div class="mt-5 grid gap-3">
-                <div class="rounded-3xl border border-pine-200/60 bg-pine-50 px-4 py-4 text-sm leading-6 text-pine-950">
+                <div class="map-highlight rounded-3xl border border-pine-200/60 bg-pine-50 px-4 py-4 text-sm leading-6 text-pine-950">
                     Filtruj po województwie, typie obiektu i UNESCO — szybciej znajdziesz to, czego szukasz.
                 </div>
                 <div class="rounded-3xl border border-dashed border-stone-300 px-4 py-4 text-sm leading-6 text-stone-600">

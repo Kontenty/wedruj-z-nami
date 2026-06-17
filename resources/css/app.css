@@ -268,9 +268,9 @@
   --destructive-foreground: #ffffff;
 
   /* Border, Input, Ring */
-  --border: #bfcaba;
-  --input: #bfcaba;
-  --ring: #136a27;
+  --border: #b8c4b0;
+  --input: #b8c4b0;
+  --ring: #1f5f38;
 
   /* Charts (nature-inspired) */
   --chart-1: #136a27;
@@ -300,7 +300,7 @@
   --color-surface-cream: #fcfaf5;
 
   /* PTTK brand co-primary */
-  --pttk-green: #42934a;
+  --pttk-green: #2f6d39;
 
   /* Gradients (nature-inspired) */
   --gradient-forest: linear-gradient(
