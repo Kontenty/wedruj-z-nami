@@ -1,7 +1,8 @@
 <header class="sticky top-0 z-50 border-b border-gray-200 bg-white" x-data="{ open: false }">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
-            <a href="{{ route('home') }}" class="text-xl font-bold text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-bold text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                <img src="/images/pttk-logo.webp" alt="PTTK" width="40" height="40" class="size-10 shrink-0" />
                 Wędruj z Nami
             </a>
 

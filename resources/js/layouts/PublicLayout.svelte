@@ -25,8 +25,15 @@
       <div class="flex h-16 items-center justify-between">
         <a
           href="/"
-          class="text-xl font-bold text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          class="flex items-center gap-2 text-xl font-bold text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
+          <img
+            src="/images/pttk-logo.webp"
+            alt="PTTK"
+            width="40"
+            height="40"
+            class="size-10 shrink-0"
+          />
           Wędruj z Nami
         </a>
 
@@ -114,10 +121,19 @@
   <footer class="border-t border-gray-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-        <p class="text-sm text-gray-600">
-          &copy; {new Date().getFullYear()} Wędruj z Nami — Katalog obiektów krajoznawczych
-          Polski
-        </p>
+        <div class="flex items-center gap-3">
+          <img
+            src="/images/pttk-logo-small.webp"
+            alt="PTTK"
+            width="28"
+            height="28"
+            class="size-7 shrink-0"
+          />
+          <p class="text-sm text-gray-600">
+            &copy; {new Date().getFullYear()} Wędruj z Nami — Katalog obiektów krajoznawczych
+            Polski
+          </p>
+        </div>
         <div class="flex gap-4">
           <a href="/" class="text-sm text-gray-600 hover:text-gray-900"
             >Strona główna</a
