@@ -45,7 +45,8 @@
           <button
             type="button"
             class="rounded-lg px-2 py-1 text-left text-sm hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-            class:bg-emerald-100={String(filters.objectType) === String(type.id)}
+            class:bg-emerald-100={String(filters.objectType) ===
+              String(type.id)}
             aria-pressed={String(filters.objectType) === String(type.id)}
             onclick={() => apply({ objectType: type.id })}>{type.name}</button
           >

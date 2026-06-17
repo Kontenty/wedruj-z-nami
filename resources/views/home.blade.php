@@ -12,22 +12,21 @@
             author="Fot. Magdalena Grabowska"
             class="h-full w-full object-cover object-center">
         <div
-            class="absolute inset-0 bg-linear-to-r from-primary/50 to-transparent"></div>
+            class="absolute inset-0 bg-linear-to-r from-pine-800/20 to-transparent"></div>
     </div>
     <div class="homepage-grid-overlay opacity-70" aria-hidden="true"></div>
     <div class=" relative mx-auto flex min-h-[78svh] max-w-7xl items-end px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-        <div class="hero-content bg-black/10 backdrop-blur-xs rounded-3xl max-w-3xl p-16">
-            <p class="mb-4 section-label section-label--light">
-                PTTK • Polska sieć odkrywania
+        <div class="hero-content">
+            <p class="hero-eyebrow mb-5 section-label">
+                PTTK • Katalog obiektów krajoznawczych
             </p>
-            <h1 class="font-heading max-w-2xl text-4xl font-bold leading-none text-balance sm:text-5xl lg:text-7xl">
-                Odkrywaj Polskę przez mapę, miejsca i gotowe tropy podróży.
+            <h1 class="text-pine-900 max-w-3xl text-3xl leading-[0.94] text-balance sm:text-5xl lg:text-4xl xl:text-5xl">
+                Odkrywaj Polskę
             </h1>
-            <p class="mt-5 max-w-xl text-base leading-7 text-stone-200 sm:text-lg">
-                Katalog obiektów krajoznawczych PTTK prowadzi od pierwszego widoku do sprawdzonych miejsc:
-                od zamków i muzeów po rezerwaty, skanseny i punkty widokowe.
+            <p class="mt-6 max-w-lg text-base leading-7 text-stone-800/90 sm:text-lg">
+                Zabytki, rezerwaty, muzea i miejsca, które warto zobaczyć — zebrane w jednym katalogu przez PTTK.
             </p>
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
                     href="{{ route('catalog.index') }}"
                     class="btn-primary">
@@ -39,16 +38,21 @@
                     Przeglądaj katalog
                 </a>
             </div>
+            <div class="hero-trust-row mt-7">
+                <span>{{ number_format($catalogStats['objects'], 0, ',', ' ') }} obiektów w katalogu</span>
+                <span>{{ number_format($catalogStats['voivodeships'], 0, ',', ' ') }} województw</span>
+                <span>Zobacz na mapie lub przejdź do listy</span>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="border-y border-stone-200/80 bg-stone-50">
+<section class="border-y border-stone-200/80 bg-sand-50">
     <div class="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)] lg:px-8 lg:py-8">
         <div class="max-w-xl">
             <p class="section-label">Zaufane źródło PTTK</p>
             <h2 class="font-heading mt-2 text-2xl font-semibold text-stone-950 sm:text-3xl">
-                Katalog budowany na realnych obiektach i zasięgu całego kraju.
+                Katalog oparty na rzetelnej bazie obiektów z całego kraju.
             </h2>
         </div>
         <div class="grid gap-3 sm:grid-cols-3">
@@ -57,7 +61,7 @@
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['objects'], 0, ',', ' ') }}</p>
             </div>
             <div class="stat-card">
-                <p class="text-sm text-stone-500">Typy do przeglądania</p>
+                <p class="text-sm text-stone-500">Kategorie miejsc</p>
                 <p class="mt-3 text-3xl font-semibold text-stone-950">{{ number_format($catalogStats['object_types'], 0, ',', ' ') }}</p>
             </div>
             <div class="stat-card">
@@ -73,12 +77,12 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 pb-8 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl">
-                <p class="section-label">Pierwszy trop</p>
+                <p class="section-label">Nowe w katalogu</p>
                 <h2 class="section-heading">
                     Najnowsze obiekty dodane do katalogu
                 </h2>
                 <p class="mt-3 text-base leading-7 text-stone-600">
-                    Zacznij od świeżo opublikowanych miejsc i przejdź od inspiracji do planu podróży jednym kliknięciem.
+                    Świeże dodatki w katalogu — sprawdź, co nowego pojawiło się na mapie.
                 </p>
             </div>
             <a
@@ -91,7 +95,7 @@
             @foreach($latestObjects as $object)
             <a
                 href="{{ route('catalog.show', $object->slug) }}"
-                class="home-card-shadow group overflow-hidden rounded-4xl border border-stone-200/80 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                class="home-card-shadow group overflow-hidden rounded-4xl border border-stone-200/80 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine-700 focus-visible:ring-offset-2">
                 <div class="aspect-4/3 overflow-hidden bg-stone-200">
                     <img
                         src="{{ $object->card_url }}"
@@ -105,7 +109,7 @@
                         <span class="rounded-full bg-stone-100 px-3 py-1">{{ $objectType->name }}</span>
                         @endforeach
                     </div>
-                    <h3 class="font-heading text-xl font-semibold text-stone-950 transition-colors group-hover:text-emerald-800">
+                    <h3 class="font-heading text-xl font-semibold text-stone-950 transition-colors group-hover:text-pine-800">
                         {{ $object->title }}
                     </h3>
                     @if($object->voivodeship)
@@ -113,7 +117,7 @@
                         {{ $object->voivodeship->name }}
                     </p>
                     @endif
-                    <span class="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                    <span class="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-pine-800">
                         Otwórz kartę obiektu
                         <span aria-hidden="true">→</span>
                     </span>
@@ -130,12 +134,12 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)] lg:items-start">
             <div>
-                <p class="section-label section-label--light">Przeglądaj według typu</p>
+                <p class="section-label">Przeglądaj według typu</p>
                 <h2 class="section-heading">
-                    Wejdź do katalogu przez kategorię, nie przypadek.
+                    Przeglądaj katalog wg kategorii obiektu.
                 </h2>
-                <p class="mt-3 max-w-md text-base leading-7 text-stone-300">
-                    Wybierz to, czego szukasz: miejsca historii, natury, techniki lub codziennej kultury podróżowania.
+                <p class="mt-3 max-w-md text-base leading-7 text-stone-600">
+                    Zamki, muzea, rezerwaty, fortyfikacje — wybierz kategorię i przeglądaj.
                 </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -144,15 +148,15 @@
                     href="{{ route('catalog.index', ['view' => 'list', 'objectTypes' => [$objectType->getKey()]]) }}"
                     class="browse-type-card group">
                     <div>
-                        <p class="text-sm text-stone-300">Typ obiektu</p>
-                        <h3 class="font-heading mt-3 text-2xl font-semibold text-white">{{ $objectType->name }}</h3>
+                        <p class="text-sm text-stone-500">Typ obiektu</p>
+                        <h3 class="font-heading mt-3 text-2xl font-semibold text-stone-950">{{ $objectType->name }}</h3>
                         @if($objectType->description)
-                        <p class="mt-3 text-sm leading-6 text-stone-300">{{ \Illuminate\Support\Str::limit($objectType->description, 110) }}</p>
+                        <p class="mt-3 text-sm leading-6 text-stone-600">{{ \Illuminate\Support\Str::limit($objectType->description, 110) }}</p>
                         @endif
                     </div>
                     <div class="mt-6 flex items-center justify-between gap-4">
-                        <span class="text-sm text-stone-300">{{ number_format($objectType->published_objects_count, 0, ',', ' ') }} obiektów</span>
-                        <span class="text-sm font-semibold text-emerald-200 transition group-hover:translate-x-1">
+                        <span class="text-sm text-stone-500">{{ number_format($objectType->published_objects_count, 0, ',', ' ') }} obiektów</span>
+                        <span class="text-sm font-semibold text-pine-800 transition group-hover:translate-x-1">
                             Przeglądaj
                         </span>
                     </div>
@@ -164,14 +168,14 @@
 </section>
 @endif
 
-<section class="overflow-hidden bg-stone-100 py-16 sm:py-20">
+<section class="overflow-hidden bg-sand-50 py-16 sm:py-20">
     <div class="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
-        <div class="dark-box rounded-4xl  px-6 py-8 sm:px-8 sm:py-10">
-            <p class="section-label section-label--light">Szlak na mapie</p>
+        <div class="rounded-4xl bg-white border border-stone-200 px-6 py-8 sm:px-8 sm:py-10 shadow-sm">
+            <p class="section-label">Szlak na mapie</p>
             <h2 class="section-heading">
-                Zobacz, jak obiekty układają się w realną trasę i sąsiedztwa.
+                Zobacz, które obiekty są blisko siebie i zaplanuj objazd.
             </h2>
-            <p class="mt-4 max-w-xl text-base leading-7 text-stone-300">
+            <p class="mt-4 max-w-xl text-base leading-7 text-stone-600">
                 Widok mapy pomaga planować objazdy, odkrywać klastry atrakcji i szukać miejsc między kolejnymi etapami podróży.
             </p>
             <a
@@ -182,23 +186,23 @@
         </div>
         <div class="homepage-map-glow relative rounded-4xl border border-stone-200 p-6 sm:p-8">
             <div class="grid gap-4 sm:grid-cols-2">
-                <div class="rounded-3xl border border-stone-200 bg-white/80 p-4 backdrop-blur-sm">
+                <div class="rounded-3xl border border-stone-200 bg-white/80 p-4 backdrop-blur-sm shadow-sm">
                     <p class="text-sm text-stone-500">Szybki start</p>
                     <p class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa</p>
-                    <p class="mt-2 text-sm leading-6 text-stone-600">Przesuwaj widok i otwieraj obiekty bez opuszczania kontekstu regionu.</p>
+                    <p class="mt-2 text-sm leading-6 text-stone-600">Przesuwaj mapę i klikaj w obiekty — cały czas widzisz region.</p>
                 </div>
-                <div class="rounded-3xl border border-stone-200 dark-box p-4">
-                    <p class="text-sm text-stone-300">Przełącznik widoków</p>
-                    <h4 class="mt-3 font-heading text-2xl font-semibold">Mapa • Lista • Obie</h4>
-                    <p class="mt-2 text-sm leading-6 text-stone-300">Ten sam katalog, różne sposoby przeglądania zależnie od etapu planowania.</p>
+                <div class="rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
+                    <p class="text-sm text-stone-500">Przełącznik widoków</p>
+                    <h4 class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa • Lista • Obie</h4>
+                    <p class="mt-2 text-sm leading-6 text-stone-600">Ten sam katalog w dwóch wersjach: mapa do planowania, lista do przeglądania.</p>
                 </div>
             </div>
             <div class="mt-5 grid gap-3">
-                <div class="rounded-3xl border border-emerald-200/60 bg-emerald-50 px-4 py-4 text-sm leading-6 text-emerald-950">
-                    Szukaj po województwach, typach obiektów i oznaczeniu UNESCO, aby szybciej zawęzić trasę.
+                <div class="rounded-3xl border border-pine-200/60 bg-pine-50 px-4 py-4 text-sm leading-6 text-pine-950">
+                    Filtruj po województwie, typie obiektu i UNESCO — szybciej znajdziesz to, czego szukasz.
                 </div>
                 <div class="rounded-3xl border border-dashed border-stone-300 px-4 py-4 text-sm leading-6 text-stone-600">
-                    Widok mapy jest najlepszym wejściem, gdy plan zaczyna się od miejsca, a nie od konkretnej nazwy obiektu.
+                    Nie wiesz, gdzie jechać? Zacznij od mapy i wybierz region, który Cię ciągnie.
                 </div>
             </div>
         </div>
@@ -212,7 +216,7 @@
             <div class="max-w-2xl">
                 <p class="section-label">Aktualności</p>
                 <h2 class="section-heading">
-                    Co nowego w katalogu i wokół niego
+                    Co słychać na szlaku
                 </h2>
             </div>
             <a
@@ -225,7 +229,7 @@
             @foreach($latestNews as $newsItem)
             <a
                 href="{{ route('news.show', $newsItem->slug) }}"
-                class="news-card-shadow group overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                class="news-card-shadow group overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine-700 focus-visible:ring-offset-2">
                 @if($newsItem->has_cover_image)
                 <div class="aspect-3/2 overflow-hidden bg-stone-200">
                     <img
@@ -239,7 +243,7 @@
                     <time class="text-sm text-stone-500" datetime="{{ $newsItem->published_at->format('Y-m-d') }}">
                         {{ $newsItem->published_at->format('d.m.Y') }}
                     </time>
-                    <h3 class="font-heading mt-2 text-2xl font-semibold text-stone-950 transition-colors group-hover:text-emerald-800">
+                    <h3 class="font-heading mt-2 text-2xl font-semibold text-stone-950 transition-colors group-hover:text-pine-800">
                         {{ $newsItem->title }}
                     </h3>
                     @if($newsItem->excerpt)

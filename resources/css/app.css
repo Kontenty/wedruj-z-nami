@@ -64,6 +64,32 @@
 
   /* PTTK brand */
   --color-pttk: var(--pttk-green);
+
+  /* Pine (deep forest green) */
+  --color-pine-50: #f0f7f4;
+  --color-pine-100: #dcede5;
+  --color-pine-200: #b9dbc8;
+  --color-pine-300: #8cc3a5;
+  --color-pine-400: #5ea87f;
+  --color-pine-500: #3b8d62;
+  --color-pine-600: #2d6f4d;
+  --color-pine-700: #265a3f;
+  --color-pine-800: #224835;
+  --color-pine-900: #1d3c2d;
+  --color-pine-950: #0f2118;
+
+  /* Sand (warm cream) */
+  --color-sand-50: #fffcfa;
+  --color-sand-100: #fff7f2;
+  --color-sand-200: #ffefe5;
+  --color-sand-300: #ffe0cf;
+  --color-sand-400: #ffc9a8;
+  --color-sand-500: #ffac7a;
+  --color-sand-600: #ff8f52;
+  --color-sand-700: #e56a2e;
+  --color-sand-800: #b34d1a;
+  --color-sand-900: #8f3f17;
+  --color-sand-950: #4a1f0b;
 }
 
 /*
