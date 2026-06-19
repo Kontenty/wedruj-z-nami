@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         ], [
             'name' => 'Test User',
             'password' => 'password',
+            'role' => User::ROLE_ADMINISTRATOR,
         ]);
 
         $voivodeships = collect([
