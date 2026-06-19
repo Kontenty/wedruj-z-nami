@@ -75,7 +75,7 @@
 }
 
 .hero-panel > p:not(.hero-eyebrow) {
-  color: rgba(41, 37, 36, 0.84);
+  color: rgba(41, 37, 36, 0.9);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -116,7 +116,8 @@
   font-size: var(--text-sm);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.2em;
+  line-height: 1.4;
   color: var(--color-pine-700);
 }
 
@@ -127,11 +128,23 @@
 .section-heading {
   font-family: var(--font-heading);
   margin-top: 0.5rem;
-  font-size: clamp(1.9rem, 3vw, 2.8rem);
-  line-height: 1.05;
+  font-size: clamp(1.75rem, 2.6vw, 2.45rem);
+  line-height: 1.08;
   font-weight: var(--font-weight-semibold);
   color: var(--color-stone-950);
   text-wrap: balance;
+}
+
+.section-copy {
+  font-size: var(--text-base);
+  line-height: 1.65;
+  color: rgba(68, 63, 59, 0.88);
+  text-wrap: pretty;
+}
+
+.section-copy--compact {
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 
 /* Buttons */
@@ -221,6 +234,21 @@
 }
 
 /* Cards */
+.card-kicker {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-stone-500);
+}
+
+.card-meta {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--color-stone-600);
+}
+
 .home-card-shadow {
   box-shadow: 0 24px 60px -32px rgba(24, 29, 23, 0.38);
 }
@@ -256,6 +284,28 @@
     background-color 150ms ease,
     box-shadow 150ms ease,
     transform 150ms ease;
+}
+
+.card-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-stone-950);
+  text-wrap: balance;
+}
+
+.card-title--object {
+  font-size: clamp(1.05rem, 1.15vw, 1.3rem);
+  line-height: 1.15;
+}
+
+.card-title--browse {
+  font-size: clamp(1.05rem, 1vw, 1.15rem);
+  line-height: 1.12;
+}
+
+.card-title--news {
+  font-size: clamp(1.15rem, 1.4vw, 1.45rem);
+  line-height: 1.12;
 }
 
 .browse-type-card:hover {
