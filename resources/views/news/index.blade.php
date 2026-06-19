@@ -20,12 +20,15 @@
             href="{{ route('news.show', $newsItem->slug) }}"
             class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             @if($newsItem->has_cover_image)
-            <div class="aspect-[3/2] overflow-hidden">
-                <img
-                    src="{{ $newsItem->cover_thumbnail_url }}"
-                    alt=""
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy">
+            <div class="aspect-3/2 overflow-hidden">
+                <picture>
+                    <source srcset="{{ $newsItem->cover_thumbnail_webp_url }}" type="image/webp">
+                    <img
+                        src="{{ $newsItem->cover_thumbnail_url }}"
+                        alt=""
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy">
+                </picture>
             </div>
             @endif
             <div class="p-4">
@@ -64,12 +67,15 @@
                 href="#"
                 class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                 title="Szczegóły obiektu będą dostępne wkrótce">
-                <div class="aspect-[4/3] overflow-hidden">
-                    <img
-                        src="{{ $object->card_url }}"
-                        alt="{{ $object->title }}"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy">
+                <div class="aspect-4/3 overflow-hidden">
+                    <picture>
+                        <source srcset="{{ $object->card_webp_url }}" type="image/webp">
+                        <img
+                            src="{{ $object->card_url }}"
+                            alt="{{ $object->title }}"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy">
+                    </picture>
                 </div>
                 <div class="p-4">
                     <h3 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">

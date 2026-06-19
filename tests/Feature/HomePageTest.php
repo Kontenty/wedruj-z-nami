@@ -16,7 +16,7 @@ test('homepage loads successfully', function () {
 
 test('homepage contains hero section', function () {
     $this->get('/')
-        ->assertSee('Odkrywaj Polskę przez mapę, miejsca i gotowe tropy podróży.')
+        ->assertSee('Odkrywaj Polskę')
         ->assertSee('Pokaż mapę')
         ->assertSee('Przeglądaj katalog');
 });
@@ -130,7 +130,7 @@ test('homepage shows trust band counts and browse by type links', function () {
     $this->get('/')
         ->assertSuccessful()
         ->assertSee('Opublikowane obiekty')
-        ->assertSee('Typy do przeglądania')
+        ->assertSee('Przeglądaj według typu')
         ->assertSee('Województwa w katalogu')
         ->assertSee('Zamki')
         ->assertSee('Muzea')

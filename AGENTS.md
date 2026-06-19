@@ -27,6 +27,11 @@
 - Tests use MariaDB, not SQLite.
 - Don’t delete tests without approval.
 
+## Seed data & fixtures
+
+- Seeding images live in `database/fixtures/images/` and are attached during seeding via `spatie/laravel-medialibrary`.
+- Do not commit large fixture assets; they are ignored in `.gitignore`. Keep a lightweight reference set in the repo.
+
 ## Filament
 
 - Use correct namespaces:
@@ -40,12 +45,6 @@
 - Use `->visibility('public')` for public files.
 - Use `->columnSpanFull()` when a layout element should span all columns.
 - Prefer `->live(onBlur: true)` on text inputs.
-
-## GitNexus
-
-- Before editing any function/class/method, run `gitnexus_impact({target, direction: "upstream"})`.
-- Warn the user if impact is HIGH or CRITICAL.
-- Run `gitnexus_detect_changes()` before committing.
 
 ## Skills to activate when relevant
 

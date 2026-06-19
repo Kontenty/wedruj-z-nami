@@ -173,6 +173,7 @@ class DatabaseSeeder extends Seeder
 
         foreach ([
             [
+                'directory' => 'zamek-cesarski-w-poznaniu',
                 'attributes' => [
                     'title' => 'Zamek Cesarski w Poznaniu',
                     'lead' => 'Monumentalna rezydencja cesarska i jeden z symboli Poznania.',
@@ -191,6 +192,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
+                'directory' => 'katedra-poznan',
                 'attributes' => [
                     'title' => 'Bazylika Archikatedralna św. Piotra i Pawła w Poznaniu',
                     'lead' => 'Najstarsza polska katedra i nekropolia pierwszych władców.',
@@ -209,6 +211,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$obiektySakralne->id],
             ],
             [
+                'directory' => 'muzeum-narodowe-poznan',
                 'attributes' => [
                     'title' => 'Muzeum Narodowe w Poznaniu',
                     'lead' => 'Jedna z najważniejszych kolekcji sztuki w kraju.',
@@ -227,6 +230,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$muzea->id],
             ],
             [
+                'directory' => 'zamek-krolewski-warszawa',
                 'attributes' => [
                     'title' => 'Zamek Królewski w Warszawie',
                     'lead' => 'Rezydencja królewska i ważny symbol państwowości.',
@@ -245,6 +249,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
+                'directory' => 'palac-kultury',
                 'attributes' => [
                     'title' => 'Pałac Kultury i Nauki',
                     'lead' => 'Ikona powojennej Warszawy i najwyższy zabytkowy wieżowiec w Polsce.',
@@ -263,6 +268,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zabytkiTechniki->id],
             ],
             [
+                'directory' => 'muzeum-powstania-warszawskiego',
                 'attributes' => [
                     'title' => 'Muzeum Powstania Warszawskiego',
                     'lead' => 'Nowoczesne muzeum upamiętniające powstańców Warszawy.',
@@ -281,6 +287,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$muzea->id],
             ],
             [
+                'directory' => 'pomnik-bohaterow-getta',
                 'attributes' => [
                     'title' => 'Pomnik Bohaterów Getta',
                     'lead' => 'Najważniejsze warszawskie miejsce pamięci o powstaniu w getcie.',
@@ -299,6 +306,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$pomnikiHistorii->id],
             ],
             [
+                'directory' => 'malbork',
                 'attributes' => [
                     'title' => 'Zamek w Malborku',
                     'lead' => 'Największy ceglany zamek na świecie i wpis UNESCO.',
@@ -318,6 +326,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
+                'directory' => 'wieliczka',
                 'attributes' => [
                     'title' => 'Kopalnia Soli w Wieliczce',
                     'lead' => 'Legendarna kopalnia soli i jeden z najbardziej znanych obiektów UNESCO w Polsce.',
@@ -337,6 +346,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zabytkiTechniki->id],
             ],
             [
+                'directory' => 'stare-miasto-krakow',
                 'attributes' => [
                     'title' => 'Stare Miasto w Krakowie',
                     'lead' => 'Historyczne serce Krakowa i jedno z najcenniejszych założeń urbanistycznych w Europie.',
@@ -356,6 +366,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$glowneMiasta->id],
             ],
             [
+                'directory' => 'bazylika-mariacka-gdansk',
                 'attributes' => [
                     'title' => 'Bazylika Mariacka w Gdańsku',
                     'lead' => 'Gotycka świątynia dominująca nad panoramą Gdańska.',
@@ -374,6 +385,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$obiektySakralne->id],
             ],
             [
+                'directory' => 'skansen-sanok',
                 'attributes' => [
                     'title' => 'Skansen w Sanoku',
                     'lead' => 'Największy skansen w Polsce i ważna lekcja kultury Pogórza i Bieszczadów.',
@@ -392,6 +404,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$skanseny->id],
             ],
             [
+                'directory' => 'auschwitz',
                 'attributes' => [
                     'title' => 'Muzeum Auschwitz-Birkenau',
                     'lead' => 'Miejsce pamięci i muzeum upamiętniające ofiary obozu Auschwitz.',
@@ -410,6 +423,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$pomnikiHistorii->id],
             ],
             [
+                'directory' => 'swieta-lipka',
                 'attributes' => [
                     'title' => 'Święta Lipka',
                     'lead' => 'Barokowe sanktuarium pielgrzymkowe na Mazurach.',
@@ -428,6 +442,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$obiektySakralne->id],
             ],
             [
+                'directory' => 'kopalnia-guido',
                 'attributes' => [
                     'title' => 'Kopalnia Guido w Zabrzu',
                     'lead' => 'Historyczna kopalnia węgla z jedną z najciekawszych tras podziemnych w Polsce.',
@@ -446,6 +461,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$muzea->id],
             ],
             [
+                'directory' => 'hala-stulecia',
                 'attributes' => [
                     'title' => 'Hala Stulecia we Wrocławiu',
                     'lead' => 'Ikona modernistycznej architektury i ważny punkt Wrocławia.',
@@ -465,6 +481,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zabytkiTechniki->id],
             ],
             [
+                'directory' => 'bieszczadzki-park-narodowy',
                 'attributes' => [
                     'title' => 'Bieszczadzki Park Narodowy',
                     'lead' => 'Dzika część Karpat z połoninami i rozległymi lasami.',
@@ -483,6 +500,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$parkiNarodowe->id],
             ],
             [
+                'directory' => 'lancut',
                 'attributes' => [
                     'title' => 'Zamek w Łańcucie',
                     'lead' => 'Rezydencja magnacka znana z pięknych wnętrz i ogrodów.',
@@ -501,6 +519,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
+                'directory' => 'kornik',
                 'attributes' => [
                     'title' => 'Zamek w Kórniku',
                     'lead' => 'Neogotycka rezydencja nad jeziorem i jeden z symboli Kórnika.',
@@ -519,6 +538,7 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$zamkiPalace->id],
             ],
             [
+                'directory' => 'muzeum-wsi-opolskiej',
                 'attributes' => [
                     'title' => 'Muzeum Wsi Opolskiej',
                     'lead' => 'Skansen prezentujący architekturę i kulturę regionu opolskiego.',
@@ -537,7 +557,9 @@ class DatabaseSeeder extends Seeder
                 'objectTypeIds' => [$skanseny->id],
             ],
         ] as $definition) {
-            $this->createSightseeingObject($definition['attributes'], $definition['objectTypeIds']);
+            $object = $this->createSightseeingObject($definition['attributes'], $definition['objectTypeIds']);
+
+            $this->attachImages($object, $definition['directory'], $definition['attributes']['title']);
         }
 
         Article::query()->updateOrCreate([
@@ -587,7 +609,11 @@ class DatabaseSeeder extends Seeder
      */
     private function attachImages(SightseeingObject $object, string $directory, string $altText): void
     {
-        $imagesPath = public_path('images/'.$directory);
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
+        $imagesPath = database_path('fixtures/images/'.$directory);
 
         if (! is_dir($imagesPath)) {
             return;

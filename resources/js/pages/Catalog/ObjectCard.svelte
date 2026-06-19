@@ -23,14 +23,17 @@
     <div
       class="relative h-24 w-24 shrink-0 overflow-hidden rounded-[1.125rem] bg-stone-100 sm:h-28 sm:w-28"
     >
-      <img
-        class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-        src={object.primary_image_url ||
-          object.thumbnail_url ||
-          '/images/placeholder-object-card.jpg'}
-        alt={object.title}
-        loading="lazy"
-      />
+      <picture>
+        {#if object.thumbnail_webp_url}
+          <source srcset={object.thumbnail_webp_url} type="image/webp" />
+        {/if}
+        <img
+          class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          src={object.thumbnail_url || '/images/placeholder-object-thumb.jpg'}
+          alt={object.title}
+          loading="lazy"
+        />
+      </picture>
       <div
         class="absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-[#1a4a26]/15 to-transparent"
       ></div>

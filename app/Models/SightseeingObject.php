@@ -80,12 +80,28 @@ class SightseeingObject extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumbnail')
-            ->fit(Fit::Crop, 400, 300)
+            ->fit(Fit::Crop, 200, 150)
+            ->quality(60)
             ->nonQueued();
 
         $this->addMediaConversion('card')
             ->fit(Fit::Crop, 800, 600)
+            ->quality(60)
             ->nonQueued();
+
+        if (! app()->environment('testing')) {
+            $this->addMediaConversion('thumbnail_webp')
+                ->fit(Fit::Crop, 200, 150)
+                ->format('webp')
+                ->quality(75)
+                ->nonQueued();
+
+            $this->addMediaConversion('card_webp')
+                ->fit(Fit::Crop, 800, 600)
+                ->format('webp')
+                ->quality(75)
+                ->nonQueued();
+        }
     }
 
     public function reorderImages(array $mediaIds): void
@@ -117,6 +133,16 @@ class SightseeingObject extends Model implements HasMedia
         return $this->getFirstMediaUrl('images');
     }
 
+    public function getThumbnailWebpUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('images', 'thumbnail_webp');
+    }
+
+    public function getCardWebpUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('images', 'card_webp');
+    }
+
     public function getThumbnailUrlAttribute(): string
     {
         return $this->getFirstMediaUrl('images', 'thumbnail');
@@ -144,7 +170,7 @@ class SightseeingObject extends Model implements HasMedia
     }
 
     /**
-     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, alt: string, author: mixed, source: mixed, order: int|null}>
+     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, thumbnail_webp_url: string|null, card_webp_url: string|null, alt: string, author: mixed, source: mixed, order: int|null}>
      */
     public function getImageItemsAttribute(): array
     {
@@ -154,6 +180,8 @@ class SightseeingObject extends Model implements HasMedia
                 'url' => $media->getUrl(),
                 'thumbnail_url' => $media->getUrl('thumbnail'),
                 'card_url' => $media->getUrl('card'),
+                'thumbnail_webp_url' => $this->getConversionUrl($media, 'thumbnail_webp'),
+                'card_webp_url' => $this->getConversionUrl($media, 'card_webp'),
                 'alt' => $media->getCustomProperty('alt', $this->title),
                 'author' => $media->getCustomProperty('author'),
                 'source' => $media->getCustomProperty('source'),
@@ -161,6 +189,15 @@ class SightseeingObject extends Model implements HasMedia
             ])
             ->values()
             ->all();
+    }
+
+    private function getConversionUrl(Media $media, string $conversionName): ?string
+    {
+        try {
+            return $media->getUrl($conversionName);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     #[Scope]

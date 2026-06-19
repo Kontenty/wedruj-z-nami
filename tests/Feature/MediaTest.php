@@ -71,6 +71,8 @@ test('sightseeing object image payload falls back to object title when alt text 
             'url',
             'thumbnail_url',
             'card_url',
+            'thumbnail_webp_url',
+            'card_webp_url',
             'alt',
             'author',
             'source',

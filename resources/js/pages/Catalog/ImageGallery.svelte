@@ -93,12 +93,20 @@
                 onclick={() => openLightbox(image.url, index + 1)}
                 class="group relative min-h-0 overflow-hidden rounded-[1.5rem] border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
-                <img
-                  src={image.card_url || image.thumbnail_url}
-                  alt={image.alt || title}
-                  class="h-full min-h-40 w-full object-cover transition duration-500 group-hover:scale-110"
-                  loading="lazy"
-                />
+                <picture>
+                  {#if image.card_webp_url || image.thumbnail_webp_url}
+                    <source
+                      srcset={image.card_webp_url || image.thumbnail_webp_url}
+                      type="image/webp"
+                    />
+                  {/if}
+                  <img
+                    src={image.card_url || image.thumbnail_url}
+                    alt={image.alt || title}
+                    class="h-full min-h-40 w-full object-cover transition duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                </picture>
 
                 {#if remainingImages > 0 && index === previewImages.length - 1}
                   <div
@@ -134,12 +142,17 @@
             onclick={() => openLightbox(image.url, index + 1)}
             class="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
-            <img
-              src={image.thumbnail_url}
-              alt={image.alt || title}
-              class="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
-              loading="lazy"
-            />
+            <picture>
+              {#if image.thumbnail_webp_url}
+                <source srcset={image.thumbnail_webp_url} type="image/webp" />
+              {/if}
+              <img
+                src={image.thumbnail_url}
+                alt={image.alt || title}
+                class="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
+                loading="lazy"
+              />
+            </picture>
           </button>
         {/each}
       </div>

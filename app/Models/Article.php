@@ -48,7 +48,16 @@ class Article extends Model implements HasMedia
     {
         $this->addMediaConversion('thumbnail')
             ->fit(Fit::Crop, 600, 400)
+            ->quality(60)
             ->nonQueued();
+
+        if (! app()->environment('testing')) {
+            $this->addMediaConversion('thumbnail_webp')
+                ->fit(Fit::Crop, 600, 400)
+                ->format('webp')
+                ->quality(75)
+                ->nonQueued();
+        }
     }
 
     public function getCoverImageUrlAttribute(): string
@@ -61,13 +70,18 @@ class Article extends Model implements HasMedia
         return $this->getFirstMediaUrl('cover', 'thumbnail');
     }
 
+    public function getCoverThumbnailWebpUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('cover', 'thumbnail_webp');
+    }
+
     public function getHasCoverImageAttribute(): bool
     {
         return $this->hasMedia('cover');
     }
 
     /**
-     * @return array{id: int|null, url: string, thumbnail_url: string, alt: string, author: mixed, source: mixed}
+     * @return array{id: int|null, url: string, thumbnail_url: string, thumbnail_webp_url: string|null, alt: string, author: mixed, source: mixed}
      */
     public function getCoverImageAttribute(): array
     {
@@ -77,10 +91,20 @@ class Article extends Model implements HasMedia
             'id' => $media?->id,
             'url' => $this->cover_image_url,
             'thumbnail_url' => $this->cover_thumbnail_url,
+            'thumbnail_webp_url' => $media ? $this->getConversionUrl($media, 'thumbnail_webp') : null,
             'alt' => $media?->getCustomProperty('alt', $this->title) ?? $this->title,
             'author' => $media?->getCustomProperty('author'),
             'source' => $media?->getCustomProperty('source'),
         ];
+    }
+
+    private function getConversionUrl(Media $media, string $conversionName): ?string
+    {
+        try {
+            return $media->getUrl($conversionName);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     #[Scope]

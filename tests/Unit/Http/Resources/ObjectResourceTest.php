@@ -22,7 +22,7 @@ it('exposes catalog object fields with detail url', function () {
 
     expect($data)->toHaveKeys([
         'id', 'title', 'slug', 'description', 'latitude', 'longitude', 'is_unesco',
-        'url', 'thumbnail_url', 'primary_image_url', 'voivodeship', 'objectTypes', 'geojson',
+        'url', 'thumbnail_url', 'thumbnail_webp_url', 'card_url', 'card_webp_url', 'primary_image_url', 'voivodeship', 'objectTypes', 'geojson',
     ])->and($data['url'])->toBe(route('catalog.show', $object->slug))
         ->and($data['voivodeship']['name'])->toBe('Małopolskie')
         ->and($data['objectTypes'])->toHaveCount(1)

@@ -36,13 +36,21 @@
           <div
             class="h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] bg-stone-100"
           >
-            <img
-              src={nearbyObject.thumbnail_url ||
-                '/images/placeholder-object-thumb.jpg'}
-              alt={nearbyObject.title}
-              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
+            <picture>
+              {#if nearbyObject.thumbnail_webp_url}
+                <source
+                  srcset={nearbyObject.thumbnail_webp_url}
+                  type="image/webp"
+                />
+              {/if}
+              <img
+                src={nearbyObject.thumbnail_url ||
+                  '/images/placeholder-object-thumb.jpg'}
+                alt={nearbyObject.title}
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+            </picture>
           </div>
 
           <div class="flex min-w-0 flex-1 flex-col justify-center">
