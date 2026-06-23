@@ -7,6 +7,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -39,10 +40,9 @@ class SightseeingObjectForm
                             ->required()
                             ->rows(3)
                             ->columnSpanFull(),
-                        Textarea::make('description')
+                        MarkdownEditor::make('description')
                             ->label('Pełny opis')
                             ->required()
-                            ->rows(8)
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -115,7 +115,18 @@ class SightseeingObjectForm
                             ->label('Poligon WKT')
                             ->helperText('Format: POLYGON((19.93 50.05, 19.96 50.05, 19.96 50.08, 19.93 50.05))')
                             ->rows(4)
-                            ->rules(['regex:/^POLYGON\\s*\\(\\(.+\\)\\)$/i'])
+                            ->rules(fn (): array => [
+                                'regex:/^POLYGON\\s*\\(\\(.+\\)\\)$/i',
+                                function (string $attribute, mixed $value, \Closure $fail): void {
+                                    if (blank($value)) {
+                                        return;
+                                    }
+
+                                    if (! self::isValidPolygonWkt((string) $value)) {
+                                        $fail('Podaj poprawny poligon WKT.');
+                                    }
+                                },
+                            ])
                             ->required(fn (Get $get): bool => $get('geometry_type') === 'polygon')
                             ->hidden(fn (Get $get): bool => $get('geometry_type') !== 'polygon')
                             ->columnSpanFull(),
@@ -160,10 +171,26 @@ class SightseeingObjectForm
                             ->directory('cms/object-images')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(10240)
-                            ->required(fn (Get $get, ?SightseeingObject $record): bool => $get('status') === 'published' && ! $record?->hasMedia('images'))
-                            ->rules(fn (Get $get, ?SightseeingObject $record): array => [
-                                function (string $attribute, mixed $value, \Closure $fail) use ($get, $record): void {
-                                    if ($get('status') === 'published' && blank($value) && ! $record?->hasMedia('images')) {
+                            ->afterStateHydrated(function (FileUpload $component, ?SightseeingObject $record): void {
+                                if ($record === null) {
+                                    return;
+                                }
+
+                                $paths = $record
+                                    ->getMedia('images')
+                                    ->map(fn ($media) => $media->getPathRelativeToRoot())
+                                    ->all();
+
+                                if ($paths !== []) {
+                                    $component->state($paths);
+                                }
+                            })
+                            ->required(fn (Get $get): bool => $get('status') === 'published')
+                            ->rules(fn (Get $get): array => [
+                                function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
+                                    $images = array_values(array_filter((array) $value));
+
+                                    if ($get('status') === 'published' && $images === []) {
                                         $fail('Opublikowany obiekt musi mieć co najmniej jedno zdjęcie.');
                                     }
                                 },
@@ -171,12 +198,60 @@ class SightseeingObjectForm
                             ->helperText('Pierwsze zdjęcie w kolejności jest traktowane jako główne.'),
                         TextInput::make('image_author')
                             ->label('Autor zdjęć')
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->helperText('Autorsko nowo dodanych zdjęć.'),
                         TextInput::make('image_source')
                             ->label('Źródło zdjęć')
+                            ->maxLength(255)
+                            ->helperText('Źródło nowo dodanych zdjęć.'),
+                        TextInput::make('image_alt')
+                            ->label('Tekst alternatywny zdjęć')
+                            ->helperText('Domyślny opis alt dla nowo dodanych zdjęć. Istniejące zdjęcia zachowują swoje metadane.')
                             ->maxLength(255),
                     ])
                     ->columns(2),
             ]);
+    }
+
+    private static function isValidPolygonWkt(string $value): bool
+    {
+        if (! preg_match('/^POLYGON\s*\(\((.+)\)\)$/i', trim($value), $matches)) {
+            return false;
+        }
+
+        $points = array_map(
+            static fn (string $point): string => trim($point),
+            explode(',', $matches[1]),
+        );
+
+        if (count($points) < 4) {
+            return false;
+        }
+
+        $parsedPoints = [];
+
+        foreach ($points as $point) {
+            if (! preg_match('/^(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)$/', $point, $coordinates)) {
+                return false;
+            }
+
+            $parsedPoints[] = [(float) $coordinates[1], (float) $coordinates[2]];
+        }
+
+        $firstPoint = $parsedPoints[0];
+        $lastPoint = $parsedPoints[array_key_last($parsedPoints)];
+
+        if ($firstPoint !== $lastPoint) {
+            return false;
+        }
+
+        $uniquePoints = array_unique(
+            array_map(
+                static fn (array $point): string => implode(':', $point),
+                array_slice($parsedPoints, 0, -1),
+            ),
+        );
+
+        return count($uniquePoints) >= 3;
     }
 }

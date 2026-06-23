@@ -2,14 +2,15 @@
 
 namespace App\Filament\Resources\SightseeingObjects\Pages;
 
+use App\Filament\Resources\SightseeingObjects\Pages\Concerns\InteractsWithSightseeingObjectGeometry;
 use App\Filament\Resources\SightseeingObjects\SightseeingObjectResource;
 use App\Models\SightseeingObject;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Query\Expression;
-use Illuminate\Support\Facades\DB;
 
 class CreateSightseeingObject extends CreateRecord
 {
+    use InteractsWithSightseeingObjectGeometry;
+
     protected static string $resource = SightseeingObjectResource::class;
 
     /** @var array<int, string> */
@@ -18,6 +19,8 @@ class CreateSightseeingObject extends CreateRecord
     protected ?string $imageAuthor = null;
 
     protected ?string $imageSource = null;
+
+    protected ?string $imageAlt = null;
 
     /**
      * @param  array<string, mixed>  $data
@@ -42,51 +45,17 @@ class CreateSightseeingObject extends CreateRecord
      */
     protected function captureImageUploadData(array &$data): void
     {
+        $this->uploadedImages = [];
+        $this->imageAuthor = null;
+        $this->imageSource = null;
+        $this->imageAlt = null;
+
         $this->uploadedImages = array_values(array_filter((array) ($data['images'] ?? [])));
         $this->imageAuthor = filled($data['image_author'] ?? null) ? (string) $data['image_author'] : null;
         $this->imageSource = filled($data['image_source'] ?? null) ? (string) $data['image_source'] : null;
+        $this->imageAlt = filled($data['image_alt'] ?? null) ? (string) $data['image_alt'] : null;
 
-        unset($data['images'], $data['image_author'], $data['image_source']);
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    protected function prepareObjectData(array $data): array
-    {
-        $data['published'] = ($data['status'] ?? 'draft') === 'published';
-
-        if ($data['published'] && blank($data['published_at'] ?? null)) {
-            $data['published_at'] = now();
-        }
-
-        if (! $data['published']) {
-            $data['published_at'] = null;
-        }
-
-        $data['geometry'] = $this->geometryExpression($data);
-
-        unset($data['geometry_type'], $data['polygon_wkt']);
-
-        return $data;
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    protected function geometryExpression(array $data): Expression
-    {
-        if (($data['geometry_type'] ?? 'point') === 'polygon') {
-            $polygon = str_replace("'", "''", (string) $data['polygon_wkt']);
-
-            return DB::raw("ST_GeomFromText('{$polygon}', 4326)");
-        }
-
-        $longitude = (float) $data['longitude'];
-        $latitude = (float) $data['latitude'];
-
-        return DB::raw(sprintf("ST_GeomFromText('POINT(%F %F)', 4326)", $longitude, $latitude));
+        unset($data['images'], $data['image_author'], $data['image_source'], $data['image_alt']);
     }
 
     protected function storeUploadedImages(SightseeingObject $record): void
@@ -97,6 +66,7 @@ class CreateSightseeingObject extends CreateRecord
                 ->withCustomProperties(array_filter([
                     'author' => $this->imageAuthor,
                     'source' => $this->imageSource,
+                    'alt' => $this->imageAlt,
                 ]))
                 ->toMediaCollection('images');
         }

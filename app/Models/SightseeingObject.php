@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasSlug;
 use Database\Factories\SightseeingObjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,6 +41,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'published',
     'published_at',
 ])]
+#[Hidden(['geometry'])]
 class SightseeingObject extends Model implements HasMedia
 {
     /** @use HasFactory<SightseeingObjectFactory> */
