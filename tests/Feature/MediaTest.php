@@ -38,6 +38,7 @@ test('sightseeing object images store attribution metadata and expose resource p
         ->and($object->primary_image_url)->toContain('wawel.jpg')
         ->and($object->thumbnail_url)->toContain('thumbnail')
         ->and($object->card_url)->toContain('card')
+        ->and($object->gallery_url)->toContain('gallery')
         ->and($object->image_urls)->toHaveCount(1)
         ->and($image)->toMatchArray([
             'id' => $media->id,
@@ -48,6 +49,7 @@ test('sightseeing object images store attribution metadata and expose resource p
         ->and($image['url'])->toContain('wawel.jpg')
         ->and($image['thumbnail_url'])->toContain('thumbnail')
         ->and($image['card_url'])->toContain('card')
+        ->and($image['gallery_url'])->toContain('gallery')
         ->and($image['order'])->toBeInt();
 });
 
@@ -71,8 +73,10 @@ test('sightseeing object image payload falls back to object title when alt text 
             'url',
             'thumbnail_url',
             'card_url',
+            'gallery_url',
             'thumbnail_webp_url',
             'card_webp_url',
+            'gallery_webp_url',
             'alt',
             'author',
             'source',

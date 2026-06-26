@@ -91,6 +91,11 @@ class SightseeingObject extends Model implements HasMedia
             ->quality(60)
             ->nonQueued();
 
+        $this->addMediaConversion('gallery')
+            ->fit(Fit::Crop, 1600, 1200)
+            ->quality(80)
+            ->nonQueued();
+
         if (! app()->environment('testing')) {
             $this->addMediaConversion('thumbnail_webp')
                 ->fit(Fit::Crop, 200, 150)
@@ -102,6 +107,12 @@ class SightseeingObject extends Model implements HasMedia
                 ->fit(Fit::Crop, 800, 600)
                 ->format('webp')
                 ->quality(75)
+                ->nonQueued();
+
+            $this->addMediaConversion('gallery_webp')
+                ->fit(Fit::Crop, 1600, 1200)
+                ->format('webp')
+                ->quality(85)
                 ->nonQueued();
         }
     }
@@ -155,6 +166,11 @@ class SightseeingObject extends Model implements HasMedia
         return $this->getFirstMediaUrl('images', 'card');
     }
 
+    public function getGalleryUrlAttribute(): string
+    {
+        return $this->getFirstMediaUrl('images', 'gallery');
+    }
+
     /**
      * @return array<int, string>
      */
@@ -172,7 +188,7 @@ class SightseeingObject extends Model implements HasMedia
     }
 
     /**
-     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, thumbnail_webp_url: string|null, card_webp_url: string|null, alt: string, author: mixed, source: mixed, order: int|null}>
+     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, gallery_url: string|null, thumbnail_webp_url: string|null, card_webp_url: string|null, gallery_webp_url: string|null, alt: string, author: mixed, source: mixed, order: int|null}>
      */
     public function getImageItemsAttribute(): array
     {
@@ -182,8 +198,10 @@ class SightseeingObject extends Model implements HasMedia
                 'url' => $media->getUrl(),
                 'thumbnail_url' => $media->getUrl('thumbnail'),
                 'card_url' => $media->getUrl('card'),
+                'gallery_url' => $this->getConversionUrl($media, 'gallery'),
                 'thumbnail_webp_url' => $this->getConversionUrl($media, 'thumbnail_webp'),
                 'card_webp_url' => $this->getConversionUrl($media, 'card_webp'),
+                'gallery_webp_url' => $this->getConversionUrl($media, 'gallery_webp'),
                 'alt' => $media->getCustomProperty('alt', $this->title),
                 'author' => $media->getCustomProperty('author'),
                 'source' => $media->getCustomProperty('source'),
