@@ -1,5 +1,8 @@
 <script>
+  import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+  import ChevronRight from 'lucide-svelte/icons/chevron-right';
   import Images from 'lucide-svelte/icons/images';
+  import X from 'lucide-svelte/icons/x';
 
   let { images, title } = $props();
   let lightboxOpen = $state(false);
@@ -61,19 +64,23 @@
 {#if images.length > 0}
   <section class="mb-12">
     <figure>
-      <div
-        class="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:[grid-auto-rows:minmax(0,1fr)]"
-      >
+      <div class="h-125 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:auto-rows-fr">
         <button
           type="button"
           onclick={() => openLightbox(images[0].url, 0)}
-          class="group relative overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3 lg:min-h-[32rem]"
+          class="group relative overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3 lg:min-h-128"
         >
-          <img
-            src={images[0].url}
-            alt={images[0].alt || title}
-            class="h-80 w-full object-cover transition duration-700 group-hover:scale-105 lg:h-full"
-          />
+          <picture class="block size-full">
+            <source
+              srcset={images[0].gallery_webp_url || images[0].card_webp_url}
+              type="image/webp"
+            />
+            <img
+              src={images[0].gallery_url || images[0].card_url || images[0].url}
+              alt={images[0].alt || title}
+              class="block size-full object-cover transition duration-700 group-hover:scale-105"
+            />
+          </picture>
           <div
             class="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-black/65 via-black/15 to-transparent"
           ></div>
@@ -86,14 +93,14 @@
         </button>
 
         {#if previewImages.length > 0}
-          <div class="hidden gap-4 lg:grid">
+          <div class="hidden h-full gap-4 lg:grid">
             {#each previewImages as image, index (image.url ?? index)}
               <button
                 type="button"
                 onclick={() => openLightbox(image.url, index + 1)}
-                class="group relative min-h-0 overflow-hidden rounded-[1.5rem] border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                class="group relative min-h-0 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
-                <picture>
+                <picture class="block size-full">
                   {#if image.card_webp_url || image.thumbnail_webp_url}
                     <source
                       srcset={image.card_webp_url || image.thumbnail_webp_url}
@@ -103,7 +110,7 @@
                   <img
                     src={image.card_url || image.thumbnail_url}
                     alt={image.alt || title}
-                    class="h-full min-h-40 w-full object-cover transition duration-500 group-hover:scale-110"
+                    class="block size-full min-h-0 object-cover transition duration-500 group-hover:scale-110"
                     loading="lazy"
                   />
                 </picture>
@@ -142,14 +149,14 @@
             onclick={() => openLightbox(image.url, index + 1)}
             class="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
-            <picture>
+            <picture class="block">
               {#if image.thumbnail_webp_url}
                 <source srcset={image.thumbnail_webp_url} type="image/webp" />
               {/if}
               <img
                 src={image.thumbnail_url}
                 alt={image.alt || title}
-                class="h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
+                class="block h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
                 loading="lazy"
               />
             </picture>
@@ -176,10 +183,10 @@
           e.stopPropagation();
           prevImage();
         }}
-        class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
+        class="absolute left-4 top-1/2 -translate-y-1/2 flex size-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
         aria-label="Poprzednie zdjęcie"
       >
-        ←
+        <ChevronLeft class="size-5" />
       </button>
     {/if}
 
@@ -202,19 +209,19 @@
           e.stopPropagation();
           nextImage();
         }}
-        class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
+        class="absolute right-4 top-1/2 -translate-y-1/2 flex size-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
         aria-label="Następne zdjęcie"
       >
-        →
+        <ChevronRight class="size-5" />
       </button>
     {/if}
 
     <button
       onclick={closeLightbox}
-      class="absolute right-4 top-4 rounded-full bg-white/20 p-2 text-2xl text-white transition hover:bg-white/30"
+      class="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
       aria-label="Zamknij"
     >
-      ✕
+      <X class="size-5" />
     </button>
 
     {#if images.length > 1}

@@ -49,7 +49,14 @@
             Katalog
           </Link>
           <ChevronRight class="size-4 shrink-0 text-stone-400" />
-          <span>{object.voivodeship.name}</span>
+          <Link
+            href={catalogIndex.url({
+              query: { voivodeships: [object.voivodeship.slug] },
+            })}
+            class="font-medium text-stone-600 transition-colors hover:text-emerald-800 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          >
+            {object.voivodeship.name}
+          </Link>
           <ChevronRight class="size-4 shrink-0 text-stone-400" />
           <span class="font-medium text-emerald-800">{object.title}</span>
         </nav>

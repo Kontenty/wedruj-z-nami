@@ -115,6 +115,7 @@ it('returns images array from media library', function () {
             ->has('images.0.url')
             ->has('images.0.thumbnail_url')
             ->has('images.0.card_url')
+            ->has('images.0.gallery_url')
             ->has('images.0.alt')
             ->has('images.0.author')
             ->has('images.0.source')
