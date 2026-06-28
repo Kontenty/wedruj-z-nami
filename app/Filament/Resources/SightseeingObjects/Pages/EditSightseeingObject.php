@@ -48,6 +48,9 @@ class EditSightseeingObject extends EditRecord
 
         $data['geometry_type'] = $geometry['type'];
         $data['polygon_wkt'] = $geometry['polygon_wkt'];
+        $data['osm_geometry_wkt'] = filled($data['osm_id'] ?? null) && filled($data['osm_type'] ?? null)
+            ? $geometry['polygon_wkt']
+            : null;
 
         if ($geometry['type'] === 'point') {
             $data['latitude'] = $this->record->latitude;

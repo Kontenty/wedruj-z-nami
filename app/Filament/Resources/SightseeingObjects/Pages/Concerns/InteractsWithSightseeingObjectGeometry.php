@@ -30,9 +30,11 @@ trait InteractsWithSightseeingObjectGeometry
                 $data['latitude'] = null;
                 $data['longitude'] = null;
             }
+
+            $this->clearStaleOsmMetadata($data);
         }
 
-        unset($data['geometry_type'], $data['polygon_wkt']);
+        unset($data['geometry_type'], $data['polygon_wkt'], $data['osm_geometry_wkt']);
 
         return $data;
     }
@@ -58,5 +60,46 @@ trait InteractsWithSightseeingObjectGeometry
     protected function quoteGeometryWkt(string $wkt): string
     {
         return DB::getPdo()->quote($wkt);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function clearStaleOsmMetadata(array &$data): void
+    {
+        $hasCurrentOsmMetadata = filled($data['osm_id'] ?? null) && filled($data['osm_type'] ?? null);
+        $hasStoredOsmMetadata = filled($this->record->osm_id ?? null) && filled($this->record->osm_type ?? null);
+
+        if (! $hasCurrentOsmMetadata && ! $hasStoredOsmMetadata) {
+            return;
+        }
+
+        if (($data['geometry_type'] ?? 'point') !== 'polygon') {
+            $data['osm_id'] = null;
+            $data['osm_type'] = null;
+
+            return;
+        }
+
+        $importedGeometry = trim((string) ($data['osm_geometry_wkt'] ?? $this->currentRecordGeometryWkt() ?? ''));
+        $currentGeometry = trim((string) ($data['polygon_wkt'] ?? ''));
+
+        if ($importedGeometry === '' || $currentGeometry !== $importedGeometry) {
+            $data['osm_id'] = null;
+            $data['osm_type'] = null;
+        }
+    }
+
+    protected function currentRecordGeometryWkt(): ?string
+    {
+        if (! isset($this->record) || $this->record === null) {
+            return null;
+        }
+
+        return $this->record
+            ->newQuery()
+            ->whereKey($this->record)
+            ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+            ->value('geometry_wkt');
     }
 }

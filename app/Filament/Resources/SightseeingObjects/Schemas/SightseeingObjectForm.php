@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\SightseeingObjects\Schemas;
 
 use App\Models\SightseeingObject;
+use App\Services\NominatimService;
+use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -12,10 +14,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\Rule;
 
 class SightseeingObjectForm
@@ -113,10 +118,10 @@ class SightseeingObjectForm
                             ]),
                         Textarea::make('polygon_wkt')
                             ->label('Poligon WKT')
-                            ->helperText('Format: POLYGON((19.93 50.05, 19.96 50.05, 19.96 50.08, 19.93 50.05))')
+                            ->helperText('Format WKT: POLYGON((...)) lub MULTIPOLYGON(((...)),((...)))')
                             ->rows(4)
                             ->rules(fn (): array => [
-                                'regex:/^POLYGON\\s*\\(\\(.+\\)\\)$/i',
+                                'regex:/^(POLYGON|MULTIPOLYGON)\\s*\\(.+\\)$/i',
                                 function (string $attribute, mixed $value, \Closure $fail): void {
                                     if (blank($value)) {
                                         return;
@@ -129,7 +134,46 @@ class SightseeingObjectForm
                             ])
                             ->required(fn (Get $get): bool => $get('geometry_type') === 'polygon')
                             ->hidden(fn (Get $get): bool => $get('geometry_type') !== 'polygon')
+                            ->hintAction(
+                                Action::make('fetchPolygon')
+                                    ->label('Pobierz z OSM')
+                                    ->icon(Heroicon::GlobeAlt)
+                                    ->requiresConfirmation()
+                                    ->modalHeading('Pobierz poligon z OpenStreetMap')
+                                    ->modalDescription(fn (Get $get): string => 'Szukam granicy: '.($get('title') ?? ''))
+                                    ->action(function (Get $get, Set $set, NominatimService $nominatim): void {
+                                        $title = $get('title');
+
+                                        if (blank($title)) {
+                                            return;
+                                        }
+
+                                        $result = $nominatim->searchPolygon($title);
+
+                                        if ($result === null) {
+                                            Notification::make()
+                                                ->warning()
+                                                ->title('Nie znaleziono poligonu')
+                                                ->description('Nie udało się znaleźć granicy dla: '.$title)
+                                                ->send();
+
+                                            return;
+                                        }
+
+                                        $set('polygon_wkt', $result['wkt']);
+                                        $set('osm_geometry_wkt', $result['wkt']);
+                                        $set('osm_id', $result['osm_id']);
+                                        $set('osm_type', $result['osm_type']);
+                                        $set('geometry_type', 'polygon');
+                                    })
+                            )
                             ->columnSpanFull(),
+                        TextInput::make('osm_geometry_wkt')
+                            ->hidden(),
+                        TextInput::make('osm_id')
+                            ->hidden(),
+                        TextInput::make('osm_type')
+                            ->hidden(),
                     ]),
 
                 Section::make('Informacje praktyczne')
@@ -215,13 +259,57 @@ class SightseeingObjectForm
 
     private static function isValidPolygonWkt(string $value): bool
     {
-        if (! preg_match('/^POLYGON\s*\(\((.+)\)\)$/i', trim($value), $matches)) {
+        $value = trim($value);
+
+        if (preg_match('/^POLYGON\s*(\(.+\))$/i', $value, $matches) === 1) {
+            return self::isValidPolygonBody(substr($matches[1], 1, -1));
+        }
+
+        if (preg_match('/^MULTIPOLYGON\s*(\(.+\))$/i', $value, $matches) !== 1) {
             return false;
         }
 
+        $polygonGroups = self::splitTopLevelGroups(substr($matches[1], 1, -1));
+
+        if ($polygonGroups === []) {
+            return false;
+        }
+
+        foreach ($polygonGroups as $polygonGroup) {
+            $polygonBody = self::unwrapGroup($polygonGroup);
+
+            if ($polygonBody === null || ! self::isValidPolygonBody($polygonBody)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function isValidPolygonBody(string $value): bool
+    {
+        $ringGroups = self::splitTopLevelGroups($value);
+
+        if ($ringGroups === []) {
+            return false;
+        }
+
+        foreach ($ringGroups as $ringGroup) {
+            $ringBody = self::unwrapGroup($ringGroup);
+
+            if ($ringBody === null || ! self::isValidRing($ringBody)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function isValidRing(string $value): bool
+    {
         $points = array_map(
             static fn (string $point): string => trim($point),
-            explode(',', $matches[1]),
+            explode(',', $value),
         );
 
         if (count($points) < 4) {
@@ -253,5 +341,96 @@ class SightseeingObjectForm
         );
 
         return count($uniquePoints) >= 3;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function splitTopLevelGroups(string $value): array
+    {
+        $groups = [];
+        $buffer = '';
+        $depth = 0;
+
+        foreach (str_split($value) as $character) {
+            if ($character === ',' && $depth === 0) {
+                $group = trim($buffer);
+
+                if ($group === '') {
+                    return [];
+                }
+
+                $groups[] = $group;
+                $buffer = '';
+
+                continue;
+            }
+
+            if ($character === '(') {
+                $depth++;
+            }
+
+            if ($character === ')') {
+                $depth--;
+
+                if ($depth < 0) {
+                    return [];
+                }
+            }
+
+            $buffer .= $character;
+        }
+
+        if ($depth !== 0) {
+            return [];
+        }
+
+        $group = trim($buffer);
+
+        if ($group === '') {
+            return [];
+        }
+
+        $groups[] = $group;
+
+        return $groups;
+    }
+
+    private static function unwrapGroup(string $value): ?string
+    {
+        $value = trim($value);
+
+        if (! str_starts_with($value, '(') || ! str_ends_with($value, ')')) {
+            return null;
+        }
+
+        $depth = 0;
+        $length = strlen($value);
+
+        for ($index = 0; $index < $length; $index++) {
+            $character = $value[$index];
+
+            if ($character === '(') {
+                $depth++;
+            }
+
+            if ($character === ')') {
+                $depth--;
+
+                if ($depth < 0) {
+                    return null;
+                }
+
+                if ($depth === 0 && $index !== $length - 1) {
+                    return null;
+                }
+            }
+        }
+
+        if ($depth !== 0) {
+            return null;
+        }
+
+        return substr($value, 1, -1);
     }
 }

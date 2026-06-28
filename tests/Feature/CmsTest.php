@@ -140,6 +140,103 @@ test('sightseeing object create flow persists polygon geometry', function () {
         ->and((string) data_get($geometry, 'geometry_wkt'))->toStartWith('POLYGON((');
 });
 
+test('sightseeing object create flow accepts polygon geometry with interior rings', function () {
+    $editor = User::factory()->editor()->create();
+    $voivodeship = Voivodeship::factory()->create();
+    $objectType = ObjectType::factory()->create();
+
+    $this->actingAs($editor);
+
+    Livewire::test(CreateSightseeingObject::class)
+        ->fillForm([
+            'title' => 'Park z jeziorem',
+            'lead' => 'Krótki opis obiektu.',
+            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'locality' => 'Kraków',
+            'voivodeship_id' => $voivodeship->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'polygon',
+            'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9800000 50.0500000,19.9800000 50.0900000,19.9300000 50.0900000,19.9300000 50.0500000),(19.9450000 50.0600000,19.9550000 50.0600000,19.9550000 50.0700000,19.9450000 50.0700000,19.9450000 50.0600000))',
+            'status' => 'draft',
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $object = SightseeingObject::query()->where('title', 'Park z jeziorem')->firstOrFail();
+    $geometry = DB::table('sightseeing_objects')
+        ->where('id', $object->id)
+        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
+        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->first();
+
+    expect(strtolower((string) data_get($geometry, 'geometry_type_name')))->toContain('polygon')
+        ->and((string) data_get($geometry, 'geometry_wkt'))->toContain('),(');
+});
+
+test('sightseeing object create flow accepts multipolygon geometry', function () {
+    $editor = User::factory()->editor()->create();
+    $voivodeship = Voivodeship::factory()->create();
+    $objectType = ObjectType::factory()->create();
+
+    $this->actingAs($editor);
+
+    Livewire::test(CreateSightseeingObject::class)
+        ->fillForm([
+            'title' => 'Zespół wysp',
+            'lead' => 'Krótki opis obiektu.',
+            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'locality' => 'Kraków',
+            'voivodeship_id' => $voivodeship->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'polygon',
+            'polygon_wkt' => 'MULTIPOLYGON(((19.9300000 50.0500000,19.9500000 50.0500000,19.9500000 50.0700000,19.9300000 50.0700000,19.9300000 50.0500000)),((19.9600000 50.0600000,19.9800000 50.0600000,19.9800000 50.0800000,19.9600000 50.0800000,19.9600000 50.0600000)))',
+            'status' => 'draft',
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $object = SightseeingObject::query()->where('title', 'Zespół wysp')->firstOrFail();
+    $geometry = DB::table('sightseeing_objects')
+        ->where('id', $object->id)
+        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
+        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->first();
+
+    expect(strtolower((string) data_get($geometry, 'geometry_type_name')))->toContain('multipolygon')
+        ->and((string) data_get($geometry, 'geometry_wkt'))->toStartWith('MULTIPOLYGON(((');
+});
+
+test('sightseeing object create flow clears imported osm metadata after manual geometry changes', function () {
+    $editor = User::factory()->editor()->create();
+    $voivodeship = Voivodeship::factory()->create();
+    $objectType = ObjectType::factory()->create();
+
+    $this->actingAs($editor);
+
+    Livewire::test(CreateSightseeingObject::class)
+        ->fillForm([
+            'title' => 'Granica ręcznie poprawiona',
+            'lead' => 'Krótki opis obiektu.',
+            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'locality' => 'Kraków',
+            'voivodeship_id' => $voivodeship->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'polygon',
+            'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9700000 50.0500000,19.9700000 50.0900000,19.9300000 50.0900000,19.9300000 50.0500000))',
+            'osm_geometry_wkt' => 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))',
+            'osm_id' => '123456',
+            'osm_type' => 'relation',
+            'status' => 'draft',
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $object = SightseeingObject::query()->where('title', 'Granica ręcznie poprawiona')->firstOrFail();
+
+    expect($object->osm_id)->toBeNull()
+        ->and($object->osm_type)->toBeNull();
+});
+
 test('sightseeing object create flow rejects invalid polygon geometry', function () {
     $editor = User::factory()->editor()->create();
     $voivodeship = Voivodeship::factory()->create();
@@ -393,4 +490,129 @@ test('editing sightseeing object can switch geometry to polygon', function () {
         ->and($object->longitude)->toBeNull()
         ->and(strtolower((string) data_get($geometry, 'geometry_type_name')))->toContain('polygon')
         ->and((string) data_get($geometry, 'geometry_wkt'))->toStartWith('POLYGON((');
+});
+
+test('editing sightseeing object preserves osm metadata when imported geometry stays unchanged', function () {
+    $editor = User::factory()->editor()->create();
+    $voivodeship = Voivodeship::factory()->create();
+    $objectType = ObjectType::factory()->create();
+    $object = SightseeingObject::factory()->polygon()->create([
+        'voivodeship_id' => $voivodeship->id,
+        'status' => 'draft',
+        'osm_id' => '654321',
+        'osm_type' => 'relation',
+    ]);
+    $object->objectTypes()->sync($objectType->id);
+
+    $geometry = DB::table('sightseeing_objects')
+        ->where('id', $object->id)
+        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->first();
+
+    $this->actingAs($editor);
+
+    Livewire::test(EditSightseeingObject::class, ['record' => $object->getRouteKey()])
+        ->fillForm([
+            'title' => $object->title,
+            'lead' => $object->lead,
+            'description' => $object->description,
+            'locality' => $object->locality,
+            'voivodeship_id' => $voivodeship->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'polygon',
+            'polygon_wkt' => (string) data_get($geometry, 'geometry_wkt'),
+            'osm_geometry_wkt' => (string) data_get($geometry, 'geometry_wkt'),
+            'osm_id' => '654321',
+            'osm_type' => 'relation',
+            'status' => 'draft',
+            'images' => [],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $object->refresh();
+
+    expect($object->osm_id)->toBe('654321')
+        ->and($object->osm_type)->toBe('relation');
+});
+
+test('editing sightseeing object clears osm metadata when switching geometry to point', function () {
+    $editor = User::factory()->editor()->create();
+    $voivodeship = Voivodeship::factory()->create();
+    $objectType = ObjectType::factory()->create();
+    $object = SightseeingObject::factory()->polygon()->create([
+        'voivodeship_id' => $voivodeship->id,
+        'status' => 'draft',
+        'osm_id' => '987654',
+        'osm_type' => 'relation',
+    ]);
+    $object->objectTypes()->sync($objectType->id);
+
+    $this->actingAs($editor);
+
+    Livewire::test(EditSightseeingObject::class, ['record' => $object->getRouteKey()])
+        ->fillForm([
+            'title' => $object->title,
+            'lead' => $object->lead,
+            'description' => $object->description,
+            'locality' => $object->locality,
+            'voivodeship_id' => $voivodeship->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'point',
+            'latitude' => 50.0614,
+            'longitude' => 19.9372,
+            'osm_id' => '987654',
+            'osm_type' => 'relation',
+            'status' => 'draft',
+            'images' => [],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $object->refresh();
+
+    expect($object->osm_id)->toBeNull()
+        ->and($object->osm_type)->toBeNull();
+});
+
+test('editing sightseeing object can switch geometry to multipolygon', function () {
+    $editor = User::factory()->editor()->create();
+    $voivodeship = Voivodeship::factory()->create();
+    $objectType = ObjectType::factory()->create();
+    $object = SightseeingObject::factory()->point(50.0614, 19.9372)->create([
+        'voivodeship_id' => $voivodeship->id,
+        'status' => 'draft',
+    ]);
+    $object->objectTypes()->sync($objectType->id);
+
+    $this->actingAs($editor);
+
+    Livewire::test(EditSightseeingObject::class, ['record' => $object->getRouteKey()])
+        ->fillForm([
+            'title' => $object->title,
+            'lead' => $object->lead,
+            'description' => $object->description,
+            'locality' => $object->locality,
+            'voivodeship_id' => $voivodeship->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'polygon',
+            'polygon_wkt' => 'MULTIPOLYGON(((19.9300000 50.0500000,19.9500000 50.0500000,19.9500000 50.0700000,19.9300000 50.0700000,19.9300000 50.0500000)),((19.9600000 50.0600000,19.9800000 50.0600000,19.9800000 50.0800000,19.9600000 50.0800000,19.9600000 50.0600000)))',
+            'status' => 'draft',
+            'images' => [],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $object->refresh();
+
+    $geometry = DB::table('sightseeing_objects')
+        ->where('id', $object->id)
+        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
+        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->first();
+
+    expect($object->latitude)->toBeNull()
+        ->and($object->longitude)->toBeNull()
+        ->and(strtolower((string) data_get($geometry, 'geometry_type_name')))->toContain('multipolygon')
+        ->and((string) data_get($geometry, 'geometry_wkt'))->toStartWith('MULTIPOLYGON(((');
 });

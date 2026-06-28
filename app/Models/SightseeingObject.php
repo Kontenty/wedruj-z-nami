@@ -32,6 +32,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'website',
     'data_source',
     'source_updated_at',
+    'osm_id',
+    'osm_type',
     'latitude',
     'longitude',
     'geometry',
