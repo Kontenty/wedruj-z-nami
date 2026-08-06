@@ -81,9 +81,9 @@
                     <h3 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">
                         {{ $object->title }}
                     </h3>
-                    @if($object->voivodeship)
+                    @if($object->locality?->voivodeship)
                     <p class="mt-1 text-sm text-gray-500">
-                        {{ $object->voivodeship->name }}
+                        {{ $object->locality->voivodeship->name }}
                     </p>
                     @endif
                 </div>

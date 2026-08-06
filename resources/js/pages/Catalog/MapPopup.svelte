@@ -17,7 +17,9 @@
     object.card_webp_url || object.thumbnail_webp_url || null,
   );
   const locationLabel = $derived(
-    [object.locality, object.voivodeship?.name].filter(Boolean).join(', '),
+    [object.locality?.name, object.locality?.voivodeship?.name]
+      .filter(Boolean)
+      .join(', '),
   );
   const infoLabel = $derived(
     object.objectTypes?.[0]?.name || 'Obiekt turystyczny',

@@ -26,10 +26,10 @@ class CatalogController extends Controller
 
         $query = SightseeingObject::query()
             ->published()
-            ->with(['voivodeship', 'objectTypes'])
+            ->with(['locality.voivodeship', 'objectTypes'])
             ->select('sightseeing_objects.*')
             ->searchByTitle($request->query('q'))
-            ->when($voivodeships !== [], fn (Builder $query) => $query->whereHas('voivodeship', fn (Builder $query) => $query->whereIn('slug', $voivodeships)))
+            ->when($voivodeships !== [], fn (Builder $query) => $query->whereHas('locality.voivodeship', fn (Builder $query) => $query->whereIn('slug', $voivodeships)))
             ->when($objectTypes !== [], function (Builder $query) use ($objectTypes): void {
                 $query->whereHas('objectTypes', fn (Builder $query) => $query->whereIn('object_types.id', $objectTypes));
             })
@@ -78,13 +78,13 @@ class CatalogController extends Controller
         $object = SightseeingObject::query()
             ->published()
             ->whereKey($object)
-            ->with(['voivodeship', 'objectTypes', 'media'])
+            ->with(['locality.voivodeship', 'objectTypes', 'media'])
             ->select('sightseeing_objects.*')
             ->selectRaw('ST_AsGeoJSON(geometry) as geojson')
             ->firstOrFail();
 
         $nearby = SightseeingObject::query()
-            ->with(['voivodeship', 'objectTypes', 'media'])
+            ->with(['locality.voivodeship', 'objectTypes', 'media'])
             ->nearby($object)
             ->get();
 

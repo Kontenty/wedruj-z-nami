@@ -7,7 +7,10 @@
   let { nearby = [] } = $props();
 
   function locationLabel(nearbyObject) {
-    return [nearbyObject.locality, nearbyObject.voivodeship?.name]
+    return [
+      nearbyObject.locality?.name,
+      nearbyObject.locality?.voivodeship?.name,
+    ]
       .filter(Boolean)
       .join(', ');
   }

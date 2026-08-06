@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Locality;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
@@ -43,8 +44,8 @@ it('ignores unsupported catalog view values', function () {
 });
 
 it('filters by voivodeship slug', function () {
-    $mazowieckie = Voivodeship::factory()->create(['name' => 'Mazowieckie', 'slug' => 'mazowieckie']);
-    $malopolskie = Voivodeship::factory()->create(['slug' => 'malopolskie']);
+    $mazowieckie = Locality::factory()->for(Voivodeship::factory()->create(['name' => 'Mazowieckie', 'slug' => 'mazowieckie']))->create(['name' => 'Warszawa', 'slug' => 'warszawa']);
+    $malopolskie = Locality::factory()->for(Voivodeship::factory()->create(['name' => 'Małopolskie', 'slug' => 'malopolskie']))->create(['name' => 'Kraków', 'slug' => 'krakow']);
     SightseeingObject::factory()->published()->for($mazowieckie)->create(['title' => 'Warszawski zamek']);
     SightseeingObject::factory()->published()->for($malopolskie)->create(['title' => 'Krakowski zamek']);
 
@@ -104,9 +105,9 @@ it('searches by partial title phrase', function () {
 });
 
 it('combines filters correctly', function () {
-    $voivodeship = Voivodeship::factory()->create(['name' => 'małopolskie', 'slug' => 'malopolskie']);
-    SightseeingObject::factory()->published()->unesco()->for($voivodeship)->create(['title' => 'zamek UNESCO']);
-    SightseeingObject::factory()->published()->for($voivodeship)->create(['title' => 'zamek zwykly']);
+    $locality = Locality::factory()->for(Voivodeship::factory()->create(['name' => 'małopolskie', 'slug' => 'malopolskie']))->create(['name' => 'Kraków', 'slug' => 'krakow']);
+    SightseeingObject::factory()->published()->unesco()->for($locality)->create(['title' => 'zamek UNESCO']);
+    SightseeingObject::factory()->published()->for($locality)->create(['title' => 'zamek zwykly']);
 
     $this->get('/katalog?'.http_build_query(['q' => 'zamek', 'voivodeships' => ['malopolskie'], 'unesco' => 'true']))
         ->assertInertia(fn (Assert $page) => $page
@@ -125,10 +126,10 @@ it('excludes unpublished objects from list and map', function () {
 });
 
 it('paginates objects at 12 per page and keeps map unpaginated', function () {
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
 
     foreach (range(1, 25) as $index) {
-        SightseeingObject::factory()->published()->for($voivodeship)->create(['title' => "Paginated object {$index}"]);
+        SightseeingObject::factory()->published()->for($locality)->create(['title' => "Paginated object {$index}"]);
     }
 
     $this->get('/katalog')

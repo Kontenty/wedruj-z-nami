@@ -20,7 +20,14 @@ class ObjectResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'description' => Str::limit((string) $this->description, 150),
-            'locality' => $this->locality,
+            'locality' => $this->whenLoaded('locality', fn (): ?array => $this->locality ? [
+                'name' => $this->locality->name,
+                'slug' => $this->locality->slug,
+                'voivodeship' => $this->locality->voivodeship ? [
+                    'name' => $this->locality->voivodeship->name,
+                    'slug' => $this->locality->voivodeship->slug,
+                ] : null,
+            ] : null),
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'is_unesco' => $this->is_unesco,
@@ -30,10 +37,6 @@ class ObjectResource extends JsonResource
             'card_url' => $this->card_url ?: '/images/placeholder-object-card.jpg',
             'card_webp_url' => $this->card_webp_url ?: null,
             'primary_image_url' => $this->primary_image_url ?: '/images/placeholder-object.jpg',
-            'voivodeship' => $this->whenLoaded('voivodeship', fn (): ?array => $this->voivodeship ? [
-                'name' => $this->voivodeship->name,
-                'slug' => $this->voivodeship->slug,
-            ] : null),
             'objectTypes' => $this->whenLoaded('objectTypes', fn () => $this->objectTypes
                 ->map(fn ($objectType): array => [
                     'id' => $objectType->id,

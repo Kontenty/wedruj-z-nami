@@ -4,10 +4,10 @@ use App\Filament\Resources\Articles\Pages\CreateArticle;
 use App\Filament\Resources\SightseeingObjects\Pages\CreateSightseeingObject;
 use App\Filament\Resources\SightseeingObjects\Pages\EditSightseeingObject;
 use App\Models\Article;
+use App\Models\Locality;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\User;
-use App\Models\Voivodeship;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -77,7 +77,7 @@ test('article create flow assigns the authenticated cms author', function () {
 
 test('sightseeing object create flow validates geometry and assigns author', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -87,8 +87,7 @@ test('sightseeing object create flow validates geometry and assigns author', fun
             'title' => 'Zamek testowy',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -106,7 +105,7 @@ test('sightseeing object create flow validates geometry and assigns author', fun
 
 test('sightseeing object create flow persists polygon geometry', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -116,8 +115,7 @@ test('sightseeing object create flow persists polygon geometry', function () {
             'title' => 'Park krajobrazowy',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))',
@@ -142,7 +140,7 @@ test('sightseeing object create flow persists polygon geometry', function () {
 
 test('sightseeing object create flow accepts polygon geometry with interior rings', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -152,8 +150,7 @@ test('sightseeing object create flow accepts polygon geometry with interior ring
             'title' => 'Park z jeziorem',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9800000 50.0500000,19.9800000 50.0900000,19.9300000 50.0900000,19.9300000 50.0500000),(19.9450000 50.0600000,19.9550000 50.0600000,19.9550000 50.0700000,19.9450000 50.0700000,19.9450000 50.0600000))',
@@ -175,7 +172,7 @@ test('sightseeing object create flow accepts polygon geometry with interior ring
 
 test('sightseeing object create flow accepts multipolygon geometry', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -185,8 +182,7 @@ test('sightseeing object create flow accepts multipolygon geometry', function ()
             'title' => 'Zespół wysp',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'MULTIPOLYGON(((19.9300000 50.0500000,19.9500000 50.0500000,19.9500000 50.0700000,19.9300000 50.0700000,19.9300000 50.0500000)),((19.9600000 50.0600000,19.9800000 50.0600000,19.9800000 50.0800000,19.9600000 50.0800000,19.9600000 50.0600000)))',
@@ -208,7 +204,7 @@ test('sightseeing object create flow accepts multipolygon geometry', function ()
 
 test('sightseeing object create flow clears imported osm metadata after manual geometry changes', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -218,8 +214,7 @@ test('sightseeing object create flow clears imported osm metadata after manual g
             'title' => 'Granica ręcznie poprawiona',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9700000 50.0500000,19.9700000 50.0900000,19.9300000 50.0900000,19.9300000 50.0500000))',
@@ -239,7 +234,7 @@ test('sightseeing object create flow clears imported osm metadata after manual g
 
 test('sightseeing object create flow rejects invalid polygon geometry', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -249,8 +244,7 @@ test('sightseeing object create flow rejects invalid polygon geometry', function
             'title' => 'Niepoprawny poligon',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'POLYGON((19.93 50.05,19.96 50.08,19.93 50.08,19.96 50.05))',
@@ -262,7 +256,7 @@ test('sightseeing object create flow rejects invalid polygon geometry', function
 
 test('published sightseeing objects require an image in the cms form', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
 
     $this->actingAs($editor);
@@ -272,8 +266,7 @@ test('published sightseeing objects require an image in the cms form', function 
             'title' => 'Obiekt bez zdjęcia',
             'lead' => 'Krótki opis obiektu.',
             'description' => 'Pełny opis obiektu krajoznawczego.',
-            'locality' => 'Kraków',
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -288,10 +281,10 @@ test('published sightseeing object edit cannot remove all images', function () {
     Storage::fake('public');
 
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->published()->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'published',
         'published' => true,
         'published_at' => now(),
@@ -306,8 +299,7 @@ test('published sightseeing object edit cannot remove all images', function () {
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -327,10 +319,10 @@ test('editing sightseeing object removes images deleted from the gallery', funct
     Storage::fake('public');
 
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
     ]);
     $object->objectTypes()->sync($objectType->id);
@@ -347,8 +339,7 @@ test('editing sightseeing object removes images deleted from the gallery', funct
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -369,10 +360,10 @@ test('editing sightseeing object persists image reorder', function () {
     Storage::fake('public');
 
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
     ]);
     $object->objectTypes()->sync($objectType->id);
@@ -389,8 +380,7 @@ test('editing sightseeing object persists image reorder', function () {
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -410,10 +400,10 @@ test('editing sightseeing object with new images does not throw on reorder', fun
     Storage::fake('public');
 
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
     ]);
     $object->objectTypes()->sync($objectType->id);
@@ -433,8 +423,7 @@ test('editing sightseeing object with new images does not throw on reorder', fun
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -452,10 +441,10 @@ test('editing sightseeing object with new images does not throw on reorder', fun
 
 test('editing sightseeing object can switch geometry to polygon', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->point(50.0614, 19.9372)->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
     ]);
     $object->objectTypes()->sync($objectType->id);
@@ -467,8 +456,7 @@ test('editing sightseeing object can switch geometry to polygon', function () {
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))',
@@ -494,10 +482,10 @@ test('editing sightseeing object can switch geometry to polygon', function () {
 
 test('editing sightseeing object preserves osm metadata when imported geometry stays unchanged', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->polygon()->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
         'osm_id' => '654321',
         'osm_type' => 'relation',
@@ -516,8 +504,7 @@ test('editing sightseeing object preserves osm metadata when imported geometry s
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => (string) data_get($geometry, 'geometry_wkt'),
@@ -538,10 +525,10 @@ test('editing sightseeing object preserves osm metadata when imported geometry s
 
 test('editing sightseeing object clears osm metadata when switching geometry to point', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->polygon()->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
         'osm_id' => '987654',
         'osm_type' => 'relation',
@@ -555,8 +542,7 @@ test('editing sightseeing object clears osm metadata when switching geometry to 
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
             'latitude' => 50.0614,
@@ -577,10 +563,10 @@ test('editing sightseeing object clears osm metadata when switching geometry to 
 
 test('editing sightseeing object can switch geometry to multipolygon', function () {
     $editor = User::factory()->editor()->create();
-    $voivodeship = Voivodeship::factory()->create();
+    $locality = Locality::factory()->create();
     $objectType = ObjectType::factory()->create();
     $object = SightseeingObject::factory()->point(50.0614, 19.9372)->create([
-        'voivodeship_id' => $voivodeship->id,
+        'locality_id' => $locality->id,
         'status' => 'draft',
     ]);
     $object->objectTypes()->sync($objectType->id);
@@ -592,8 +578,7 @@ test('editing sightseeing object can switch geometry to multipolygon', function 
             'title' => $object->title,
             'lead' => $object->lead,
             'description' => $object->description,
-            'locality' => $object->locality,
-            'voivodeship_id' => $voivodeship->id,
+            'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'MULTIPOLYGON(((19.9300000 50.0500000,19.9500000 50.0500000,19.9500000 50.0700000,19.9300000 50.0700000,19.9300000 50.0500000)),((19.9600000 50.0600000,19.9800000 50.0600000,19.9800000 50.0800000,19.9600000 50.0800000,19.9600000 50.0600000)))',

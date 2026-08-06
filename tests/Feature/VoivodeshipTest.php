@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Locality;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
@@ -28,15 +29,16 @@ test('database seeder creates the biebrzanski national park', function () {
     $biebrza = SightseeingObject::query()->where('title', 'Biebrzański Park Narodowy')->firstOrFail();
     $nationalParks = ObjectType::query()->where('name', 'Parki narodowe')->firstOrFail();
 
-    expect($biebrza->voivodeship->slug)->toBe('podlaskie')
+    expect($biebrza->locality->voivodeship->slug)->toBe('podlaskie')
         ->and($biebrza->objectTypes()->whereKey($nationalParks->id)->exists())->toBeTrue();
 });
 
-test('voivodeship has sightseeing objects', function () {
+test('voivodeship has sightseeing objects through localities', function () {
     $voivodeship = Voivodeship::factory()->create();
-    $object = SightseeingObject::factory()->for($voivodeship)->create();
+    $locality = Locality::factory()->for($voivodeship)->create();
+    $object = SightseeingObject::factory()->for($locality)->create();
 
-    expect($voivodeship->sightseeingObjects()->first()->is($object))->toBeTrue();
+    expect($voivodeship->localities->first()->sightseeingObjects()->first()->is($object))->toBeTrue();
 });
 
 test('voivodeship slugs are generated with collision handling', function () {

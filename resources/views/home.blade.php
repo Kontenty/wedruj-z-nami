@@ -113,9 +113,9 @@
                     <h3 class="card-title card-title--object transition-colors group-hover:text-pine-800">
                         {{ $object->title }}
                     </h3>
-                    @if($object->voivodeship)
+                    @if($object->locality?->voivodeship)
                     <p class="text-sm text-stone-600">
-                        {{ $object->voivodeship->name }}
+                        {{ $object->locality->voivodeship->name }}
                     </p>
                     @endif
                     <span class="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-pine-800">

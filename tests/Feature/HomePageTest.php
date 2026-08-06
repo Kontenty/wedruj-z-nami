@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Article;
+use App\Models\Locality;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
@@ -112,17 +113,17 @@ test('homepage works with the database cache store on repeated requests', functi
 });
 
 test('homepage shows trust band counts and browse by type links', function () {
-    $voivodeship = Voivodeship::factory()->create(['name' => 'Pomorskie']);
+    $locality = Locality::factory()->for(Voivodeship::factory()->create(['name' => 'Pomorskie']))->create(['name' => 'Gdańsk', 'slug' => 'gdansk']);
     $castle = ObjectType::factory()->create(['name' => 'Zamki']);
     $museum = ObjectType::factory()->create(['name' => 'Muzea']);
 
     $castleObjects = SightseeingObject::factory()
         ->count(2)
         ->published()
-        ->create(['voivodeship_id' => $voivodeship->getKey()]);
+        ->create(['locality_id' => $locality->id]);
     $museumObject = SightseeingObject::factory()
         ->published()
-        ->create(['voivodeship_id' => $voivodeship->getKey()]);
+        ->create(['locality_id' => $locality->id]);
 
     $castle->sightseeingObjects()->attach($castleObjects->modelKeys());
     $museum->sightseeingObjects()->attach($museumObject->getKey());

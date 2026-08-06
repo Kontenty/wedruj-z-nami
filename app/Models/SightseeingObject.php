@@ -24,7 +24,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'slug',
     'lead',
     'description',
-    'locality',
+    'locality_id',
     'is_unesco',
     'opening_hours',
     'ticket_prices',
@@ -37,7 +37,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'latitude',
     'longitude',
     'geometry',
-    'voivodeship_id',
     'author_id',
     'status',
     'published',
@@ -55,9 +54,9 @@ class SightseeingObject extends Model implements HasMedia
         'status' => 'draft',
     ];
 
-    public function voivodeship(): BelongsTo
+    public function locality(): BelongsTo
     {
-        return $this->belongsTo(Voivodeship::class);
+        return $this->belongsTo(Locality::class);
     }
 
     public function author(): BelongsTo
@@ -235,7 +234,7 @@ class SightseeingObject extends Model implements HasMedia
             return;
         }
 
-        $query->whereHas('voivodeship', fn (Builder $query) => $query->where('slug', $slug));
+        $query->whereHas('locality.voivodeship', fn (Builder $query) => $query->where('slug', $slug));
     }
 
     #[Scope]

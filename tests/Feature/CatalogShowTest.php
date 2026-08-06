@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Locality;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
+use App\Models\Voivodeship;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -34,10 +36,10 @@ it('returns 404 for an unpublished object', function () {
 });
 
 it('returns object with required fields', function () {
-    $object = SightseeingObject::factory()->published()->create([
+    $locality = Locality::factory()->for(Voivodeship::factory()->create())->create(['name' => 'Warszawa', 'slug' => 'warszawa']);
+    $object = SightseeingObject::factory()->published()->for($locality)->create([
         'title' => 'Zamek Królewski',
         'lead' => 'Piękny zamek w centrum',
-        'locality' => 'Warszawa',
         'is_unesco' => true,
         'opening_hours' => 'Pon-Pt 9:00-17:00',
         'ticket_prices' => '20 PLN',
@@ -51,7 +53,7 @@ it('returns object with required fields', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->where('object.title', 'Zamek Królewski')
             ->where('object.lead', 'Piękny zamek w centrum')
-            ->where('object.locality', 'Warszawa')
+            ->where('object.locality.name', 'Warszawa')
             ->where('object.is_unesco', true)
             ->where('object.opening_hours', 'Pon-Pt 9:00-17:00')
             ->where('object.ticket_prices', '20 PLN')
@@ -76,8 +78,8 @@ it('includes voivodeship data', function () {
 
     $this->get("/katalog/{$object->slug}")
         ->assertInertia(fn (Assert $page) => $page
-            ->has('object.voivodeship.name')
-            ->has('object.voivodeship.slug'));
+            ->has('object.locality.voivodeship.name')
+            ->has('object.locality.voivodeship.slug'));
 });
 
 it('includes object types', function () {

@@ -20,7 +20,7 @@ class LatestObjects extends TableWidget
             ->heading('Ostatnio aktualizowane obiekty')
             ->query(
                 SightseeingObject::query()
-                    ->with(['voivodeship', 'author'])
+                    ->with(['locality.voivodeship', 'author'])
                     ->latest('updated_at')
                     ->limit(5)
             )
@@ -28,7 +28,9 @@ class LatestObjects extends TableWidget
                 TextColumn::make('title')
                     ->label('Nazwa')
                     ->searchable(),
-                TextColumn::make('voivodeship.name')
+                TextColumn::make('locality.name')
+                    ->label('Miejscowość'),
+                TextColumn::make('locality.voivodeship.name')
                     ->label('Województwo'),
                 TextColumn::make('status')
                     ->label('Status')

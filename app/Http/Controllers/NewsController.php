@@ -14,7 +14,7 @@ class NewsController extends Controller
             ->paginate(12);
 
         $latestObjects = SightseeingObject::published()
-            ->with('voivodeship')
+            ->with('locality.voivodeship')
             ->orderByDesc('published_at')
             ->limit(4)
             ->get();

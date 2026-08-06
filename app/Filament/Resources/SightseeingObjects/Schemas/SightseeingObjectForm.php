@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SightseeingObjects\Schemas;
 
+use App\Models\Locality;
 use App\Models\SightseeingObject;
 use App\Services\NominatimService;
 use Filament\Actions\Action;
@@ -54,16 +55,29 @@ class SightseeingObjectForm
 
                 Section::make('Klasyfikacja i publikacja')
                     ->schema([
-                        Select::make('voivodeship_id')
-                            ->label('Województwo')
-                            ->relationship('voivodeship', 'name')
+                        Select::make('locality_id')
+                            ->label('Miejscowość')
+                            ->relationship('locality', 'name')
                             ->searchable()
                             ->preload()
-                            ->required(),
-                        TextInput::make('locality')
-                            ->label('Miejscowość')
                             ->required()
-                            ->maxLength(255),
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Set $set, ?string $state): void {
+                                $locality = $state ? Locality::with('voivodeship')->find($state) : null;
+                                $set('voivodeship_name', $locality?->voivodeship?->name ?? '');
+                            }),
+                        TextInput::make('voivodeship_name')
+                            ->label('Województwo')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function (TextInput $component, ?SightseeingObject $record, Set $set): void {
+                                if ($record === null) {
+                                    return;
+                                }
+
+                                $locality = $record->locality;
+                                $component->state($locality?->voivodeship?->name ?? '');
+                            }),
                         CheckboxList::make('objectTypes')
                             ->label('Typy obiektu')
                             ->relationship('objectTypes', 'name')

@@ -28,7 +28,10 @@ class SightseeingObjectsTable
                     ->label('Nazwa')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('voivodeship.name')
+                TextColumn::make('locality.name')
+                    ->label('Miejscowość')
+                    ->sortable(),
+                TextColumn::make('locality.voivodeship.name')
                     ->label('Województwo')
                     ->sortable(),
                 TextColumn::make('objectTypes.name')
@@ -61,9 +64,14 @@ class SightseeingObjectsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('voivodeship_id')
+                SelectFilter::make('locality_id')
+                    ->label('Miejscowość')
+                    ->relationship('locality', 'name')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('locality_voivodeship_id')
                     ->label('Województwo')
-                    ->relationship('voivodeship', 'name')
+                    ->relationship('locality.voivodeship', 'name')
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('object_type')

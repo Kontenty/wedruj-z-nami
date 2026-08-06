@@ -15,8 +15,8 @@ class Voivodeship extends Model
     /** @use HasFactory<VoivodeshipFactory> */
     use HasFactory, HasSlug;
 
-    public function sightseeingObjects(): HasMany
+    public function localities(): HasMany
     {
-        return $this->hasMany(SightseeingObject::class);
+        return $this->hasMany(Locality::class);
     }
 }

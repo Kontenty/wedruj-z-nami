@@ -37,7 +37,7 @@ class HomeController extends Controller
                     ->whereHas('sightseeingObjects', fn (Builder $query): Builder => $query->published())
                     ->count(),
                 'voivodeships' => Voivodeship::query()
-                    ->whereHas('sightseeingObjects', fn (Builder $query): Builder => $query->published())
+                    ->whereHas('localities.sightseeingObjects', fn (Builder $query): Builder => $query->published())
                     ->count(),
             ],
         );
@@ -85,7 +85,7 @@ class HomeController extends Controller
 
         return $this->sortByCachedIds(
             SightseeingObject::published()
-                ->with(['voivodeship', 'objectTypes'])
+                ->with(['locality.voivodeship', 'objectTypes'])
                 ->whereKey($latestObjectIds)
                 ->get(),
             $latestObjectIds,

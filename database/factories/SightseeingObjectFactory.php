@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Locality;
 use App\Models\SightseeingObject;
 use App\Models\User;
-use App\Models\Voivodeship;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ class SightseeingObjectFactory extends Factory
             'title' => fake()->unique()->sentence(3),
             'lead' => fake()->sentence(12),
             'description' => fake()->paragraphs(3, true),
-            'locality' => fake()->city(),
+            'locality_id' => Locality::factory(),
             'is_unesco' => false,
             'opening_hours' => fake()->optional()->sentence(),
             'ticket_prices' => fake()->optional()->sentence(),
@@ -39,7 +39,6 @@ class SightseeingObjectFactory extends Factory
             'latitude' => $latitude,
             'longitude' => $longitude,
             'geometry' => self::pointExpression($latitude, $longitude),
-            'voivodeship_id' => Voivodeship::factory(),
             'author_id' => User::factory()->editor(),
             'status' => 'draft',
             'published' => false,

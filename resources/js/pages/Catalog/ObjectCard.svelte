@@ -6,7 +6,9 @@
 
   let { object, selected = false, onHover } = $props();
   const locationLabel = $derived(
-    [object.locality, object.voivodeship?.name].filter(Boolean).join(', '),
+    [object.locality?.name, object.locality?.voivodeship?.name]
+      .filter(Boolean)
+      .join(', '),
   );
 </script>
 
@@ -42,19 +44,19 @@
     <div class="flex flex-col ftitlmin-w-0 flex-1">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <h3
-            class="text-base font-black leading-tight tracking-tight text-stone-950 transition-colors group-hover:text-emerald-900 sm:text-lg"
-          >
-            {object.title}
-          </h3>
           {#if locationLabel}
             <p
-              class="mt-3 flex items-center gap-1 text-sm font-semibold text-emerald-800"
+              class="mb-2 flex items-center gap-1 text-sm font-semibold text-emerald-800"
             >
               <MapPin class="size-4 shrink-0" />
               {locationLabel}
             </p>
           {/if}
+          <h3
+            class="text-base font-black leading-tight tracking-tight text-stone-950 transition-colors group-hover:text-emerald-900 sm:text-lg"
+          >
+            {object.title}
+          </h3>
         </div>
 
         {#if object.is_unesco}

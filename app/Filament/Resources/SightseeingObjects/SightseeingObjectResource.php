@@ -36,7 +36,7 @@ class SightseeingObjectResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['author', 'objectTypes', 'voivodeship', 'media']);
+        return parent::getEloquentQuery()->with(['author', 'objectTypes', 'locality.voivodeship', 'media']);
     }
 
     public static function form(Schema $schema): Schema

@@ -3,6 +3,7 @@
   import ChevronRight from 'lucide-svelte/icons/chevron-right';
   import MapPin from 'lucide-svelte/icons/map-pin';
   import Printer from 'lucide-svelte/icons/printer';
+  import X from 'lucide-svelte/icons/x';
   import UNESCOIcon from '@/components/UNESCOIcon.svelte';
   import { index as catalogIndex } from '@/routes/catalog';
   import ImageGallery from './ImageGallery.svelte';
@@ -12,10 +13,13 @@
 
   let { object, images, geojson, nearby } = $props();
 
+  let showLocalityModal = $state(false);
+
   const locationLabel = $derived(
     [
-      object.locality,
-      object.voivodeship?.name && `woj. ${object.voivodeship.name}`,
+      object.locality?.name,
+      object.locality?.voivodeship?.name &&
+        `woj. ${object.locality.voivodeship.name}`,
     ]
       .filter(Boolean)
       .join(', '),
@@ -51,17 +55,28 @@
           <ChevronRight class="size-4 shrink-0 text-stone-400" />
           <Link
             href={catalogIndex.url({
-              query: { voivodeships: [object.voivodeship.slug] },
+              query: { voivodeships: [object.locality.voivodeship.slug] },
             })}
             class="font-medium text-stone-600 transition-colors hover:text-emerald-800 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
-            {object.voivodeship.name}
+            {object.locality.voivodeship.name}
           </Link>
           <ChevronRight class="size-4 shrink-0 text-stone-400" />
           <span class="font-medium text-emerald-800">{object.title}</span>
         </nav>
 
         <div class="space-y-4">
+          {#if locationLabel}
+            <button
+              type="button"
+              onclick={() => (showLocalityModal = true)}
+              class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-6 py-2 text-md font-semibold text-stone-700 shadow-xs transition hover:border-emerald-300 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+            >
+              <MapPin class="size-4 text-emerald-700" />
+              {locationLabel}
+            </button>
+          {/if}
+
           <h1
             class="max-w-4xl font-heading text-4xl font-black tracking-tight text-stone-950 sm:text-5xl"
           >
@@ -76,15 +91,6 @@
                 {type.name}
               </span>
             {/each}
-
-            {#if locationLabel}
-              <span
-                class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-4 py-2 text-sm font-semibold text-stone-700 shadow-xs"
-              >
-                <MapPin class="size-4 text-emerald-700" />
-                {locationLabel}
-              </span>
-            {/if}
           </div>
         </div>
       </div>
@@ -143,8 +149,8 @@
             lng={object.longitude}
             {geojson}
             title={object.title}
-            locality={object.locality}
-            voivodeship={object.voivodeship.name}
+            locality={object.locality?.name}
+            voivodeship={object.locality?.voivodeship?.name}
           />
         {/if}
       </div>
@@ -189,3 +195,51 @@
     </footer>
   </article>
 </div>
+
+{#if showLocalityModal && object.locality?.description}
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4"
+    onclick={() => (showLocalityModal = false)}
+    onkeydown={(e) => e.key === 'Escape' && (showLocalityModal = false)}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="locality-modal-title"
+    tabindex="-1"
+  >
+    <div
+      class="relative max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        aria-label="Zamknij"
+        onclick={() => (showLocalityModal = false)}
+        class="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full text-stone-500 transition hover:bg-stone-100 hover:text-stone-900"
+      >
+        <X class="size-5" />
+      </button>
+
+      <h2
+        id="locality-modal-title"
+        class="pr-8 font-heading text-2xl font-bold text-stone-950"
+      >
+        {object.locality.name}
+      </h2>
+      {#if object.locality.voivodeship}
+        <p class="mt-1 text-sm text-stone-500">
+          woj. {object.locality.voivodeship.name}
+        </p>
+      {/if}
+
+      {#if object.locality.description}
+        <div
+          class="prose prose-stone mt-4 max-w-none prose-headings:font-heading prose-headings:text-stone-950 prose-p:leading-7 prose-a:text-emerald-800"
+        >
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+          {@html object.locality.description}
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}

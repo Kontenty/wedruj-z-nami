@@ -25,7 +25,15 @@ class ObjectDetailResource extends JsonResource
             'slug' => $this->slug,
             'lead' => $this->lead,
             'description' => trim(Str::markdown((string) $this->description)),
-            'locality' => $this->locality,
+            'locality' => [
+                'name' => $this->locality->name,
+                'slug' => $this->locality->slug,
+                'description' => $this->locality->description ? trim(Str::markdown((string) $this->locality->description)) : null,
+                'voivodeship' => [
+                    'name' => $this->locality->voivodeship->name,
+                    'slug' => $this->locality->voivodeship->slug,
+                ],
+            ],
             'is_unesco' => $this->is_unesco,
             'opening_hours' => $this->opening_hours,
             'ticket_prices' => $this->ticket_prices,
@@ -35,10 +43,6 @@ class ObjectDetailResource extends JsonResource
             'source_updated_at' => $this->source_updated_at?->locale('pl')->translatedFormat('j F Y'),
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
-            'voivodeship' => [
-                'name' => $this->voivodeship->name,
-                'slug' => $this->voivodeship->slug,
-            ],
             'objectTypes' => $this->objectTypes->map(fn ($t) => [
                 'id' => $t->id,
                 'name' => $t->name,

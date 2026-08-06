@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Locality;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
@@ -10,7 +11,8 @@ test('sightseeing object factory creates required relationships', function () {
 
     $object->objectTypes()->attach($type);
 
-    expect($object->voivodeship)->toBeInstanceOf(Voivodeship::class)
+    expect($object->locality)->toBeInstanceOf(Locality::class)
+        ->and($object->locality->voivodeship)->toBeInstanceOf(Voivodeship::class)
         ->and($object->objectTypes()->first()->is($type))->toBeTrue();
 });
 
@@ -22,16 +24,16 @@ test('published scope only returns published objects', function () {
 });
 
 test('catalog filter scopes constrain objects by voivodeship unesco title and type', function () {
-    $voivodeship = Voivodeship::factory()->create(['name' => 'małopolskie']);
-    $otherVoivodeship = Voivodeship::factory()->create(['name' => 'pomorskie']);
+    $locality = Locality::factory()->for(Voivodeship::factory()->create(['name' => 'małopolskie']))->create(['name' => 'Kraków', 'slug' => 'krakow']);
+    $otherLocality = Locality::factory()->for(Voivodeship::factory()->create(['name' => 'pomorskie']))->create(['name' => 'Gdańsk', 'slug' => 'gdansk']);
     $type = ObjectType::factory()->create(['name' => 'Zamki i pałace']);
     $matching = SightseeingObject::factory()
-        ->for($voivodeship)
+        ->for($locality)
         ->published()
         ->unesco()
         ->create(['title' => 'Wawel Królewski']);
     $nonMatching = SightseeingObject::factory()
-        ->for($otherVoivodeship)
+        ->for($otherLocality)
         ->published()
         ->create(['title' => 'Westerplatte']);
 
