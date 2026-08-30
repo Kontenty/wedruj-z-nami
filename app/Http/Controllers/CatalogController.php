@@ -18,9 +18,6 @@ class CatalogController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $initialView = in_array($request->query('view'), ['map', 'list', 'split'], true)
-            ? $request->query('view')
-            : null;
         $voivodeships = array_values(array_filter(Arr::wrap($request->query('voivodeships', []))));
         $objectTypes = array_values(array_filter(array_map('intval', Arr::wrap($request->query('objectTypes', [])))));
 
@@ -61,7 +58,6 @@ class CatalogController extends Controller
                 'objectTypes' => array_map('strval', $objectTypes),
                 'unesco' => $request->boolean('unesco'),
             ],
-            'initialView' => $initialView,
             'objectTypes' => ObjectTypeResource::collection(
                 ObjectType::query()
                     ->orderBy('name')

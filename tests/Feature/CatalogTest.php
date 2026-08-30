@@ -20,18 +20,18 @@ it('returns the catalog inertia page', function () {
             ->has('objects')
             ->has('mapObjects')
             ->has('filters')
-            ->where('initialView', null)
+            ->missing('initialView')
             ->has('objectTypes')
             ->has('voivodeships'));
 });
 
-it('passes the requested catalog view when it is valid', function () {
+it('does not expose a catalog view prop', function () {
     SightseeingObject::factory()->published()->create();
 
     $this->get('/katalog?view=list')
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('initialView', 'list'));
+            ->missing('initialView'));
 });
 
 it('ignores unsupported catalog view values', function () {
@@ -40,7 +40,7 @@ it('ignores unsupported catalog view values', function () {
     $this->get('/katalog?view=atlas')
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('initialView', null));
+            ->missing('initialView'));
 });
 
 it('filters by voivodeship slug', function () {

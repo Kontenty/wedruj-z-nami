@@ -4,39 +4,30 @@
   import { index as catalogIndex } from '@/routes/catalog';
   import ActiveFilterChips from './ActiveFilterChips.svelte';
   import CatalogMap from './CatalogMap.svelte';
-  import CatalogViewToggle from './CatalogViewToggle.svelte';
   import EmptyState from './EmptyState.svelte';
   import MobileFilterSheet from './MobileFilterSheet.svelte';
   import ObjectGrid from './ObjectGrid.svelte';
   import TopFilterBar from './TopFilterBar.svelte';
 
-  let {
-    objects,
-    mapObjects,
-    filters,
-    objectTypes,
-    voivodeships,
-    initialView = null,
-  } = $props();
+  let { objects, mapObjects, filters, objectTypes, voivodeships } = $props();
 
   const desktopMediaQuery = '(min-width: 768px)';
 
-  let activeView = $state(
+  let isDesktop = $state(
     typeof window !== 'undefined' &&
-      window.matchMedia(desktopMediaQuery).matches
-      ? 'split'
-      : 'map',
+      window.matchMedia(desktopMediaQuery).matches,
   );
-  let hasExplicitView = $state(false);
+  let isFullMap = $state(false);
   let highlightedObjectId = $state(null);
   let selectedObjectId = $state(null);
   let showMobileFilters = $state(false);
   let isLoading = $state(false);
   let fitBoundsVersion = $state(0);
 
-  const showsMap = $derived(activeView === 'map' || activeView === 'split');
-  const showsList = $derived(activeView === 'list' || activeView === 'split');
-  const isSplitView = $derived(activeView === 'split');
+  const isFullMapView = $derived(isDesktop && isFullMap);
+  const showsMap = $derived(isDesktop);
+  const showsList = $derived(!isFullMapView);
+  const isSplitView = $derived(isDesktop && !isFullMapView);
 
   const activeFilters = $derived({
     q: filters.q || '',
@@ -64,23 +55,15 @@
     }
   });
 
-  $effect(() => {
-    hasExplicitView = initialView !== null;
-
-    if (initialView !== null) {
-      activeView = initialView;
-    }
-  });
-
   onMount(() => {
-    if (hasExplicitView) {
-      return;
-    }
-
     const media = window.matchMedia(desktopMediaQuery);
 
     const syncView = () => {
-      activeView = media.matches ? 'split' : 'map';
+      isDesktop = media.matches;
+
+      if (!media.matches) {
+        isFullMap = false;
+      }
     };
 
     syncView();
@@ -108,13 +91,6 @@
     );
   }
 
-  function currentQuery() {
-    return sanitizeQuery({
-      ...filters,
-      view: activeView,
-    });
-  }
-
   function requestFitBounds() {
     fitBoundsVersion += 1;
   }
@@ -122,13 +98,12 @@
   function visit(nextFilters) {
     const query = sanitizeQuery({
       ...nextFilters,
-      view: activeView,
     });
 
     router.get(catalogIndex.url(), query, {
       preserveState: true,
       replace: true,
-      only: ['objects', 'mapObjects', 'filters', 'initialView'],
+      only: ['objects', 'mapObjects', 'filters'],
       onStart: () => (isLoading = true),
       onFinish: () => {
         isLoading = false;
@@ -140,43 +115,24 @@
   function handlePageChange(page) {
     const query = sanitizeQuery({
       ...filters,
-      view: activeView,
       page,
     });
 
     router.get(catalogIndex.url(), query, {
       preserveState: true,
       replace: true,
-      only: ['objects', 'mapObjects', 'filters', 'initialView'],
+      only: ['objects', 'mapObjects', 'filters'],
       onStart: () => (isLoading = true),
       onFinish: () => (isLoading = false),
     });
   }
 
-  function handleViewChange(nextView) {
-    if (nextView === activeView) {
-      return;
-    }
+  function toggleFullMap() {
+    isFullMap = !isFullMap;
 
-    activeView = nextView;
-    hasExplicitView = true;
-
-    if (nextView !== 'list') {
+    if (isFullMap) {
       requestFitBounds();
     }
-
-    router.get(
-      catalogIndex.url(),
-      sanitizeQuery({
-        ...currentQuery(),
-        view: nextView,
-      }),
-      {
-        preserveState: true,
-        replace: true,
-        only: ['initialView'],
-      },
-    );
   }
 
   function clearFilters() {
@@ -217,20 +173,6 @@
       onClear={clearFilters}
     />
 
-    <CatalogViewToggle
-      bind:activeView
-      onChange={handleViewChange}
-      class="md:hidden"
-    />
-
-    <div class="hidden md:flex md:justify-end">
-      <CatalogViewToggle
-        bind:activeView
-        onChange={handleViewChange}
-        class="md:w-fit"
-      />
-    </div>
-
     <main
       id="main-content"
       class={isSplitView
@@ -251,6 +193,8 @@
             {selectedObjectId}
             onSelect={scrollToObject}
             {fitBoundsVersion}
+            isFullMap={isFullMapView}
+            onToggleFullMap={toggleFullMap}
           />
         </section>
       {/if}

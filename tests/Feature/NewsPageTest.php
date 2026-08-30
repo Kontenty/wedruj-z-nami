@@ -78,8 +78,9 @@ test('news show has contextual CTA', function () {
     $article = Article::factory()->published()->create();
 
     $this->get("/aktualnosci/{$article->slug}")
-        ->assertSee('Pokaż mapę')
-        ->assertSee('Przeglądaj katalog');
+        ->assertSee('Przeglądaj katalog')
+        ->assertDontSee('Pokaż mapę')
+        ->assertDontSee('view=list');
 });
 
 test('news index title is correct', function () {

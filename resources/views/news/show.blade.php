@@ -39,17 +39,12 @@
 
     <div class="mt-12 pt-8 border-t border-gray-200">
         <p class="text-gray-600 mb-4">
-            Odkrywaj obiekty krajoznawcze na mapie lub przeglądaj katalog.
+            Odkrywaj obiekty krajoznawcze w katalogu dopasowanym do Twojego ekranu.
         </p>
         <div class="flex flex-wrap gap-4">
             <a
                 href="{{ route('catalog.index') }}"
                 class="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors">
-                Pokaż mapę
-            </a>
-            <a
-                href="{{ route('catalog.index', ['view' => 'list']) }}"
-                class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors">
                 Przeglądaj katalog
             </a>
         </div>

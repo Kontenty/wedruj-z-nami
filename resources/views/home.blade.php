@@ -24,16 +24,16 @@
                 Odkrywaj Polskę
             </h1>
             <p class="section-copy mt-6 max-w-xl sm:text-lg">
-                Zabytki, rezerwaty, muzea i miejsca pamięci zebrane w jednym katalogu PTTK — gotowe do przeglądania na mapie i w liście.
+                Zabytki, rezerwaty, muzea i miejsca pamięci zebrane w jednym katalogu PTTK — gotowe do wygodnego przeglądania na każdym ekranie.
             </p>
             <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
                     href="{{ route('catalog.index') }}"
                     class="btn-primary">
-                    Pokaż mapę
+                    Przeglądaj katalog
                 </a>
                 <a
-                    href="{{ route('catalog.index', ['view' => 'list']) }}"
+                    href="{{ route('catalog.index') }}"
                     class="btn-glass">
                     Przeglądaj katalog
                 </a>
@@ -84,7 +84,7 @@
                 </p>
             </div>
             <a
-                href="{{ route('catalog.index', ['view' => 'list']) }}"
+                href="{{ route('catalog.index') }}"
                 class="btn-outline">
                 Zobacz cały katalog
             </a>
@@ -146,7 +146,7 @@
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach($browseTypes as $objectType)
                 <a
-                    href="{{ route('catalog.index', ['view' => 'list', 'objectTypes' => [$objectType->getKey()]]) }}"
+                    href="{{ route('catalog.index', ['objectTypes' => [$objectType->getKey()]]) }}"
                     class="browse-type-card group">
                     <div>
                         <p class="card-kicker">Typ obiektu</p>
@@ -182,7 +182,7 @@
             <a
                 href="{{ route('catalog.index') }}"
                 class="mt-8 btn-primary">
-                Otwórz mapę katalogu
+                Przeglądaj katalog
             </a>
         </div>
         <div class="map-panel relative rounded-4xl border border-stone-200 p-5 shadow-sm sm:p-6">
@@ -193,9 +193,9 @@
                     <p class="card-meta mt-2">Przesuwaj mapę i klikaj w obiekty — cały czas widzisz region.</p>
                 </div>
                 <div class="map-feature-card rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
-                    <p class="text-sm text-stone-500">Przełącznik widoków</p>
-                    <h4 class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa • Lista • Obie</h4>
-                    <p class="card-meta mt-2">Ten sam katalog w dwóch wersjach: mapa do planowania, lista do przeglądania.</p>
+                    <p class="text-sm text-stone-500">Dopasowany do ekranu</p>
+                    <h4 class="mt-3 font-heading text-2xl font-semibold text-stone-950">Mapa i lista</h4>
+                    <p class="card-meta mt-2">Na dużym ekranie mapa i lista działają razem, a na telefonie katalog skupia się na wygodnym przeglądaniu wyników.</p>
                 </div>
             </div>
             <div class="mt-5 grid gap-3">
@@ -203,7 +203,7 @@
                     Filtruj po województwie, typie obiektu i UNESCO — szybciej znajdziesz to, czego szukasz.
                 </div>
                 <div class="rounded-3xl border border-dashed border-stone-300 px-4 py-4 card-meta">
-                    Nie wiesz, gdzie jechać? Zacznij od mapy i wybierz region, który Cię ciągnie.
+                    Nie wiesz, gdzie jechać? Otwórz katalog, wybierz region i rozwiń mapę, gdy chcesz zaplanować trasę.
                 </div>
             </div>
         </div>

@@ -18,8 +18,9 @@ test('homepage loads successfully', function () {
 test('homepage contains hero section', function () {
     $this->get('/')
         ->assertSee('Odkrywaj Polskę')
-        ->assertSee('Pokaż mapę')
-        ->assertSee('Przeglądaj katalog');
+        ->assertSee('Przeglądaj katalog')
+        ->assertDontSee('Pokaż mapę')
+        ->assertDontSee('view=list');
 });
 
 test('homepage shows latest published objects', function () {

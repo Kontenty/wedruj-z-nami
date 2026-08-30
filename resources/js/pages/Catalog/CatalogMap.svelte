@@ -11,6 +11,8 @@
     selectedObjectId = null,
     onSelect,
     fitBoundsVersion = 0,
+    isFullMap = false,
+    onToggleFullMap,
   } = $props();
   let container = $state();
   let map;
@@ -384,9 +386,35 @@
     Mapa jest chwilowo niedostępna. Użyj listy wyników poniżej.
   </div>
 {:else}
-  <div
-    bind:this={container}
-    class="h-full min-h-112 w-full"
-    aria-label="Interaktywna mapa obiektów. Lista wyników pozostaje alternatywą dostępną z klawiatury."
-  ></div>
+  <div class="relative h-full min-h-112 w-full">
+    <div
+      bind:this={container}
+      class="h-full w-full"
+      aria-label="Interaktywna mapa obiektów. Lista wyników pozostaje alternatywą dostępną z klawiatury."
+    ></div>
+    <button
+      type="button"
+      class="absolute left-3 top-3 z-10 flex size-11 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-800 shadow-md transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+      aria-label={isFullMap ? 'Przywróć widok dzielony' : 'Powiększ mapę'}
+      title={isFullMap ? 'Przywróć widok dzielony' : 'Powiększ mapę'}
+      onclick={onToggleFullMap}
+    >
+      <svg
+        class="size-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        {#if isFullMap}
+          <path d="M6 6l12 12M18 6L6 18" />
+        {:else}
+          <path d="m15 9 5-5m0 5V4h-5M9 15l-5 5m0-5v5h5" />
+        {/if}
+      </svg>
+    </button>
+  </div>
 {/if}
