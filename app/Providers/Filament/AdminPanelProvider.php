@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Widgets\LatestArticles;
 use App\Filament\Widgets\LatestObjects;
 use App\Filament\Widgets\StatsOverview;
@@ -32,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Wędruj z Nami CMS')
             ->authGuard('web')
             ->login()
+            ->profile(EditProfile::class)
             ->bootUsing(function (): void {
                 app()->setLocale('pl');
             })
