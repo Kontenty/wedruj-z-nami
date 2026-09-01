@@ -189,7 +189,7 @@ class SightseeingObject extends Model implements HasMedia
     }
 
     /**
-     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, gallery_url: string|null, thumbnail_webp_url: string|null, card_webp_url: string|null, gallery_webp_url: string|null, alt: string, author: mixed, source: mixed, order: int|null}>
+     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, gallery_url: string|null, thumbnail_webp_url: string|null, card_webp_url: string|null, gallery_webp_url: string|null, alt: string, author: mixed, source: mixed, description: mixed, order: int|null}>
      */
     public function getImageItemsAttribute(): array
     {
@@ -206,6 +206,7 @@ class SightseeingObject extends Model implements HasMedia
                 'alt' => $media->getCustomProperty('alt', $this->title),
                 'author' => $media->getCustomProperty('author'),
                 'source' => $media->getCustomProperty('source'),
+                'description' => $media->getCustomProperty('description'),
                 'order' => $media->order_column,
             ])
             ->values()

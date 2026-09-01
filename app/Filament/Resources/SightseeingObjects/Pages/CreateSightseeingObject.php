@@ -6,6 +6,7 @@ use App\Filament\Resources\SightseeingObjects\Pages\Concerns\InteractsWithSights
 use App\Filament\Resources\SightseeingObjects\SightseeingObjectResource;
 use App\Models\SightseeingObject;
 use Filament\Resources\Pages\CreateRecord;
+use Throwable;
 
 class CreateSightseeingObject extends CreateRecord
 {
@@ -13,14 +14,10 @@ class CreateSightseeingObject extends CreateRecord
 
     protected static string $resource = SightseeingObjectResource::class;
 
-    /** @var array<int, string> */
-    protected array $uploadedImages = [];
+    protected ?bool $hasDatabaseTransactions = true;
 
-    protected ?string $imageAuthor = null;
-
-    protected ?string $imageSource = null;
-
-    protected ?string $imageAlt = null;
+    /** @var array<int, array{path: string, author: string|null, source: string|null, description: string|null, alt: string|null}> */
+    protected array $imageItems = [];
 
     /**
      * @param  array<string, mixed>  $data
@@ -37,7 +34,15 @@ class CreateSightseeingObject extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $this->storeUploadedImages($this->record);
+        $storedMediaIds = [];
+
+        try {
+            $this->storeUploadedImages($this->record, $storedMediaIds);
+        } catch (Throwable $exception) {
+            $this->deleteStoredMedia($this->record, $storedMediaIds);
+
+            throw $exception;
+        }
     }
 
     /**
@@ -45,30 +50,51 @@ class CreateSightseeingObject extends CreateRecord
      */
     protected function captureImageUploadData(array &$data): void
     {
-        $this->uploadedImages = [];
-        $this->imageAuthor = null;
-        $this->imageSource = null;
-        $this->imageAlt = null;
+        $this->imageItems = array_values(array_filter(array_map(function (mixed $item): array {
+            $item['path'] = $this->normalizeImagePath($item['path'] ?? null);
 
-        $this->uploadedImages = array_values(array_filter((array) ($data['images'] ?? [])));
-        $this->imageAuthor = filled($data['image_author'] ?? null) ? (string) $data['image_author'] : null;
-        $this->imageSource = filled($data['image_source'] ?? null) ? (string) $data['image_source'] : null;
-        $this->imageAlt = filled($data['image_alt'] ?? null) ? (string) $data['image_alt'] : null;
+            return $item;
+        }, (array) ($data['images'] ?? [])), fn (array $item): bool => filled($item['path'])));
 
-        unset($data['images'], $data['image_author'], $data['image_source'], $data['image_alt']);
+        unset($data['images']);
     }
 
-    protected function storeUploadedImages(SightseeingObject $record): void
+    /** @param array<int, int> $storedMediaIds */
+    protected function storeUploadedImages(SightseeingObject $record, array &$storedMediaIds): void
     {
-        foreach ($this->uploadedImages as $path) {
-            $record
-                ->addMediaFromDisk($path, 'public')
+        foreach ($this->imageItems as $item) {
+            $media = $record
+                ->addMediaFromDisk($item['path'], 'public')
                 ->withCustomProperties(array_filter([
-                    'author' => $this->imageAuthor,
-                    'source' => $this->imageSource,
-                    'alt' => $this->imageAlt,
+                    'author' => filled($item['author'] ?? null) ? (string) $item['author'] : null,
+                    'source' => filled($item['source'] ?? null) ? (string) $item['source'] : null,
+                    'description' => filled($item['description'] ?? null) ? (string) $item['description'] : null,
+                    'alt' => filled($item['alt'] ?? null) ? (string) $item['alt'] : null,
                 ]))
                 ->toMediaCollection('images');
+
+            $storedMediaIds[] = $media->getKey();
         }
+    }
+
+    /** @param array<int, int> $storedMediaIds */
+    private function deleteStoredMedia(SightseeingObject $record, array $storedMediaIds): void
+    {
+        foreach ($storedMediaIds as $mediaId) {
+            try {
+                $record->media()->whereKey($mediaId)->first()?->delete();
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+    }
+
+    private function normalizeImagePath(mixed $path): ?string
+    {
+        if (is_array($path)) {
+            $path = array_values(array_filter($path))[0] ?? null;
+        }
+
+        return filled($path) ? (string) $path : null;
     }
 }

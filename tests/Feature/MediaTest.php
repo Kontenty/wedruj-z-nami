@@ -27,6 +27,7 @@ test('sightseeing object images store attribution metadata and expose resource p
         ->withCustomProperties([
             'author' => 'Jan Kowalski',
             'source' => 'Archiwum PTTK',
+            'description' => 'Widok zamku od strony rzeki.',
             'alt' => 'Widok Wawelu',
         ])
         ->toMediaCollection('images');
@@ -45,6 +46,7 @@ test('sightseeing object images store attribution metadata and expose resource p
             'alt' => 'Widok Wawelu',
             'author' => 'Jan Kowalski',
             'source' => 'Archiwum PTTK',
+            'description' => 'Widok zamku od strony rzeki.',
         ])
         ->and($image['url'])->toContain('wawel.jpg')
         ->and($image['thumbnail_url'])->toContain('thumbnail')
@@ -80,11 +82,13 @@ test('sightseeing object image payload falls back to object title when alt text 
             'alt',
             'author',
             'source',
+            'description',
             'order',
         ])
         ->and($object->image_items[0]['alt'])->toBe('Zamek w Malborku')
         ->and($object->image_items[0]['author'])->toBe('PTTK')
-        ->and($object->image_items[0]['source'])->toBeNull();
+        ->and($object->image_items[0]['source'])->toBeNull()
+        ->and($object->image_items[0]['description'])->toBeNull();
 });
 
 test('article media accessors return fallback cover values without real cover image', function () {

@@ -6,14 +6,12 @@
 
   let { images, title } = $props();
   let lightboxOpen = $state(false);
-  let lightboxImage = $state('');
   let lightboxIndex = $state(0);
 
   const previewImages = $derived(images.slice(1, 4));
   const remainingImages = $derived(Math.max(images.length - 4, 0));
 
-  function openLightbox(url, index) {
-    lightboxImage = url;
+  function openLightbox(index) {
     lightboxIndex = index;
     lightboxOpen = true;
   }
@@ -28,7 +26,6 @@
     }
 
     lightboxIndex = (lightboxIndex + 1) % images.length;
-    lightboxImage = images[lightboxIndex].url;
   }
 
   function prevImage() {
@@ -37,7 +34,6 @@
     }
 
     lightboxIndex = (lightboxIndex - 1 + images.length) % images.length;
-    lightboxImage = images[lightboxIndex].url;
   }
 
   function onKeydown(e) {
@@ -67,7 +63,7 @@
       <div class="h-125 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:auto-rows-fr">
         <button
           type="button"
-          onclick={() => openLightbox(images[0].url, 0)}
+          onclick={() => openLightbox(0)}
           class="group relative overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3 lg:min-h-128"
         >
           <picture class="block size-full">
@@ -97,7 +93,7 @@
             {#each previewImages as image, index (image.url ?? index)}
               <button
                 type="button"
-                onclick={() => openLightbox(image.url, index + 1)}
+                onclick={() => openLightbox(index + 1)}
                 class="group relative min-h-0 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
                 <picture class="block size-full">
@@ -130,8 +126,11 @@
         {/if}
       </div>
 
-      {#if images[0].author || images[0].source}
+      {#if images[0].description || images[0].author || images[0].source}
         <figcaption class="mt-3 text-sm text-stone-500">
+          {#if images[0].description}<span>{images[0].description}</span>{/if}
+          {#if images[0].description && (images[0].author || images[0].source)}<br
+            />{/if}
           {#if images[0].author}Foto: {images[0].author}{/if}
           {#if images[0].author && images[0].source}
             ·
@@ -146,7 +145,7 @@
         {#each images.slice(1) as image, index (image.url ?? index)}
           <button
             type="button"
-            onclick={() => openLightbox(image.url, index + 1)}
+            onclick={() => openLightbox(index + 1)}
             class="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
             <picture class="block">
@@ -197,11 +196,32 @@
       aria-label="Aktualnie wyświetlane zdjęcie"
     >
       <img
-        src={lightboxImage}
-        alt=""
+        src={images[lightboxIndex].url}
+        alt={images[lightboxIndex].alt || title}
         class="max-h-[85vh] max-w-[90vw] rounded-lg"
       />
     </button>
+
+    {#if images[lightboxIndex].description || images[lightboxIndex].author || images[lightboxIndex].source}
+      <div
+        class="absolute bottom-12 left-1/2 max-w-[min(90vw,48rem)] -translate-x-1/2 text-center text-sm text-white"
+      >
+        {#if images[lightboxIndex].description}<p>
+            {images[lightboxIndex].description}
+          </p>{/if}
+        {#if images[lightboxIndex].author || images[lightboxIndex].source}
+          <p class="mt-1 text-white/75">
+            {#if images[lightboxIndex].author}Foto: {images[lightboxIndex]
+                .author}{/if}
+            {#if images[lightboxIndex].author && images[lightboxIndex].source}
+              ·
+            {/if}
+            {#if images[lightboxIndex].source}Źródło: {images[lightboxIndex]
+                .source}{/if}
+          </p>
+        {/if}
+      </div>
+    {/if}
 
     {#if images.length > 1}
       <button

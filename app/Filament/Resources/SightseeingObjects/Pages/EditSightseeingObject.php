@@ -7,6 +7,7 @@ use App\Filament\Resources\SightseeingObjects\SightseeingObjectResource;
 use App\Models\SightseeingObject;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
@@ -17,26 +18,22 @@ class EditSightseeingObject extends EditRecord
 
     protected static string $resource = SightseeingObjectResource::class;
 
+    protected ?bool $hasDatabaseTransactions = true;
+
     /** @var array<int, string> */
     protected array $uploadedImages = [];
 
     /** @var array<int, int> */
     protected array $mediaIdsToRemove = [];
 
-    /** @var array<int, string> */
-    protected array $formImagePaths = [];
+    /** @var array<int, array{path: string, author: string|null, source: string|null, description: string|null, alt: string|null}> */
+    protected array $imageItems = [];
 
-    /** @var array<string, int> path → media ID for existing images */
+    /** @var array<string, Media> path → existing media */
     protected array $existingMediaMap = [];
 
-    /** @var array<int, int> form path index → new media ID */
+    /** @var array<int, int> */
     protected array $newMediaIds = [];
-
-    protected ?string $imageAuthor = null;
-
-    protected ?string $imageSource = null;
-
-    protected ?string $imageAlt = null;
 
     /**
      * @param  array<string, mixed>  $data
@@ -57,7 +54,7 @@ class EditSightseeingObject extends EditRecord
             $data['longitude'] = $this->record->longitude;
         }
 
-        $data['images'] = $this->getRecordImagePaths();
+        $data['images'] = $this->getRecordImageItems();
 
         return $data;
     }
@@ -89,18 +86,12 @@ class EditSightseeingObject extends EditRecord
         try {
             $this->validateImageOrderInput();
 
-            $storedMediaIds = $this->storeUploadedImages($this->record);
-
-            foreach ($this->mediaIdsToRemove as $mediaId) {
-                $this->record->deleteMedia($mediaId);
-            }
+            $this->storeUploadedImages($this->record, $storedMediaIds);
 
             $this->syncImageOrder();
-            $this->refreshImageUploadState();
+            $this->deleteRemovedMediaAfterCommit($this->record);
         } catch (Throwable $exception) {
-            foreach ($storedMediaIds as $mediaId) {
-                $this->record->deleteMedia($mediaId);
-            }
+            $this->deleteStoredMedia($this->record, $storedMediaIds);
 
             throw $exception;
         }
@@ -113,82 +104,83 @@ class EditSightseeingObject extends EditRecord
     {
         $this->uploadedImages = [];
         $this->mediaIdsToRemove = [];
-        $this->formImagePaths = [];
         $this->existingMediaMap = [];
         $this->newMediaIds = [];
-        $this->imageAuthor = null;
-        $this->imageSource = null;
-        $this->imageAlt = null;
-
-        $allPaths = array_values(array_filter((array) ($data['images'] ?? [])));
         $existingMedia = $this->record
             ? $this->record->getMedia('images')
             : collect();
-        $existingPaths = $existingMedia->map(fn ($media) => $media->getPathRelativeToRoot())->all();
 
-        $this->uploadedImages = array_values(array_diff($allPaths, $existingPaths));
+        $this->imageItems = array_values(array_filter(array_map(function (mixed $item): array {
+            $item['path'] = $this->normalizeImagePath($item['path'] ?? null);
+
+            return $item;
+        }, (array) ($data['images'] ?? [])), fn (array $item): bool => filled($item['path'])));
         $this->mediaIdsToRemove = $existingMedia
-            ->filter(fn ($media) => ! in_array($media->getPathRelativeToRoot(), $allPaths, true))
+            ->filter(fn (Media $media): bool => ! in_array($media->getPathRelativeToRoot(), array_column($this->imageItems, 'path'), true))
             ->pluck('id')
             ->all();
-        $this->formImagePaths = $allPaths;
         $this->existingMediaMap = $existingMedia
             ->keyBy(fn (Media $media) => $media->getPathRelativeToRoot())
-            ->map(fn (Media $media) => $media->id)
             ->all();
-        $this->imageAuthor = filled($data['image_author'] ?? null) ? (string) $data['image_author'] : null;
-        $this->imageSource = filled($data['image_source'] ?? null) ? (string) $data['image_source'] : null;
-        $this->imageAlt = filled($data['image_alt'] ?? null) ? (string) $data['image_alt'] : null;
+        $this->uploadedImages = array_values(array_filter(array_column($this->imageItems, 'path'), fn (string $path): bool => ! isset($this->existingMediaMap[$path])));
 
-        unset($data['images'], $data['image_author'], $data['image_source'], $data['image_alt']);
+        unset($data['images']);
     }
 
     protected function validateImageOrderInput(): void
     {
-        if (count($this->formImagePaths) !== count(array_unique($this->formImagePaths))) {
+        $paths = array_column($this->imageItems, 'path');
+
+        if (count($paths) !== count(array_unique($paths))) {
             throw new InvalidArgumentException('Submitted image paths must be unique.');
         }
 
         $knownPaths = array_flip([...array_keys($this->existingMediaMap), ...$this->uploadedImages]);
 
-        foreach ($this->formImagePaths as $path) {
+        foreach ($paths as $path) {
             if (! isset($knownPaths[$path])) {
                 throw new InvalidArgumentException('Submitted image paths must reference object images or new uploads.');
             }
         }
     }
 
-    /**
-     * @return array<int, int>
-     */
-    protected function storeUploadedImages(SightseeingObject $record): array
+    /** @param array<int, int> $storedMediaIds */
+    protected function storeUploadedImages(SightseeingObject $record, array &$storedMediaIds): void
     {
         $this->newMediaIds = [];
 
-        foreach ($this->uploadedImages as $path) {
+        foreach ($this->imageItems as $item) {
+            if (isset($this->existingMediaMap[$item['path']])) {
+                $this->updateMediaProperties($this->existingMediaMap[$item['path']], $item);
+
+                continue;
+            }
+
             $media = $record
-                ->addMediaFromDisk($path, 'public')
-                ->withCustomProperties(array_filter([
-                    'author' => $this->imageAuthor,
-                    'source' => $this->imageSource,
-                    'alt' => $this->imageAlt,
-                ]))
+                ->addMediaFromDisk($item['path'], 'public')
+                ->withCustomProperties($this->mediaProperties($item))
                 ->toMediaCollection('images');
 
             $this->newMediaIds[] = $media->id;
+            $storedMediaIds[] = $media->id;
         }
-
-        return $this->newMediaIds;
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array{media_id: int, path: string, author: string|null, source: string|null, description: string|null, alt: string|null}>
      */
-    protected function getRecordImagePaths(): array
+    protected function getRecordImageItems(): array
     {
         return $this->record
             ->getMedia('images')
-            ->map(fn (Media $media): string => $media->getPathRelativeToRoot())
+            ->map(fn (Media $media): array => [
+                'media_id' => $media->id,
+                'path' => [$media->getPathRelativeToRoot()],
+                'author' => $media->getCustomProperty('author'),
+                'source' => $media->getCustomProperty('source'),
+                'description' => $media->getCustomProperty('description'),
+                'alt' => $media->getCustomProperty('alt'),
+            ])
             ->all();
     }
 
@@ -201,7 +193,7 @@ class EditSightseeingObject extends EditRecord
 
     protected function syncImageOrder(): void
     {
-        if ($this->formImagePaths === []) {
+        if ($this->imageItems === []) {
             return;
         }
 
@@ -209,19 +201,91 @@ class EditSightseeingObject extends EditRecord
 
         $orderedIds = [];
 
-        foreach ($this->formImagePaths as $path) {
-            if (isset($this->existingMediaMap[$path])) {
-                $orderedIds[] = $this->existingMediaMap[$path];
-            } elseif (isset($newPathToId[$path])) {
-                $orderedIds[] = $newPathToId[$path];
+        foreach ($this->imageItems as $item) {
+            if (isset($this->existingMediaMap[$item['path']])) {
+                $orderedIds[] = $this->existingMediaMap[$item['path']]->id;
+            } elseif (isset($newPathToId[$item['path']])) {
+                $orderedIds[] = $newPathToId[$item['path']];
             }
         }
 
         $orderedIds = array_values(array_filter($orderedIds));
+        $orderedIds = [...$orderedIds, ...$this->mediaIdsToRemove];
 
         if ($orderedIds !== []) {
             $this->record->reorderImages($orderedIds);
         }
+    }
+
+    /** @param array{author?: mixed, source?: mixed, description?: mixed, alt?: mixed} $item */
+    private function updateMediaProperties(Media $media, array $item): void
+    {
+        foreach (['author', 'source', 'description', 'alt'] as $property) {
+            $value = $this->mediaProperties($item)[$property] ?? null;
+
+            if ($value === null) {
+                $media->forgetCustomProperty($property);
+            } else {
+                $media->setCustomProperty($property, $value);
+            }
+        }
+
+        $media->save();
+    }
+
+    private function deleteRemovedMediaAfterCommit(SightseeingObject $record): void
+    {
+        $mediaIdsToRemove = $this->mediaIdsToRemove;
+
+        if ($mediaIdsToRemove === []) {
+            $this->refreshImageUploadState();
+
+            return;
+        }
+
+        DB::afterCommit(function () use ($record, $mediaIdsToRemove): void {
+            foreach ($mediaIdsToRemove as $mediaId) {
+                try {
+                    $record->media()->whereKey($mediaId)->first()?->delete();
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
+            }
+
+            $this->refreshImageUploadState();
+        });
+    }
+
+    /** @param array<int, int> $storedMediaIds */
+    private function deleteStoredMedia(SightseeingObject $record, array $storedMediaIds): void
+    {
+        foreach ($storedMediaIds as $mediaId) {
+            try {
+                $record->media()->whereKey($mediaId)->first()?->delete();
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+    }
+
+    /** @param array{author?: mixed, source?: mixed, description?: mixed, alt?: mixed} $item */
+    private function mediaProperties(array $item): array
+    {
+        return array_filter([
+            'author' => filled($item['author'] ?? null) ? (string) $item['author'] : null,
+            'source' => filled($item['source'] ?? null) ? (string) $item['source'] : null,
+            'description' => filled($item['description'] ?? null) ? (string) $item['description'] : null,
+            'alt' => filled($item['alt'] ?? null) ? (string) $item['alt'] : null,
+        ], static fn (?string $value): bool => $value !== null);
+    }
+
+    private function normalizeImagePath(mixed $path): ?string
+    {
+        if (is_array($path)) {
+            $path = array_values(array_filter($path))[0] ?? null;
+        }
+
+        return filled($path) ? (string) $path : null;
     }
 
     /**

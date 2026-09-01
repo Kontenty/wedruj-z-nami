@@ -12,6 +12,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 test('cms login page renders and dashboard requires authentication', function () {
     $this->get('/cms/login')->assertSuccessful();
@@ -101,6 +102,43 @@ test('sightseeing object create flow validates geometry and assigns author', fun
 
     expect($object->author_id)->toBe($editor->id)
         ->and($object->objectTypes()->pluck('object_types.id')->all())->toBe([$objectType->id]);
+});
+
+test('sightseeing object creation rolls back when importing an image fails', function () {
+    Storage::fake('public');
+
+    $editor = User::factory()->editor()->create();
+    $locality = Locality::factory()->create();
+    $objectType = ObjectType::factory()->create();
+    $upload = UploadedFile::fake()->image('first.jpg', 200, 150);
+    $validPath = 'cms/object-images/first.jpg';
+
+    Storage::disk('public')->put($validPath, file_get_contents($upload->getRealPath()));
+    $filesBefore = Storage::disk('public')->allFiles();
+
+    $this->actingAs($editor);
+
+    expect(fn () => Livewire::test(CreateSightseeingObject::class)
+        ->fillForm([
+            'title' => 'Nieudany import zdjęć',
+            'lead' => 'Krótki opis obiektu.',
+            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'locality_id' => $locality->id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'point',
+            'latitude' => 50.0614,
+            'longitude' => 19.9372,
+            'status' => 'draft',
+            'images' => [
+                ['path' => [$validPath]],
+                ['path' => ['cms/object-images/missing.jpg']],
+            ],
+        ])
+        ->call('create'))->toThrow(Exception::class);
+
+    expect(SightseeingObject::query()->where('title', 'Nieudany import zdjęć')->exists())->toBeFalse()
+        ->and(Media::query()->where('model_type', SightseeingObject::class)->exists())->toBeFalse()
+        ->and(Storage::disk('public')->allFiles())->toBe([]);
 });
 
 test('sightseeing object create flow persists polygon geometry', function () {
@@ -345,7 +383,7 @@ test('editing sightseeing object removes images deleted from the gallery', funct
             'latitude' => 50.0614,
             'longitude' => 19.9372,
             'status' => 'draft',
-            'images' => [$second->getPathRelativeToRoot()],
+            'images' => [['path' => [$second->getPathRelativeToRoot()]]],
         ])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -354,6 +392,59 @@ test('editing sightseeing object removes images deleted from the gallery', funct
 
     expect($object->getMedia('images'))->toHaveCount(1)
         ->and($object->getMedia('images')->first()->id)->toBe($second->id);
+});
+
+test('sightseeing object editing rolls back when importing an image fails', function () {
+    Storage::fake('public');
+
+    $editor = User::factory()->editor()->create();
+    $locality = Locality::factory()->create();
+    $objectType = ObjectType::factory()->create();
+    $object = SightseeingObject::factory()->create([
+        'locality_id' => $locality->id,
+        'status' => 'draft',
+    ]);
+    $object->objectTypes()->sync($objectType->id);
+    $existing = $object->addMedia(UploadedFile::fake()->image('existing.jpg', 200, 150))->toMediaCollection('images');
+    $upload = UploadedFile::fake()->image('new.jpg', 200, 150);
+    $newPath = 'cms/object-images/new.jpg';
+
+    Storage::disk('public')->put($newPath, file_get_contents($upload->getRealPath()));
+    $filesBefore = Storage::disk('public')->allFiles();
+    $originalTitle = $object->title;
+
+    $this->actingAs($editor);
+
+    expect(fn () => Livewire::test(EditSightseeingObject::class, ['record' => $object->getRouteKey()])
+        ->fillForm([
+            'title' => 'Tytuł po nieudanej edycji',
+            'lead' => $object->lead,
+            'description' => $object->description,
+            'locality_id' => $object->locality_id,
+            'objectTypes' => [$objectType->id],
+            'geometry_type' => 'point',
+            'latitude' => 50.0614,
+            'longitude' => 19.9372,
+            'status' => 'draft',
+            'images' => [
+                ['path' => [$existing->getPathRelativeToRoot()]],
+                ['path' => [$newPath]],
+                ['path' => ['cms/object-images/missing.jpg']],
+            ],
+        ])
+        ->call('save'))->toThrow(Exception::class);
+
+    $object->refresh();
+
+    $expectedFiles = array_values(array_filter($filesBefore, fn (string $path): bool => $path !== $newPath));
+    $actualFiles = Storage::disk('public')->allFiles();
+    sort($expectedFiles);
+    sort($actualFiles);
+
+    expect($object->title)->toBe($originalTitle)
+        ->and($object->getMedia('images')->pluck('id')->all())->toBe([$existing->id])
+        ->and(Media::query()->where('model_id', $object->id)->count())->toBe(1)
+        ->and($actualFiles)->toBe($expectedFiles);
 });
 
 test('editing sightseeing object persists image reorder', function () {
@@ -386,7 +477,10 @@ test('editing sightseeing object persists image reorder', function () {
             'latitude' => 50.0614,
             'longitude' => 19.9372,
             'status' => 'draft',
-            'images' => [$second->getPathRelativeToRoot(), $first->getPathRelativeToRoot()],
+            'images' => [
+                ['path' => [$second->getPathRelativeToRoot()]],
+                ['path' => [$first->getPathRelativeToRoot()]],
+            ],
         ])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -429,14 +523,33 @@ test('editing sightseeing object with new images does not throw on reorder', fun
             'latitude' => 50.0614,
             'longitude' => 19.9372,
             'status' => 'draft',
-            'images' => [$first->getPathRelativeToRoot(), $newPath],
+            'images' => [
+                [
+                    'path' => [$first->getPathRelativeToRoot()],
+                    'author' => 'Autor istniejącego',
+                    'source' => 'Źródło istniejącego',
+                    'description' => 'Opis istniejącego zdjęcia',
+                    'alt' => 'Alt istniejącego zdjęcia',
+                ],
+                [
+                    'path' => [$newPath],
+                    'author' => 'Autor nowego',
+                    'source' => 'Źródło nowego',
+                    'description' => 'Opis nowego zdjęcia',
+                    'alt' => 'Alt nowego zdjęcia',
+                ],
+            ],
         ])
         ->call('save')
         ->assertHasNoFormErrors();
 
     $object->refresh();
 
-    expect($object->getMedia('images'))->toHaveCount(2);
+    expect($object->getMedia('images'))->toHaveCount(2)
+        ->and($object->getMedia('images')[0]->getCustomProperty('author'))->toBe('Autor istniejącego')
+        ->and($object->getMedia('images')[0]->getCustomProperty('description'))->toBe('Opis istniejącego zdjęcia')
+        ->and($object->getMedia('images')[1]->getCustomProperty('author'))->toBe('Autor nowego')
+        ->and($object->getMedia('images')[1]->getCustomProperty('source'))->toBe('Źródło nowego');
 });
 
 test('editing sightseeing object can switch geometry to polygon', function () {

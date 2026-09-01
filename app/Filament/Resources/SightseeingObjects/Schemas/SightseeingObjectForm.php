@@ -10,7 +10,9 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -220,33 +222,43 @@ class SightseeingObjectForm
 
                 Section::make('Galeria')
                     ->schema([
-                        FileUpload::make('images')
+                        Repeater::make('images')
                             ->label('Zdjęcia')
-                            ->image()
-                            ->multiple()
+                            ->schema([
+                                Hidden::make('media_id'),
+                                FileUpload::make('path')
+                                    ->label('Plik')
+                                    ->image()
+                                    ->multiple()
+                                    ->maxFiles(1)
+                                    ->disk('public')
+                                    ->directory('cms/object-images')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                    ->maxSize(10240),
+                                TextInput::make('author')
+                                    ->label('Autor')
+                                    ->maxLength(255),
+                                TextInput::make('source')
+                                    ->label('Źródło')
+                                    ->maxLength(255),
+                                Textarea::make('description')
+                                    ->label('Opis zdjęcia')
+                                    ->maxLength(1000)
+                                    ->rows(2),
+                                TextInput::make('alt')
+                                    ->label('Tekst alternatywny')
+                                    ->helperText('Opcjonalnie. Domyślnie używana jest nazwa obiektu.')
+                                    ->maxLength(255),
+                            ])
                             ->reorderable()
-                            ->disk('public')
-                            ->directory('cms/object-images')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->maxSize(10240)
-                            ->afterStateHydrated(function (FileUpload $component, ?SightseeingObject $record): void {
-                                if ($record === null) {
-                                    return;
-                                }
-
-                                $paths = $record
-                                    ->getMedia('images')
-                                    ->map(fn ($media) => $media->getPathRelativeToRoot())
-                                    ->all();
-
-                                if ($paths !== []) {
-                                    $component->state($paths);
-                                }
-                            })
+                            ->columns(2)
+                            ->itemLabel(fn (array $state): ?string => filled($state['description'] ?? null)
+                                ? (string) $state['description']
+                                : null)
                             ->required(fn (Get $get): bool => $get('status') === 'published')
                             ->rules(fn (Get $get): array => [
                                 function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
-                                    $images = array_values(array_filter((array) $value));
+                                    $images = array_values(array_filter((array) $value, fn (mixed $image): bool => filled(data_get($image, 'path'))));
 
                                     if ($get('status') === 'published' && $images === []) {
                                         $fail('Opublikowany obiekt musi mieć co najmniej jedno zdjęcie.');
@@ -254,20 +266,8 @@ class SightseeingObjectForm
                                 },
                             ])
                             ->helperText('Pierwsze zdjęcie w kolejności jest traktowane jako główne.'),
-                        TextInput::make('image_author')
-                            ->label('Autor zdjęć')
-                            ->maxLength(255)
-                            ->helperText('Autorsko nowo dodanych zdjęć.'),
-                        TextInput::make('image_source')
-                            ->label('Źródło zdjęć')
-                            ->maxLength(255)
-                            ->helperText('Źródło nowo dodanych zdjęć.'),
-                        TextInput::make('image_alt')
-                            ->label('Tekst alternatywny zdjęć')
-                            ->helperText('Domyślny opis alt dla nowo dodanych zdjęć. Istniejące zdjęcia zachowują swoje metadane.')
-                            ->maxLength(255),
                     ])
-                    ->columns(2),
+                    ->columns(1),
             ]);
     }
 
