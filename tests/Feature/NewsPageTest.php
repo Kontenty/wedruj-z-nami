@@ -36,7 +36,8 @@ test('news index shows latest objects section', function () {
 
     $this->get('/aktualnosci')
         ->assertSee('Najnowsze obiekty')
-        ->assertSee($object->title);
+        ->assertSee($object->title)
+        ->assertSee('href="'.route('catalog.show', $object).'"', false);
 });
 
 test('news show loads successfully', function () {

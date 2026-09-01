@@ -64,9 +64,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach($latestObjects as $object)
             <a
-                href="#"
-                class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                title="Szczegóły obiektu będą dostępne wkrótce">
+                href="{{ route('catalog.show', $object) }}"
+                class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 <div class="aspect-4/3 overflow-hidden">
                     <picture>
                         <source srcset="{{ $object->card_webp_url }}" type="image/webp">
