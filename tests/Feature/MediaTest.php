@@ -37,9 +37,9 @@ test('sightseeing object images store attribution metadata and expose resource p
 
     expect($object->has_images)->toBeTrue()
         ->and($object->primary_image_url)->toContain('wawel.jpg')
-        ->and($object->thumbnail_url)->toContain('thumbnail')
-        ->and($object->card_url)->toContain('card')
-        ->and($object->gallery_url)->toContain('gallery')
+        ->and($object->thumbnail_url)->toContain('wawel.jpg')
+        ->and($object->card_url)->toContain('wawel.jpg')
+        ->and($object->gallery_url)->toContain('wawel.jpg')
         ->and($object->image_urls)->toHaveCount(1)
         ->and($image)->toMatchArray([
             'id' => $media->id,
@@ -49,9 +49,9 @@ test('sightseeing object images store attribution metadata and expose resource p
             'description' => 'Widok zamku od strony rzeki.',
         ])
         ->and($image['url'])->toContain('wawel.jpg')
-        ->and($image['thumbnail_url'])->toContain('thumbnail')
-        ->and($image['card_url'])->toContain('card')
-        ->and($image['gallery_url'])->toContain('gallery')
+        ->and($image['thumbnail_url'])->toBeNull()
+        ->and($image['card_url'])->toBeNull()
+        ->and($image['gallery_url'])->toBeNull()
         ->and($image['order'])->toBeInt();
 });
 
@@ -137,7 +137,7 @@ test('article cover is single file and exposes attribution metadata', function (
             'source' => 'PTTK',
         ])
         ->and($article->cover_image['url'])->toContain('second-cover.jpg')
-        ->and($article->cover_image['thumbnail_url'])->toContain('thumbnail');
+        ->and($article->cover_image['thumbnail_url'])->toContain('second-cover.jpg');
 });
 
 test('article cover payload falls back to article title when alt text is missing', function () {

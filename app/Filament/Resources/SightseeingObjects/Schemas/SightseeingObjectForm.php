@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SightseeingObjects\Schemas;
 use App\Models\Locality;
 use App\Models\SightseeingObject;
 use App\Services\NominatimService;
+use App\Services\ReadableMediaFilename;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -233,6 +234,7 @@ class SightseeingObjectForm
                                     ->maxFiles(1)
                                     ->disk('public')
                                     ->directory('cms/object-images')
+                                    ->getUploadedFileNameForStorageUsing(fn ($file): string => ReadableMediaFilename::make($file))
                                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                                     ->maxSize(10240),
                                 TextInput::make('author')
@@ -250,6 +252,8 @@ class SightseeingObjectForm
                                     ->helperText('Opcjonalnie. Domyślnie używana jest nazwa obiektu.')
                                     ->maxLength(255),
                             ])
+                            ->addActionLabel('Dodaj zdjęcie')
+                            ->addAction(fn (Action $action): Action => $action->color('primary'))
                             ->reorderable()
                             ->columns(2)
                             ->itemLabel(fn (array $state): ?string => filled($state['description'] ?? null)

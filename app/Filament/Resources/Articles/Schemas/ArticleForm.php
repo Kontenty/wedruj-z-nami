@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Articles\Schemas;
 
+use App\Services\ReadableMediaFilename;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
@@ -68,6 +69,7 @@ class ArticleForm
                             ->image()
                             ->disk('public')
                             ->directory('cms/article-covers')
+                            ->getUploadedFileNameForStorageUsing(fn ($file): string => ReadableMediaFilename::make($file))
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(5120)
                             ->helperText('Pojedyncze zdjęcie używane jako okładka aktualności.'),

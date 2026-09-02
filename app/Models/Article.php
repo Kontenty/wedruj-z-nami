@@ -41,21 +41,16 @@ class Article extends Model implements HasMedia
             ->useDisk('public')
             ->singleFile()
             ->useFallbackUrl('/images/placeholder-news.jpg')
-            ->useFallbackUrl('/images/placeholder-news-thumb.jpg', 'thumbnail');
+            ->useFallbackUrl('/images/placeholder-news-thumb.jpg', 'thumbnail_webp');
     }
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumbnail')
-            ->fit(Fit::Crop, 600, 400)
-            ->quality(60)
-            ->nonQueued();
-
         if (! app()->environment('testing')) {
             $this->addMediaConversion('thumbnail_webp')
                 ->fit(Fit::Crop, 600, 400)
                 ->format('webp')
-                ->quality(75)
+                ->quality(50)
                 ->nonQueued();
         }
     }
@@ -67,7 +62,7 @@ class Article extends Model implements HasMedia
 
     public function getCoverThumbnailUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('cover', 'thumbnail');
+        return $this->cover_thumbnail_webp_url;
     }
 
     public function getCoverThumbnailWebpUrlAttribute(): string

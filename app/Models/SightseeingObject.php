@@ -76,44 +76,30 @@ class SightseeingObject extends Model implements HasMedia
                 && $file->size <= 10 * 1024 * 1024)
             ->useDisk('public')
             ->useFallbackUrl('/images/placeholder-object.jpg')
-            ->useFallbackUrl('/images/placeholder-object-thumb.jpg', 'thumbnail')
-            ->useFallbackUrl('/images/placeholder-object-card.jpg', 'card');
+            ->useFallbackUrl('/images/placeholder-object-thumb.jpg', 'thumbnail_webp')
+            ->useFallbackUrl('/images/placeholder-object-card.jpg', 'card_webp')
+            ->useFallbackUrl('/images/placeholder-object.jpg', 'gallery_webp');
     }
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumbnail')
-            ->fit(Fit::Crop, 200, 150)
-            ->quality(60)
-            ->nonQueued();
-
-        $this->addMediaConversion('card')
-            ->fit(Fit::Crop, 800, 600)
-            ->quality(60)
-            ->nonQueued();
-
-        $this->addMediaConversion('gallery')
-            ->fit(Fit::Crop, 1600, 1200)
-            ->quality(80)
-            ->nonQueued();
-
         if (! app()->environment('testing')) {
             $this->addMediaConversion('thumbnail_webp')
                 ->fit(Fit::Crop, 200, 150)
                 ->format('webp')
-                ->quality(75)
+                ->quality(50)
                 ->nonQueued();
 
             $this->addMediaConversion('card_webp')
                 ->fit(Fit::Crop, 800, 600)
                 ->format('webp')
-                ->quality(75)
+                ->quality(50)
                 ->nonQueued();
 
             $this->addMediaConversion('gallery_webp')
                 ->fit(Fit::Crop, 1600, 1200)
                 ->format('webp')
-                ->quality(85)
+                ->quality(70)
                 ->nonQueued();
         }
     }
@@ -159,17 +145,17 @@ class SightseeingObject extends Model implements HasMedia
 
     public function getThumbnailUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('images', 'thumbnail');
+        return $this->thumbnail_webp_url;
     }
 
     public function getCardUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('images', 'card');
+        return $this->card_webp_url;
     }
 
     public function getGalleryUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('images', 'gallery');
+        return $this->getFirstMediaUrl('images', 'gallery_webp');
     }
 
     /**
@@ -197,9 +183,9 @@ class SightseeingObject extends Model implements HasMedia
             ->map(fn (Media $media): array => [
                 'id' => $media->id,
                 'url' => $media->getUrl(),
-                'thumbnail_url' => $media->getUrl('thumbnail'),
-                'card_url' => $media->getUrl('card'),
-                'gallery_url' => $this->getConversionUrl($media, 'gallery'),
+                'thumbnail_url' => $this->getConversionUrl($media, 'thumbnail_webp'),
+                'card_url' => $this->getConversionUrl($media, 'card_webp'),
+                'gallery_url' => $this->getConversionUrl($media, 'gallery_webp'),
                 'thumbnail_webp_url' => $this->getConversionUrl($media, 'thumbnail_webp'),
                 'card_webp_url' => $this->getConversionUrl($media, 'card_webp'),
                 'gallery_webp_url' => $this->getConversionUrl($media, 'gallery_webp'),
