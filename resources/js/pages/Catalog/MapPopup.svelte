@@ -11,7 +11,7 @@
   const imageUrl = $derived(
     object.primary_image_url ||
       object.thumbnail_url ||
-      '/images/placeholder-object-thumb.jpg',
+      '/images/placeholder-object-thumb.webp',
   );
   const webpUrl = $derived(
     object.card_webp_url || object.thumbnail_webp_url || null,

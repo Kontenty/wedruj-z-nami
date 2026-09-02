@@ -11,7 +11,12 @@ class ReadableMediaFilename
     {
         $baseName = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
         $baseName = $baseName !== '' ? $baseName : 'image';
-        $extension = Str::lower($file->getClientOriginalExtension());
+        $extension = match ($file->getMimeType()) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => 'bin',
+        };
 
         return "{$baseName}-".Str::lower(Str::random(8)).".{$extension}";
     }

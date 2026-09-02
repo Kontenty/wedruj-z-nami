@@ -48,7 +48,7 @@
               {/if}
               <img
                 src={nearbyObject.thumbnail_url ||
-                  '/images/placeholder-object-thumb.jpg'}
+                  '/images/placeholder-object-thumb.webp'}
                 alt={nearbyObject.title}
                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 loading="lazy"

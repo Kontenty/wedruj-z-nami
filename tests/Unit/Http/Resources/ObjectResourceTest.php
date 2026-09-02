@@ -28,5 +28,5 @@ it('exposes catalog object fields with detail url', function () {
         ->and($data['locality']['name'])->toBe('Kraków')
         ->and($data['locality']['voivodeship']['name'])->toBe('Małopolskie')
         ->and($data['objectTypes'])->toHaveCount(1)
-        ->and($data['thumbnail_url'])->toBe('/images/placeholder-object-thumb.jpg');
+        ->and($data['thumbnail_url'])->toBe('/images/placeholder-object-thumb.webp');
 });

@@ -9,9 +9,9 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollectio
 test('sightseeing object media accessors return fallback values without real images', function () {
     $object = SightseeingObject::factory()->create(['title' => 'Wawel Królewski']);
 
-    expect($object->primary_image_url)->toBe('/images/placeholder-object.jpg')
-        ->and($object->thumbnail_url)->toBe('/images/placeholder-object-thumb.jpg')
-        ->and($object->card_url)->toBe('/images/placeholder-object-card.jpg')
+    expect($object->primary_image_url)->toBe('/images/placeholder-object.webp')
+        ->and($object->thumbnail_url)->toBe('/images/placeholder-object-thumb.webp')
+        ->and($object->card_url)->toBe('/images/placeholder-object-card.webp')
         ->and($object->has_images)->toBeFalse()
         ->and($object->image_urls)->toBe([])
         ->and($object->image_items)->toBe([]);
@@ -36,10 +36,10 @@ test('sightseeing object images store attribution metadata and expose resource p
     $image = $object->image_items[0];
 
     expect($object->has_images)->toBeTrue()
-        ->and($object->primary_image_url)->toContain('wawel.jpg')
-        ->and($object->thumbnail_url)->toContain('wawel.jpg')
-        ->and($object->card_url)->toContain('wawel.jpg')
-        ->and($object->gallery_url)->toContain('wawel.jpg')
+        ->and($object->primary_image_url)->toEndWith('wawel-gallery_webp.webp')
+        ->and($object->thumbnail_url)->toEndWith('wawel-thumbnail_webp.webp')
+        ->and($object->card_url)->toEndWith('wawel-card_webp.webp')
+        ->and($object->gallery_url)->toEndWith('wawel-gallery_webp.webp')
         ->and($object->image_urls)->toHaveCount(1)
         ->and($image)->toMatchArray([
             'id' => $media->id,
@@ -48,11 +48,60 @@ test('sightseeing object images store attribution metadata and expose resource p
             'source' => 'Archiwum PTTK',
             'description' => 'Widok zamku od strony rzeki.',
         ])
-        ->and($image['url'])->toContain('wawel.jpg')
-        ->and($image['thumbnail_url'])->toBeNull()
-        ->and($image['card_url'])->toBeNull()
-        ->and($image['gallery_url'])->toBeNull()
+        ->and($image['url'])->toEndWith('wawel-gallery_webp.webp')
+        ->and($image['thumbnail_url'])->toEndWith('wawel-thumbnail_webp.webp')
+        ->and($image['card_url'])->toEndWith('wawel-card_webp.webp')
+        ->and($image['gallery_url'])->toEndWith('wawel-gallery_webp.webp')
         ->and($image['order'])->toBeInt();
+
+    foreach (['thumbnail_webp', 'card_webp', 'gallery_webp'] as $conversion) {
+        expect($media->fresh()->hasGeneratedConversion($conversion))->toBeTrue()
+            ->and(Storage::disk('public')->exists($media->getPathRelativeToRoot($conversion)))->toBeTrue();
+    }
+
+    expect(Storage::disk('public')->allFiles("{$media->id}/conversions"))
+        ->toHaveCount(3)
+        ->each->toEndWith('.webp');
+});
+
+test('sightseeing object media generates conversions immediately', function () {
+    Storage::fake('public');
+
+    $object = SightseeingObject::factory()->create();
+    $media = $object
+        ->addMedia(UploadedFile::fake()->image('immediate.jpg'))
+        ->toMediaCollection('images');
+
+    $object->refresh();
+
+    expect($media->fresh()->generated_conversions)->toMatchArray([
+        'thumbnail_webp' => true,
+        'card_webp' => true,
+        'gallery_webp' => true,
+    ])
+        ->and($object->primary_image_url)->toEndWith('immediate-gallery_webp.webp')
+        ->and($object->thumbnail_url)->toEndWith('immediate-thumbnail_webp.webp')
+        ->and($object->card_url)->toEndWith('immediate-card_webp.webp')
+        ->and($object->gallery_url)->toEndWith('immediate-gallery_webp.webp');
+});
+
+test('article cover generates conversions immediately', function () {
+    Storage::fake('public');
+
+    $article = Article::factory()->create();
+    $cover = $article
+        ->addMedia(UploadedFile::fake()->image('immediate-cover.jpg'))
+        ->toMediaCollection('cover');
+
+    $article->refresh();
+
+    expect($cover->fresh()->generated_conversions)->toMatchArray([
+        'cover_webp' => true,
+        'thumbnail_webp' => true,
+    ])
+        ->and($article->cover_image_url)->toEndWith('immediate-cover-cover_webp.webp')
+        ->and($article->cover_thumbnail_url)->toEndWith('immediate-cover-thumbnail_webp.webp')
+        ->and($article->cover_thumbnail_webp_url)->toEndWith('immediate-cover-thumbnail_webp.webp');
 });
 
 test('sightseeing object image payload falls back to object title when alt text is missing', function () {
@@ -94,13 +143,13 @@ test('sightseeing object image payload falls back to object title when alt text 
 test('article media accessors return fallback cover values without real cover image', function () {
     $article = Article::factory()->create(['title' => 'Nowe obiekty w katalogu']);
 
-    expect($article->cover_image_url)->toBe('/images/placeholder-news.jpg')
-        ->and($article->cover_thumbnail_url)->toBe('/images/placeholder-news-thumb.jpg')
+    expect($article->cover_image_url)->toBe('/images/placeholder-news.webp')
+        ->and($article->cover_thumbnail_url)->toBe('/images/placeholder-news-thumb.webp')
         ->and($article->has_cover_image)->toBeFalse()
         ->and($article->cover_image)->toMatchArray([
             'id' => null,
-            'url' => '/images/placeholder-news.jpg',
-            'thumbnail_url' => '/images/placeholder-news-thumb.jpg',
+            'url' => '/images/placeholder-news.webp',
+            'thumbnail_url' => '/images/placeholder-news-thumb.webp',
             'alt' => 'Nowe obiekty w katalogu',
             'author' => null,
             'source' => null,
@@ -136,8 +185,14 @@ test('article cover is single file and exposes attribution metadata', function (
             'author' => 'Anna Nowak',
             'source' => 'PTTK',
         ])
-        ->and($article->cover_image['url'])->toContain('second-cover.jpg')
-        ->and($article->cover_image['thumbnail_url'])->toContain('second-cover.jpg');
+        ->and($article->cover_image['url'])->toEndWith('second-cover-cover_webp.webp')
+        ->and($article->cover_image['thumbnail_url'])->toEndWith('second-cover-thumbnail_webp.webp')
+        ->and($cover->fresh()->hasGeneratedConversion('cover_webp'))->toBeTrue()
+        ->and($cover->fresh()->hasGeneratedConversion('thumbnail_webp'))->toBeTrue()
+        ->and(Storage::disk('public')->exists($cover->getPathRelativeToRoot('cover_webp')))->toBeTrue()
+        ->and(Storage::disk('public')->exists($cover->getPathRelativeToRoot('thumbnail_webp')))->toBeTrue()
+        ->and(Storage::disk('public')->allFiles("{$cover->id}/conversions"))->toHaveCount(2)
+        ->each->toEndWith('.webp');
 });
 
 test('article cover payload falls back to article title when alt text is missing', function () {
@@ -211,7 +266,7 @@ test('sightseeing object images can be strictly reordered', function () {
     $object->refresh();
 
     expect($object->getMedia('images')->pluck('id')->all())->toBe([$second->id, $first->id]);
-    expect($object->primary_image_url)->toContain('second.jpg');
+    expect($object->primary_image_url)->toEndWith('second-gallery_webp.webp');
 });
 
 test('sightseeing object image reordering rejects invalid id lists', function () {

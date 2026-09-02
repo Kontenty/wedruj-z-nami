@@ -196,7 +196,7 @@
       aria-label="Aktualnie wyświetlane zdjęcie"
     >
       <img
-        src={images[lightboxIndex].url}
+        src={images[lightboxIndex].gallery_url}
         alt={images[lightboxIndex].alt || title}
         class="max-h-[85vh] max-w-[90vw] rounded-lg"
       />

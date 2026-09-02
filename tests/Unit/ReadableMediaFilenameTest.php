@@ -16,3 +16,9 @@ test('it uses image as the fallback when the original name has no slug', functio
     expect($filename)
         ->toMatch('/^image-[a-z0-9]{8}\.jpg$/');
 });
+
+test('it derives a safe extension from the detected mime type', function () {
+    $filename = ReadableMediaFilename::make(UploadedFile::fake()->create('payload.php', 100, 'image/jpeg'));
+
+    expect($filename)->toMatch('/^payload-[a-z0-9]{8}\.jpg$/');
+});

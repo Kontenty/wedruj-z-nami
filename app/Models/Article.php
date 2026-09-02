@@ -40,34 +40,39 @@ class Article extends Model implements HasMedia
                 && $file->size <= 5 * 1024 * 1024)
             ->useDisk('public')
             ->singleFile()
-            ->useFallbackUrl('/images/placeholder-news.jpg')
-            ->useFallbackUrl('/images/placeholder-news-thumb.jpg', 'thumbnail_webp');
+            ->useFallbackUrl('/images/placeholder-news.webp')
+            ->useFallbackUrl('/images/placeholder-news.webp', 'cover_webp')
+            ->useFallbackUrl('/images/placeholder-news-thumb.webp', 'thumbnail_webp');
     }
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        if (! app()->environment('testing')) {
-            $this->addMediaConversion('thumbnail_webp')
-                ->fit(Fit::Crop, 600, 400)
-                ->format('webp')
-                ->quality(50)
-                ->nonQueued();
-        }
+        $this->addMediaConversion('cover_webp')
+            ->fit(Fit::Max, 1600, 1200)
+            ->format('webp')
+            ->quality(70)
+            ->nonQueued();
+
+        $this->addMediaConversion('thumbnail_webp')
+            ->fit(Fit::Crop, 600, 400)
+            ->format('webp')
+            ->quality(50)
+            ->nonQueued();
     }
 
     public function getCoverImageUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('cover');
+        return $this->getFirstConversionUrl('cover_webp');
     }
 
     public function getCoverThumbnailUrlAttribute(): string
     {
-        return $this->cover_thumbnail_webp_url;
+        return $this->getFirstConversionUrl('thumbnail_webp');
     }
 
-    public function getCoverThumbnailWebpUrlAttribute(): string
+    public function getCoverThumbnailWebpUrlAttribute(): ?string
     {
-        return $this->getFirstMediaUrl('cover', 'thumbnail_webp');
+        return $this->getFirstGeneratedConversionUrl('thumbnail_webp');
     }
 
     public function getHasCoverImageAttribute(): bool
@@ -95,11 +100,35 @@ class Article extends Model implements HasMedia
 
     private function getConversionUrl(Media $media, string $conversionName): ?string
     {
+        if (! $media->hasGeneratedConversion($conversionName)) {
+            return null;
+        }
+
         try {
             return $media->getUrl($conversionName);
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function getFirstConversionUrl(string $conversionName): string
+    {
+        $media = $this->getFirstMedia('cover');
+
+        if ($media) {
+            return $this->getConversionUrl($media, $conversionName)
+                ?? $media->getUrl();
+        }
+
+        return $this->getFallbackMediaUrl('cover', $conversionName)
+            ?: $this->getFallbackMediaUrl('cover');
+    }
+
+    private function getFirstGeneratedConversionUrl(string $conversionName): ?string
+    {
+        $media = $this->getFirstMedia('cover');
+
+        return $media ? $this->getConversionUrl($media, $conversionName) : null;
     }
 
     #[Scope]

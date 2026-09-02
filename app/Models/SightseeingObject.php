@@ -75,33 +75,31 @@ class SightseeingObject extends Model implements HasMedia
             ->acceptsFile(fn (File $file): bool => in_array($file->mimeType, ['image/jpeg', 'image/png', 'image/webp'], true)
                 && $file->size <= 10 * 1024 * 1024)
             ->useDisk('public')
-            ->useFallbackUrl('/images/placeholder-object.jpg')
-            ->useFallbackUrl('/images/placeholder-object-thumb.jpg', 'thumbnail_webp')
-            ->useFallbackUrl('/images/placeholder-object-card.jpg', 'card_webp')
-            ->useFallbackUrl('/images/placeholder-object.jpg', 'gallery_webp');
+            ->useFallbackUrl('/images/placeholder-object.webp')
+            ->useFallbackUrl('/images/placeholder-object-thumb.webp', 'thumbnail_webp')
+            ->useFallbackUrl('/images/placeholder-object-card.webp', 'card_webp')
+            ->useFallbackUrl('/images/placeholder-object.webp', 'gallery_webp');
     }
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        if (! app()->environment('testing')) {
-            $this->addMediaConversion('thumbnail_webp')
-                ->fit(Fit::Crop, 200, 150)
-                ->format('webp')
-                ->quality(50)
-                ->nonQueued();
+        $this->addMediaConversion('thumbnail_webp')
+            ->fit(Fit::Crop, 200, 150)
+            ->format('webp')
+            ->quality(50)
+            ->nonQueued();
 
-            $this->addMediaConversion('card_webp')
-                ->fit(Fit::Crop, 800, 600)
-                ->format('webp')
-                ->quality(50)
-                ->nonQueued();
+        $this->addMediaConversion('card_webp')
+            ->fit(Fit::Crop, 800, 600)
+            ->format('webp')
+            ->quality(50)
+            ->nonQueued();
 
-            $this->addMediaConversion('gallery_webp')
-                ->fit(Fit::Crop, 1600, 1200)
-                ->format('webp')
-                ->quality(70)
-                ->nonQueued();
-        }
+        $this->addMediaConversion('gallery_webp')
+            ->fit(Fit::Crop, 1600, 1200)
+            ->format('webp')
+            ->quality(70)
+            ->nonQueued();
     }
 
     public function reorderImages(array $mediaIds): void
@@ -130,32 +128,32 @@ class SightseeingObject extends Model implements HasMedia
 
     public function getPrimaryImageUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('images');
+        return $this->getFirstConversionUrl('gallery_webp');
     }
 
-    public function getThumbnailWebpUrlAttribute(): string
+    public function getThumbnailWebpUrlAttribute(): ?string
     {
-        return $this->getFirstMediaUrl('images', 'thumbnail_webp');
+        return $this->getFirstGeneratedConversionUrl('thumbnail_webp');
     }
 
-    public function getCardWebpUrlAttribute(): string
+    public function getCardWebpUrlAttribute(): ?string
     {
-        return $this->getFirstMediaUrl('images', 'card_webp');
+        return $this->getFirstGeneratedConversionUrl('card_webp');
     }
 
     public function getThumbnailUrlAttribute(): string
     {
-        return $this->thumbnail_webp_url;
+        return $this->getFirstConversionUrl('thumbnail_webp');
     }
 
     public function getCardUrlAttribute(): string
     {
-        return $this->card_webp_url;
+        return $this->getFirstConversionUrl('card_webp');
     }
 
     public function getGalleryUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('images', 'gallery_webp');
+        return $this->getFirstConversionUrl('gallery_webp');
     }
 
     /**
@@ -164,7 +162,7 @@ class SightseeingObject extends Model implements HasMedia
     public function getImageUrlsAttribute(): array
     {
         return $this->getMedia('images')
-            ->map(fn (Media $media): string => $media->getUrl())
+            ->map(fn (Media $media): string => $this->getConversionOrOriginalUrl($media, 'gallery_webp'))
             ->values()
             ->all();
     }
@@ -175,17 +173,17 @@ class SightseeingObject extends Model implements HasMedia
     }
 
     /**
-     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, gallery_url: string|null, thumbnail_webp_url: string|null, card_webp_url: string|null, gallery_webp_url: string|null, alt: string, author: mixed, source: mixed, description: mixed, order: int|null}>
+     * @return array<int, array{id: int, url: string, thumbnail_url: string, card_url: string, gallery_url: string, thumbnail_webp_url: string|null, card_webp_url: string|null, gallery_webp_url: string|null, alt: string, author: mixed, source: mixed, description: mixed, order: int|null}>
      */
     public function getImageItemsAttribute(): array
     {
         return $this->getMedia('images')
             ->map(fn (Media $media): array => [
                 'id' => $media->id,
-                'url' => $media->getUrl(),
-                'thumbnail_url' => $this->getConversionUrl($media, 'thumbnail_webp'),
-                'card_url' => $this->getConversionUrl($media, 'card_webp'),
-                'gallery_url' => $this->getConversionUrl($media, 'gallery_webp'),
+                'url' => $this->getConversionOrOriginalUrl($media, 'gallery_webp'),
+                'thumbnail_url' => $this->getConversionOrOriginalUrl($media, 'thumbnail_webp'),
+                'card_url' => $this->getConversionOrOriginalUrl($media, 'card_webp'),
+                'gallery_url' => $this->getConversionOrOriginalUrl($media, 'gallery_webp'),
                 'thumbnail_webp_url' => $this->getConversionUrl($media, 'thumbnail_webp'),
                 'card_webp_url' => $this->getConversionUrl($media, 'card_webp'),
                 'gallery_webp_url' => $this->getConversionUrl($media, 'gallery_webp'),
@@ -201,11 +199,39 @@ class SightseeingObject extends Model implements HasMedia
 
     private function getConversionUrl(Media $media, string $conversionName): ?string
     {
+        if (! $media->hasGeneratedConversion($conversionName)) {
+            return null;
+        }
+
         try {
             return $media->getUrl($conversionName);
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function getConversionOrOriginalUrl(Media $media, string $conversionName): string
+    {
+        return $this->getConversionUrl($media, $conversionName) ?? $media->getUrl();
+    }
+
+    private function getFirstConversionUrl(string $conversionName): string
+    {
+        $media = $this->getFirstMedia('images');
+
+        if ($media) {
+            return $this->getConversionOrOriginalUrl($media, $conversionName);
+        }
+
+        return $this->getFallbackMediaUrl('images', $conversionName)
+            ?: $this->getFallbackMediaUrl('images');
+    }
+
+    private function getFirstGeneratedConversionUrl(string $conversionName): ?string
+    {
+        $media = $this->getFirstMedia('images');
+
+        return $media ? $this->getConversionUrl($media, $conversionName) : null;
     }
 
     #[Scope]

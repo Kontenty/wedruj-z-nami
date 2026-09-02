@@ -22,7 +22,9 @@
             @if($newsItem->has_cover_image)
             <div class="aspect-3/2 overflow-hidden">
                 <picture>
+                    @if($newsItem->cover_thumbnail_webp_url)
                     <source srcset="{{ $newsItem->cover_thumbnail_webp_url }}" type="image/webp">
+                    @endif
                     <img
                         src="{{ $newsItem->cover_thumbnail_url }}"
                         alt=""
@@ -68,7 +70,9 @@
                 class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 <div class="aspect-4/3 overflow-hidden">
                     <picture>
+                        @if($object->card_webp_url)
                         <source srcset="{{ $object->card_webp_url }}" type="image/webp">
+                        @endif
                         <img
                             src="{{ $object->card_url }}"
                             alt="{{ $object->title }}"

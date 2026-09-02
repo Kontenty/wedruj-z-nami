@@ -7,7 +7,7 @@
 <section class="homepage-hero relative isolate overflow-hidden dark-box">
     <div class="absolute inset-0">
         <img
-            src="{{ asset('images/tyniec/main.jpg') }}"
+            src="{{ asset('images/tyniec/main.webp') }}"
             alt="Panorama Tyniecka z Wisłą i klasztorem w tle"
             author="Fot. Magdalena Grabowska"
             class="h-full w-full object-cover object-center"
@@ -96,7 +96,9 @@
                 class="home-card-shadow group overflow-hidden rounded-4xl border border-stone-200/80 bg-[#fffdf9] transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pine-700 focus-visible:ring-offset-2">
                 <div class="aspect-4/3 overflow-hidden bg-stone-200">
                     <picture>
+                        @if($object->card_webp_url)
                         <source srcset="{{ $object->card_webp_url }}" type="image/webp">
+                        @endif
                         <img
                             src="{{ $object->card_url }}"
                             alt="{{ $object->title }}"
@@ -234,7 +236,9 @@
                 @if($newsItem->has_cover_image)
                 <div class="aspect-3/2 overflow-hidden bg-stone-200">
                     <picture>
+                        @if($newsItem->cover_thumbnail_webp_url)
                         <source srcset="{{ $newsItem->cover_thumbnail_webp_url }}" type="image/webp">
+                        @endif
                         <img
                             src="{{ $newsItem->cover_thumbnail_url }}"
                             alt="{{ $newsItem->title }}"

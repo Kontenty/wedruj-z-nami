@@ -32,11 +32,11 @@ class ObjectResource extends JsonResource
             'longitude' => $this->longitude,
             'is_unesco' => $this->is_unesco,
             'url' => route('catalog.show', $this->slug),
-            'thumbnail_url' => $this->thumbnail_url ?: '/images/placeholder-object-thumb.jpg',
+            'thumbnail_url' => $this->thumbnail_url ?: '/images/placeholder-object-thumb.webp',
             'thumbnail_webp_url' => $this->thumbnail_webp_url ?: null,
-            'card_url' => $this->card_url ?: '/images/placeholder-object-card.jpg',
+            'card_url' => $this->card_url ?: '/images/placeholder-object-card.webp',
             'card_webp_url' => $this->card_webp_url ?: null,
-            'primary_image_url' => $this->primary_image_url ?: '/images/placeholder-object.jpg',
+            'primary_image_url' => $this->primary_image_url ?: '/images/placeholder-object.webp',
             'objectTypes' => $this->whenLoaded('objectTypes', fn () => $this->objectTypes
                 ->map(fn ($objectType): array => [
                     'id' => $objectType->id,

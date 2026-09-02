@@ -31,7 +31,7 @@
         {/if}
         <img
           class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          src={object.thumbnail_url || '/images/placeholder-object-thumb.jpg'}
+          src={object.thumbnail_url || '/images/placeholder-object-thumb.webp'}
           alt={object.title}
           loading="lazy"
         />
