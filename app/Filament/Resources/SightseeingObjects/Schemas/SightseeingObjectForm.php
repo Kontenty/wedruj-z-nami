@@ -39,11 +39,6 @@ class SightseeingObjectForm
                             ->label('Nazwa')
                             ->required()
                             ->maxLength(255),
-                        TextInput::make('slug')
-                            ->label('Slug')
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true)
-                            ->helperText('Pozostaw puste, aby wygenerować automatycznie z nazwy.'),
                         Textarea::make('lead')
                             ->label('Krótki opis')
                             ->required()
@@ -54,7 +49,7 @@ class SightseeingObjectForm
                             ->required()
                             ->columnSpanFull(),
                     ])
-                    ->columns(2),
+                    ->columns(1),
 
                 Section::make('Klasyfikacja i publikacja')
                     ->schema([
@@ -227,35 +222,38 @@ class SightseeingObjectForm
                             ->label('Zdjęcia')
                             ->schema([
                                 Hidden::make('media_id'),
-                                FileUpload::make('path')
-                                    ->label('Plik')
-                                    ->image()
-                                    ->multiple()
-                                    ->maxFiles(1)
-                                    ->disk('public')
-                                    ->directory('cms/object-images')
-                                    ->getUploadedFileNameForStorageUsing(fn ($file): string => ReadableMediaFilename::make($file))
-                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                    ->maxSize(10240),
-                                TextInput::make('author')
-                                    ->label('Autor')
-                                    ->maxLength(255),
-                                TextInput::make('source')
-                                    ->label('Źródło')
-                                    ->maxLength(255),
-                                Textarea::make('description')
-                                    ->label('Opis zdjęcia')
-                                    ->maxLength(1000)
-                                    ->rows(2),
-                                TextInput::make('alt')
-                                    ->label('Tekst alternatywny')
-                                    ->helperText('Opcjonalnie. Domyślnie używana jest nazwa obiektu.')
-                                    ->maxLength(255),
+                                Grid::make(2)
+                                    ->schema([
+                                        FileUpload::make('path')
+                                            ->label('Plik')
+                                            ->image()
+                                            ->multiple()
+                                            ->maxFiles(1)
+                                            ->disk('public')
+                                            ->directory('cms/object-images')
+                                            ->getUploadedFileNameForStorageUsing(fn ($file): string => ReadableMediaFilename::make($file))
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                            ->maxSize(10240),
+                                        Grid::make(1)
+                                            ->schema([
+                                                TextInput::make('author')
+                                                    ->label('Autor')
+                                                    ->maxLength(255),
+                                                TextInput::make('source')
+                                                    ->label('Źródło')
+                                                    ->maxLength(255),
+                                                Textarea::make('description')
+                                                    ->label('Opis zdjęcia')
+                                                    ->maxLength(1000)
+                                                    ->rows(2),
+                                            ]),
+                                    ])
+                                    ->columnSpanFull(),
                             ])
                             ->addActionLabel('Dodaj zdjęcie')
                             ->addAction(fn (Action $action): Action => $action->color('primary'))
                             ->reorderable()
-                            ->columns(2)
+                            ->columns(1)
                             ->itemLabel(fn (array $state): ?string => filled($state['description'] ?? null)
                                 ? (string) $state['description']
                                 : null)

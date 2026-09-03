@@ -16,7 +16,7 @@ class CreateSightseeingObject extends CreateRecord
 
     protected ?bool $hasDatabaseTransactions = true;
 
-    /** @var array<int, array{path: string, author: string|null, source: string|null, description: string|null, alt: string|null}> */
+    /** @var array<int, array{path: string, author: string|null, source: string|null, description: string|null}> */
     protected array $imageItems = [];
 
     /**
@@ -69,7 +69,6 @@ class CreateSightseeingObject extends CreateRecord
                     'author' => filled($item['author'] ?? null) ? (string) $item['author'] : null,
                     'source' => filled($item['source'] ?? null) ? (string) $item['source'] : null,
                     'description' => filled($item['description'] ?? null) ? (string) $item['description'] : null,
-                    'alt' => filled($item['alt'] ?? null) ? (string) $item['alt'] : null,
                 ]))
                 ->toMediaCollection('images');
 

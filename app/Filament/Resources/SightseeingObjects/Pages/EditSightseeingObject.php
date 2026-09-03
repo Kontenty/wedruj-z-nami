@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SightseeingObjects\Pages;
 use App\Filament\Resources\SightseeingObjects\Pages\Concerns\InteractsWithSightseeingObjectGeometry;
 use App\Filament\Resources\SightseeingObjects\SightseeingObjectResource;
 use App\Models\SightseeingObject;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class EditSightseeingObject extends EditRecord
     /** @var array<int, int> */
     protected array $mediaIdsToRemove = [];
 
-    /** @var array<int, array{path: string, author: string|null, source: string|null, description: string|null, alt: string|null}> */
+    /** @var array<int, array{path: string, author: string|null, source: string|null, description: string|null}> */
     protected array $imageItems = [];
 
     /** @var array<string, Media> path → existing media */
@@ -62,6 +63,10 @@ class EditSightseeingObject extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('view')
+                ->label('Zobacz obiekt')
+                ->url(fn (): string => route('catalog.show', $this->record))
+                ->openUrlInNewTab(),
             DeleteAction::make()
                 ->requiresConfirmation()
                 ->visible(fn (): bool => auth()->user()?->isAdministrator() === true),
@@ -167,7 +172,7 @@ class EditSightseeingObject extends EditRecord
     }
 
     /**
-     * @return array<int, array{media_id: int, path: string, author: string|null, source: string|null, description: string|null, alt: string|null}>
+     * @return array<int, array{media_id: int, path: string, author: string|null, source: string|null, description: string|null}>
      */
     protected function getRecordImageItems(): array
     {
@@ -179,7 +184,6 @@ class EditSightseeingObject extends EditRecord
                 'author' => $media->getCustomProperty('author'),
                 'source' => $media->getCustomProperty('source'),
                 'description' => $media->getCustomProperty('description'),
-                'alt' => $media->getCustomProperty('alt'),
             ])
             ->all();
     }
@@ -217,10 +221,10 @@ class EditSightseeingObject extends EditRecord
         }
     }
 
-    /** @param array{author?: mixed, source?: mixed, description?: mixed, alt?: mixed} $item */
+    /** @param array{author?: mixed, source?: mixed, description?: mixed} $item */
     private function updateMediaProperties(Media $media, array $item): void
     {
-        foreach (['author', 'source', 'description', 'alt'] as $property) {
+        foreach (['author', 'source', 'description'] as $property) {
             $value = $this->mediaProperties($item)[$property] ?? null;
 
             if ($value === null) {
@@ -268,14 +272,13 @@ class EditSightseeingObject extends EditRecord
         }
     }
 
-    /** @param array{author?: mixed, source?: mixed, description?: mixed, alt?: mixed} $item */
+    /** @param array{author?: mixed, source?: mixed, description?: mixed} $item */
     private function mediaProperties(array $item): array
     {
         return array_filter([
             'author' => filled($item['author'] ?? null) ? (string) $item['author'] : null,
             'source' => filled($item['source'] ?? null) ? (string) $item['source'] : null,
             'description' => filled($item['description'] ?? null) ? (string) $item['description'] : null,
-            'alt' => filled($item['alt'] ?? null) ? (string) $item['alt'] : null,
         ], static fn (?string $value): bool => $value !== null);
     }
 

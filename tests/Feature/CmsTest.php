@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+const SHORT_OBJECT_DESCRIPTION = 'Krótki opis obiektu.';
+const FULL_OBJECT_DESCRIPTION = 'Pełny opis obiektu krajoznawczego.';
+const DEFAULT_POLYGON_WKT = 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))';
+const GEOMETRY_TYPE_SQL = 'ST_GeometryType(geometry) as geometry_type_name';
+const GEOMETRY_WKT_SQL = 'ST_AsText(geometry) as geometry_wkt';
+const OSM_ID = '654321';
+
 test('cms login page renders and dashboard requires authentication', function () {
     $this->get('/cms/login')->assertSuccessful();
 
@@ -86,8 +93,8 @@ test('sightseeing object create flow validates geometry and assigns author', fun
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Zamek testowy',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
@@ -101,6 +108,7 @@ test('sightseeing object create flow validates geometry and assigns author', fun
     $object = SightseeingObject::query()->where('title', 'Zamek testowy')->firstOrFail();
 
     expect($object->author_id)->toBe($editor->id)
+        ->and($object->slug)->toBe('zamek-testowy')
         ->and($object->objectTypes()->pluck('object_types.id')->all())->toBe([$objectType->id]);
 });
 
@@ -114,15 +122,13 @@ test('sightseeing object creation rolls back when importing an image fails', fun
     $validPath = 'cms/object-images/first.jpg';
 
     Storage::disk('public')->put($validPath, file_get_contents($upload->getRealPath()));
-    $filesBefore = Storage::disk('public')->allFiles();
-
     $this->actingAs($editor);
 
     expect(fn () => Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Nieudany import zdjęć',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
@@ -151,12 +157,12 @@ test('sightseeing object create flow persists polygon geometry', function () {
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Park krajobrazowy',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
-            'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))',
+            'polygon_wkt' => DEFAULT_POLYGON_WKT,
             'status' => 'draft',
         ])
         ->call('create')
@@ -165,8 +171,8 @@ test('sightseeing object create flow persists polygon geometry', function () {
     $object = SightseeingObject::query()->where('title', 'Park krajobrazowy')->firstOrFail();
     $geometry = DB::table('sightseeing_objects')
         ->where('id', $object->id)
-        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
-        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->selectRaw(GEOMETRY_TYPE_SQL)
+        ->selectRaw(GEOMETRY_WKT_SQL)
         ->first();
 
     expect($object->author_id)->toBe($editor->id)
@@ -186,8 +192,8 @@ test('sightseeing object create flow accepts polygon geometry with interior ring
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Park z jeziorem',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
@@ -200,8 +206,8 @@ test('sightseeing object create flow accepts polygon geometry with interior ring
     $object = SightseeingObject::query()->where('title', 'Park z jeziorem')->firstOrFail();
     $geometry = DB::table('sightseeing_objects')
         ->where('id', $object->id)
-        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
-        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->selectRaw(GEOMETRY_TYPE_SQL)
+        ->selectRaw(GEOMETRY_WKT_SQL)
         ->first();
 
     expect(strtolower((string) data_get($geometry, 'geometry_type_name')))->toContain('polygon')
@@ -218,8 +224,8 @@ test('sightseeing object create flow accepts multipolygon geometry', function ()
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Zespół wysp',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
@@ -232,8 +238,8 @@ test('sightseeing object create flow accepts multipolygon geometry', function ()
     $object = SightseeingObject::query()->where('title', 'Zespół wysp')->firstOrFail();
     $geometry = DB::table('sightseeing_objects')
         ->where('id', $object->id)
-        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
-        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->selectRaw(GEOMETRY_TYPE_SQL)
+        ->selectRaw(GEOMETRY_WKT_SQL)
         ->first();
 
     expect(strtolower((string) data_get($geometry, 'geometry_type_name')))->toContain('multipolygon')
@@ -250,13 +256,13 @@ test('sightseeing object create flow clears imported osm metadata after manual g
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Granica ręcznie poprawiona',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
             'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9700000 50.0500000,19.9700000 50.0900000,19.9300000 50.0900000,19.9300000 50.0500000))',
-            'osm_geometry_wkt' => 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))',
+            'osm_geometry_wkt' => DEFAULT_POLYGON_WKT,
             'osm_id' => '123456',
             'osm_type' => 'relation',
             'status' => 'draft',
@@ -280,8 +286,8 @@ test('sightseeing object create flow rejects invalid polygon geometry', function
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Niepoprawny poligon',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
@@ -302,8 +308,8 @@ test('published sightseeing objects require an image in the cms form', function 
     Livewire::test(CreateSightseeingObject::class)
         ->fillForm([
             'title' => 'Obiekt bez zdjęcia',
-            'lead' => 'Krótki opis obiektu.',
-            'description' => 'Pełny opis obiektu krajoznawczego.',
+            'lead' => SHORT_OBJECT_DESCRIPTION,
+            'description' => FULL_OBJECT_DESCRIPTION,
             'locality_id' => $locality->id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'point',
@@ -365,7 +371,7 @@ test('editing sightseeing object removes images deleted from the gallery', funct
     ]);
     $object->objectTypes()->sync($objectType->id);
 
-    $first = $object->addMedia(UploadedFile::fake()->image('first.jpg', 200, 150))->toMediaCollection('images');
+    $object->addMedia(UploadedFile::fake()->image('first.jpg', 200, 150))->toMediaCollection('images');
     $second = $object->addMedia(UploadedFile::fake()->image('second.jpg', 200, 150))->toMediaCollection('images');
 
     expect($object->getMedia('images'))->toHaveCount(2);
@@ -529,14 +535,12 @@ test('editing sightseeing object with new images does not throw on reorder', fun
                     'author' => 'Autor istniejącego',
                     'source' => 'Źródło istniejącego',
                     'description' => 'Opis istniejącego zdjęcia',
-                    'alt' => 'Alt istniejącego zdjęcia',
                 ],
                 [
                     'path' => [$newPath],
                     'author' => 'Autor nowego',
                     'source' => 'Źródło nowego',
                     'description' => 'Opis nowego zdjęcia',
-                    'alt' => 'Alt nowego zdjęcia',
                 ],
             ],
         ])
@@ -549,7 +553,9 @@ test('editing sightseeing object with new images does not throw on reorder', fun
         ->and($object->getMedia('images')[0]->getCustomProperty('author'))->toBe('Autor istniejącego')
         ->and($object->getMedia('images')[0]->getCustomProperty('description'))->toBe('Opis istniejącego zdjęcia')
         ->and($object->getMedia('images')[1]->getCustomProperty('author'))->toBe('Autor nowego')
-        ->and($object->getMedia('images')[1]->getCustomProperty('source'))->toBe('Źródło nowego');
+        ->and($object->getMedia('images')[1]->getCustomProperty('source'))->toBe('Źródło nowego')
+        ->and($object->image_items[0]['alt'])->toBe($object->title)
+        ->and($object->image_items[1]['alt'])->toBe($object->title);
 });
 
 test('editing sightseeing object can switch geometry to polygon', function () {
@@ -572,7 +578,7 @@ test('editing sightseeing object can switch geometry to polygon', function () {
             'locality_id' => $object->locality_id,
             'objectTypes' => [$objectType->id],
             'geometry_type' => 'polygon',
-            'polygon_wkt' => 'POLYGON((19.9300000 50.0500000,19.9600000 50.0500000,19.9600000 50.0800000,19.9300000 50.0800000,19.9300000 50.0500000))',
+            'polygon_wkt' => DEFAULT_POLYGON_WKT,
             'status' => 'draft',
             'images' => [],
         ])
@@ -583,8 +589,8 @@ test('editing sightseeing object can switch geometry to polygon', function () {
 
     $geometry = DB::table('sightseeing_objects')
         ->where('id', $object->id)
-        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
-        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->selectRaw(GEOMETRY_TYPE_SQL)
+        ->selectRaw(GEOMETRY_WKT_SQL)
         ->first();
 
     expect($object->latitude)->toBeNull()
@@ -600,14 +606,14 @@ test('editing sightseeing object preserves osm metadata when imported geometry s
     $object = SightseeingObject::factory()->polygon()->create([
         'locality_id' => $locality->id,
         'status' => 'draft',
-        'osm_id' => '654321',
+        'osm_id' => OSM_ID,
         'osm_type' => 'relation',
     ]);
     $object->objectTypes()->sync($objectType->id);
 
     $geometry = DB::table('sightseeing_objects')
         ->where('id', $object->id)
-        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->selectRaw(GEOMETRY_WKT_SQL)
         ->first();
 
     $this->actingAs($editor);
@@ -622,7 +628,7 @@ test('editing sightseeing object preserves osm metadata when imported geometry s
             'geometry_type' => 'polygon',
             'polygon_wkt' => (string) data_get($geometry, 'geometry_wkt'),
             'osm_geometry_wkt' => (string) data_get($geometry, 'geometry_wkt'),
-            'osm_id' => '654321',
+            'osm_id' => OSM_ID,
             'osm_type' => 'relation',
             'status' => 'draft',
             'images' => [],
@@ -632,7 +638,7 @@ test('editing sightseeing object preserves osm metadata when imported geometry s
 
     $object->refresh();
 
-    expect($object->osm_id)->toBe('654321')
+    expect($object->osm_id)->toBe(OSM_ID)
         ->and($object->osm_type)->toBe('relation');
 });
 
@@ -705,8 +711,8 @@ test('editing sightseeing object can switch geometry to multipolygon', function 
 
     $geometry = DB::table('sightseeing_objects')
         ->where('id', $object->id)
-        ->selectRaw('ST_GeometryType(geometry) as geometry_type_name')
-        ->selectRaw('ST_AsText(geometry) as geometry_wkt')
+        ->selectRaw(GEOMETRY_TYPE_SQL)
+        ->selectRaw(GEOMETRY_WKT_SQL)
         ->first();
 
     expect($object->latitude)->toBeNull()
