@@ -9,6 +9,9 @@
             <nav class="hidden items-center space-x-8 md:flex" aria-label="Nawigacja główna">
                 <a href="{{ route('catalog.index') }}" class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">Katalog</a>
                 <a href="{{ route('news.index') }}" class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">Aktualności</a>
+                @auth
+                    <a href="{{ route('filament.admin.pages.dashboard') }}" class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">Panel CMS</a>
+                @endauth
             </nav>
 
             <button
@@ -36,6 +39,9 @@
         <nav class="space-y-3 px-4 py-3" aria-label="Nawigacja mobilna">
             <a href="{{ route('catalog.index') }}" class="block py-1 text-gray-600 hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">Katalog</a>
             <a href="{{ route('news.index') }}" class="block py-1 text-gray-600 hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">Aktualności</a>
+            @auth
+                <a href="{{ route('filament.admin.pages.dashboard') }}" class="block py-1 text-gray-600 hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">Panel CMS</a>
+            @endauth
         </nav>
     </div>
 </header>
