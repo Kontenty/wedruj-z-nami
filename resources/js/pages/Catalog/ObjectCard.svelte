@@ -72,7 +72,7 @@
 
       <div class="flex justify-end mt-auto">
         <span
-          class="inline-flex items-center gap-2 text-sm font-black text-emerald-700 transition-colors group-hover:text-emerald-800"
+          class="inline-flex items-center gap-2 text-sm text-emerald-700 transition-colors group-hover:text-emerald-800"
         >
           Zobacz szczegóły <span aria-hidden="true">→</span>
         </span>

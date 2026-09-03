@@ -78,7 +78,7 @@
           {/if}
 
           <h1
-            class="max-w-4xl font-heading text-4xl font-black tracking-tight text-stone-950 sm:text-5xl"
+            class="max-w-4xl font-heading text-4xl tracking-tight text-stone-950 sm:text-5xl"
           >
             {object.title}
           </h1>
@@ -209,7 +209,7 @@
     <div
       class="relative max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl"
       onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
+      role="presentation"
     >
       <button
         type="button"

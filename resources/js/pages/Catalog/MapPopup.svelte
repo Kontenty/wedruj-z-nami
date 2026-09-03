@@ -54,7 +54,7 @@
         class="absolute inset-0 flex items-center justify-center bg-stone-950/65 opacity-100 transition duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"
       >
         <span
-          class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-emerald-900 shadow-lg shadow-stone-950/30"
+          class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-emerald-900 shadow-lg shadow-stone-950/30"
         >
           <ArrowUpRight class="size-4" />
           Zobacz więcej
