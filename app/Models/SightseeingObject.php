@@ -84,13 +84,13 @@ class SightseeingObject extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumbnail_webp')
-            ->fit(Fit::Crop, 200, 150)
+            ->fit(Fit::Max, 200, 200)
             ->format('webp')
             ->quality(50)
             ->nonQueued();
 
         $this->addMediaConversion('card_webp')
-            ->fit(Fit::Crop, 800, 600)
+            ->fit(Fit::Max, 800, 800)
             ->format('webp')
             ->quality(50)
             ->nonQueued();

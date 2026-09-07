@@ -11,6 +11,48 @@
   const previewImages = $derived(images.slice(1, 4));
   const remainingImages = $derived(Math.max(images.length - 4, 0));
 
+  function getWebpSrc(image, variant) {
+    if (variant === 'gallery') {
+      return image.gallery_webp_url || null;
+    }
+
+    if (variant === 'card') {
+      return (
+        image.card_webp_url ||
+        image.gallery_webp_url ||
+        image.thumbnail_webp_url ||
+        null
+      );
+    }
+
+    return (
+      image.thumbnail_webp_url ||
+      image.card_webp_url ||
+      image.gallery_webp_url ||
+      null
+    );
+  }
+
+  function getFallbackSrc(image, variant) {
+    if (variant === 'gallery') {
+      return image.gallery_url || image.url;
+    }
+
+    if (variant === 'card') {
+      return (
+        image.card_url || image.gallery_url || image.thumbnail_url || image.url
+      );
+    }
+
+    return (
+      image.thumbnail_url || image.card_url || image.gallery_url || image.url
+    );
+  }
+
+  function hasWebp(image, variant) {
+    return Boolean(getWebpSrc(image, variant));
+  }
+
   function openLightbox(index) {
     lightboxIndex = index;
     lightboxOpen = true;
@@ -64,17 +106,21 @@
         <button
           type="button"
           onclick={() => openLightbox(0)}
-          class="group relative block h-auto overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3"
+          class="group relative block h-72 overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 sm:h-96 lg:col-span-3 lg:h-125"
         >
           <picture class="block w-full">
-            <source
-              srcset={images[0].gallery_webp_url || images[0].card_webp_url}
-              type="image/webp"
-            />
+            {#if hasWebp(images[0], 'gallery')}
+              <source
+                srcset={getWebpSrc(images[0], 'gallery')}
+                type="image/webp"
+              />
+            {/if}
             <img
-              src={images[0].gallery_url || images[0].card_url || images[0].url}
+              src={getFallbackSrc(images[0], 'gallery')}
               alt={images[0].alt || title}
-              class="mx-auto block h-auto max-h-125 w-auto max-w-full object-contain transition duration-700 group-hover:scale-105"
+              fetchpriority="high"
+              decoding="async"
+              class="block size-full object-cover transition duration-700 group-hover:scale-105"
             />
           </picture>
           <div
@@ -89,25 +135,26 @@
         </button>
 
         {#if previewImages.length > 0}
-          <div class="hidden h-full gap-4 lg:grid">
+          <div class="hidden gap-4 lg:flex lg:h-125 lg:flex-col">
             {#each previewImages as image, index (image.url ?? index)}
               <button
                 type="button"
                 onclick={() => openLightbox(index + 1)}
-                class="group relative min-h-0 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                class="group relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100 text-left shadow-sm transition hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
                 <picture class="block size-full">
-                  {#if image.card_webp_url || image.thumbnail_webp_url}
+                  {#if hasWebp(image, 'card')}
                     <source
-                      srcset={image.card_webp_url || image.thumbnail_webp_url}
+                      srcset={getWebpSrc(image, 'card')}
                       type="image/webp"
                     />
                   {/if}
                   <img
-                    src={image.card_url || image.thumbnail_url}
+                    src={getFallbackSrc(image, 'card')}
                     alt={image.alt || title}
                     class="block size-full min-h-0 object-cover transition duration-500 group-hover:scale-110"
                     loading="lazy"
+                    decoding="async"
                   />
                 </picture>
 
@@ -149,14 +196,18 @@
             class="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
             <picture class="block">
-              {#if image.thumbnail_webp_url}
-                <source srcset={image.thumbnail_webp_url} type="image/webp" />
+              {#if hasWebp(image, 'thumbnail')}
+                <source
+                  srcset={getWebpSrc(image, 'thumbnail')}
+                  type="image/webp"
+                />
               {/if}
               <img
-                src={image.thumbnail_url}
+                src={getFallbackSrc(image, 'thumbnail')}
                 alt={image.alt || title}
                 class="block h-28 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-36"
                 loading="lazy"
+                decoding="async"
               />
             </picture>
           </button>
@@ -195,19 +246,17 @@
       onclick={(e) => e.stopPropagation()}
       aria-label="Aktualnie wyświetlane zdjęcie"
     >
-      <picture class="contents">
-        {#if images[lightboxIndex].gallery_webp_url || images[lightboxIndex].card_webp_url}
+      <picture class="block">
+        {#if hasWebp(images[lightboxIndex], 'gallery')}
           <source
-            srcset={images[lightboxIndex].gallery_webp_url ||
-              images[lightboxIndex].card_webp_url}
+            srcset={getWebpSrc(images[lightboxIndex], 'gallery')}
             type="image/webp"
           />
         {/if}
         <img
-          src={images[lightboxIndex].gallery_url ||
-            images[lightboxIndex].card_url ||
-            images[lightboxIndex].url}
+          src={getFallbackSrc(images[lightboxIndex], 'gallery')}
           alt={images[lightboxIndex].alt || title}
+          decoding="async"
           class="h-auto max-h-[calc(100vh-12rem)] w-auto max-w-[90vw] rounded-lg object-contain"
         />
       </picture>

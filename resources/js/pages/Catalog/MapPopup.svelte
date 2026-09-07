@@ -13,9 +13,6 @@
       object.thumbnail_url ||
       '/images/placeholder-object-thumb.webp',
   );
-  const webpUrl = $derived(
-    object.card_webp_url || object.thumbnail_webp_url || null,
-  );
   const locationLabel = $derived(
     [object.locality?.name, object.locality?.voivodeship?.name]
       .filter(Boolean)
@@ -35,10 +32,7 @@
       aria-label={`Zobacz szczegóły: ${object.title}`}
       class="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
-      <picture>
-        {#if webpUrl}
-          <source srcset={webpUrl} type="image/webp" />
-        {/if}
+      <picture class="bg-stone-100">
         <img
           class="h-36 w-full object-cover"
           src={imageUrl}

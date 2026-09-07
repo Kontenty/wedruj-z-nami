@@ -64,7 +64,7 @@ test('sightseeing object images store attribution metadata and expose resource p
         ->each->toEndWith('.webp');
 });
 
-test('sightseeing object gallery conversion preserves vertical orientation without cropping', function () {
+test('sightseeing object conversions preserve portrait ratio and max dimensions', function () {
     Storage::fake('public');
 
     $object = SightseeingObject::factory()->create(['title' => 'Wieża widokowa']);
@@ -75,14 +75,45 @@ test('sightseeing object gallery conversion preserves vertical orientation witho
 
     $object->refresh();
 
-    $dimensions = getimagesize(
-        Storage::disk('public')->path($media->fresh()->getPathRelativeToRoot('gallery_webp'))
-    );
+    foreach (
+        [
+            'thumbnail_webp' => [100, 200],
+            'card_webp' => [400, 800],
+            'gallery_webp' => [600, 1200],
+        ] as $conversion => $expectedDimensions
+    ) {
+        $dimensions = getimagesize(
+            Storage::disk('public')->path($media->fresh()->getPathRelativeToRoot($conversion))
+        );
 
-    expect($dimensions)->not->toBeFalse()
-        ->and($dimensions[0])->toBeLessThanOrEqual(1600)
-        ->and($dimensions[1])->toBeLessThanOrEqual(1200)
-        ->and($dimensions[1])->toBeGreaterThan($dimensions[0]);
+        expect($dimensions)->not->toBeFalse()
+            ->and([$dimensions[0], $dimensions[1]])->toBe($expectedDimensions);
+    }
+});
+
+test('sightseeing object conversions preserve landscape ratio and max dimensions', function () {
+    Storage::fake('public');
+
+    $object = SightseeingObject::factory()->create(['title' => 'Panorama miasta']);
+
+    $media = $object
+        ->addMedia(UploadedFile::fake()->image('landscape.jpg', 2400, 1600))
+        ->toMediaCollection('images');
+
+    foreach (
+        [
+            'thumbnail_webp' => [200, 133],
+            'card_webp' => [800, 533],
+            'gallery_webp' => [1600, 1067],
+        ] as $conversion => $expectedDimensions
+    ) {
+        $dimensions = getimagesize(
+            Storage::disk('public')->path($media->fresh()->getPathRelativeToRoot($conversion))
+        );
+
+        expect($dimensions)->not->toBeFalse()
+            ->and([$dimensions[0], $dimensions[1]])->toBe($expectedDimensions);
+    }
 });
 
 test('sightseeing object media generates conversions immediately', function () {
@@ -249,11 +280,11 @@ test('media collections reject unsupported mime types', function () {
     $object = SightseeingObject::factory()->create();
     $article = Article::factory()->create();
 
-    expect(fn () => $object
+    expect(fn() => $object
         ->addMedia(UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'))
         ->toMediaCollection('images'))
         ->toThrow(FileUnacceptableForCollection::class)
-        ->and(fn () => $article
+        ->and(fn() => $article
             ->addMedia(UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'))
             ->toMediaCollection('cover'))
         ->toThrow(FileUnacceptableForCollection::class);
@@ -265,11 +296,11 @@ test('media collections reject oversized files', function () {
     $object = SightseeingObject::factory()->create();
     $article = Article::factory()->create();
 
-    expect(fn () => $object
+    expect(fn() => $object
         ->addMedia(UploadedFile::fake()->create('too-large-object.jpg', 10 * 1024 + 1, 'image/jpeg'))
         ->toMediaCollection('images'))
         ->toThrow(FileUnacceptableForCollection::class)
-        ->and(fn () => $article
+        ->and(fn() => $article
             ->addMedia(UploadedFile::fake()->create('too-large-cover.jpg', 5 * 1024 + 1, 'image/jpeg'))
             ->toMediaCollection('cover'))
         ->toThrow(FileUnacceptableForCollection::class);
@@ -305,12 +336,12 @@ test('sightseeing object image reordering rejects invalid id lists', function ()
         ->addMedia(UploadedFile::fake()->image('cover.jpg'))
         ->toMediaCollection('cover');
 
-    expect(fn () => $object->reorderImages([$first->id]))
+    expect(fn() => $object->reorderImages([$first->id]))
         ->toThrow(InvalidArgumentException::class)
-        ->and(fn () => $object->reorderImages([$first->id, $first->id]))
+        ->and(fn() => $object->reorderImages([$first->id, $first->id]))
         ->toThrow(InvalidArgumentException::class)
-        ->and(fn () => $object->reorderImages([$first->id, $foreignObjectImage->id]))
+        ->and(fn() => $object->reorderImages([$first->id, $foreignObjectImage->id]))
         ->toThrow(InvalidArgumentException::class)
-        ->and(fn () => $object->reorderImages([$second->id, $articleCover->id]))
+        ->and(fn() => $object->reorderImages([$second->id, $articleCover->id]))
         ->toThrow(InvalidArgumentException::class);
 });
