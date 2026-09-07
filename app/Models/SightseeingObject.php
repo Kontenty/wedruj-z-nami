@@ -96,7 +96,7 @@ class SightseeingObject extends Model implements HasMedia
             ->nonQueued();
 
         $this->addMediaConversion('gallery_webp')
-            ->fit(Fit::Crop, 1600, 1200)
+            ->fit(Fit::Max, 1600, 1200)
             ->format('webp')
             ->quality(70)
             ->nonQueued();

@@ -64,6 +64,27 @@ test('sightseeing object images store attribution metadata and expose resource p
         ->each->toEndWith('.webp');
 });
 
+test('sightseeing object gallery conversion preserves vertical orientation without cropping', function () {
+    Storage::fake('public');
+
+    $object = SightseeingObject::factory()->create(['title' => 'Wieża widokowa']);
+
+    $media = $object
+        ->addMedia(UploadedFile::fake()->image('vertical.jpg', 800, 1600))
+        ->toMediaCollection('images');
+
+    $object->refresh();
+
+    $dimensions = getimagesize(
+        Storage::disk('public')->path($media->fresh()->getPathRelativeToRoot('gallery_webp'))
+    );
+
+    expect($dimensions)->not->toBeFalse()
+        ->and($dimensions[0])->toBeLessThanOrEqual(1600)
+        ->and($dimensions[1])->toBeLessThanOrEqual(1200)
+        ->and($dimensions[1])->toBeGreaterThan($dimensions[0]);
+});
+
 test('sightseeing object media generates conversions immediately', function () {
     Storage::fake('public');
 

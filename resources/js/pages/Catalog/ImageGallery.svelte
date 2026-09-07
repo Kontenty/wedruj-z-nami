@@ -60,13 +60,13 @@
 {#if images.length > 0}
   <section class="mb-12">
     <figure>
-      <div class="h-125 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:auto-rows-fr">
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <button
           type="button"
           onclick={() => openLightbox(0)}
-          class="group relative overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3 lg:min-h-128"
+          class="group relative block h-auto overflow-hidden rounded-[1.75rem] bg-stone-100 text-left shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 lg:col-span-3"
         >
-          <picture class="block size-full">
+          <picture class="block w-full">
             <source
               srcset={images[0].gallery_webp_url || images[0].card_webp_url}
               type="image/webp"
@@ -74,7 +74,7 @@
             <img
               src={images[0].gallery_url || images[0].card_url || images[0].url}
               alt={images[0].alt || title}
-              class="block size-full object-cover transition duration-700 group-hover:scale-105"
+              class="mx-auto block h-auto max-h-125 w-auto max-w-full object-contain transition duration-700 group-hover:scale-105"
             />
           </picture>
           <div
@@ -195,11 +195,22 @@
       onclick={(e) => e.stopPropagation()}
       aria-label="Aktualnie wyświetlane zdjęcie"
     >
-      <img
-        src={images[lightboxIndex].gallery_url}
-        alt={images[lightboxIndex].alt || title}
-        class="max-h-[calc(100vh-12rem)] max-w-[90vw] rounded-lg"
-      />
+      <picture class="contents">
+        {#if images[lightboxIndex].gallery_webp_url || images[lightboxIndex].card_webp_url}
+          <source
+            srcset={images[lightboxIndex].gallery_webp_url ||
+              images[lightboxIndex].card_webp_url}
+            type="image/webp"
+          />
+        {/if}
+        <img
+          src={images[lightboxIndex].gallery_url ||
+            images[lightboxIndex].card_url ||
+            images[lightboxIndex].url}
+          alt={images[lightboxIndex].alt || title}
+          class="h-auto max-h-[calc(100vh-12rem)] w-auto max-w-[90vw] rounded-lg object-contain"
+        />
+      </picture>
     </button>
 
     {#if images[lightboxIndex].description || images[lightboxIndex].author || images[lightboxIndex].source}
