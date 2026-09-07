@@ -53,7 +53,7 @@
             </p>
           {/if}
           <h3
-            class="text-base font-black leading-tight tracking-tight text-stone-950 transition-colors group-hover:text-emerald-900 sm:text-lg"
+            class="text-base leading-tight tracking-tight text-stone-950 transition-colors group-hover:text-emerald-900 sm:text-lg"
           >
             {object.title}
           </h3>

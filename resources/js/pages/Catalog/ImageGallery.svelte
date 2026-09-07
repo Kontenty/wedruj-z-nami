@@ -198,15 +198,15 @@
       <img
         src={images[lightboxIndex].gallery_url}
         alt={images[lightboxIndex].alt || title}
-        class="max-h-[85vh] max-w-[90vw] rounded-lg"
+        class="max-h-[calc(100vh-12rem)] max-w-[90vw] rounded-lg"
       />
     </button>
 
     {#if images[lightboxIndex].description || images[lightboxIndex].author || images[lightboxIndex].source}
       <div
-        class="absolute bottom-12 left-1/2 max-w-[min(90vw,48rem)] -translate-x-1/2 text-center text-sm text-white"
+        class="absolute bottom-10 left-1/2 max-w-[min(90vw,48rem)] -translate-x-1/2 text-center text-sm text-white"
       >
-        {#if images[lightboxIndex].description}<p>
+        {#if images[lightboxIndex].description}<p class="mt-1">
             {images[lightboxIndex].description}
           </p>{/if}
         {#if images[lightboxIndex].author || images[lightboxIndex].source}
