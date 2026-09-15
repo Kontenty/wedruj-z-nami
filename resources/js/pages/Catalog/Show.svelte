@@ -70,7 +70,7 @@
             <button
               type="button"
               onclick={() => (showLocalityModal = true)}
-              class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-6 py-2 text-md font-semibold text-stone-700 shadow-xs transition hover:border-emerald-300 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+              class="inline-flex items-center gap-2 shadow-sm rounded-full border border-stone-200 bg-white/80 px-6 py-2 text-md font-semibold text-stone-700 transition hover:border-emerald-300 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               <MapPin class="size-4 text-emerald-700" />
               {locationLabel}
@@ -207,7 +207,7 @@
     tabindex="-1"
   >
     <div
-      class="relative max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl"
+      class="relative flex max-h-[85vh] w-full max-w-xl flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl"
       onclick={(e) => e.stopPropagation()}
       role="presentation"
     >
@@ -220,24 +220,28 @@
         <X class="size-5" />
       </button>
 
-      <h2
-        id="locality-modal-title"
-        class="pr-8 font-heading text-2xl font-bold text-stone-950"
-      >
-        {object.locality.name}
-      </h2>
-      {#if object.locality.voivodeship}
-        <p class="mt-1 text-sm text-stone-500">
-          woj. {object.locality.voivodeship.name}
-        </p>
-      {/if}
+      <div class="shrink-0">
+        <h2
+          id="locality-modal-title"
+          class="pr-8 font-heading text-2xl font-bold text-stone-950"
+        >
+          {object.locality.name}
+        </h2>
+        {#if object.locality.voivodeship}
+          <p class="mt-1 text-sm text-stone-500">
+            woj. {object.locality.voivodeship.name}
+          </p>
+        {/if}
+      </div>
 
       {#if object.locality.description}
-        <div
-          class="prose prose-stone mt-4 max-w-none prose-headings:font-heading prose-headings:text-stone-950 prose-p:leading-7 prose-a:text-emerald-800"
-        >
-          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-          {@html object.locality.description}
+        <div class="min-h-0 flex-1 overflow-y-auto pr-1">
+          <div
+            class="prose prose-stone mt-4 max-w-none prose-headings:font-heading prose-headings:text-stone-950 prose-p:leading-7 prose-a:text-emerald-800"
+          >
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+            {@html object.locality.description}
+          </div>
         </div>
       {/if}
     </div>
