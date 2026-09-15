@@ -17,6 +17,19 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: wedruj_z_nami_testing
+          MARIADB_USER: user
+          MARIADB_PASSWORD: user
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
     strategy:
       matrix:
         php-version: ['8.4', '8.5']
@@ -53,6 +66,14 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+
+      - name: Prepare Test Database
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_ROOT_PASSWORD: root
+          DB_ROOT_HOST: '%'
+        run: php artisan test:prepare-database --ansi
 
       - name: Tests
         run: ./vendor/bin/pest
