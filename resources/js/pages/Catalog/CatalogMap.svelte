@@ -1,8 +1,7 @@
 <script>
-  import { LngLatBounds, Map, NavigationControl, Popup } from 'maplibre-gl';
+  import { LngLatBounds, Popup } from 'maplibre-gl';
   import { mount, onMount, unmount } from 'svelte';
-  import 'maplibre-gl/dist/maplibre-gl.css';
-  import { setPolishLanguage } from '@/lib/map-language';
+  import { createMap } from '@/lib/maplibre';
   import MapPopup from './MapPopup.svelte';
 
   let {
@@ -187,16 +186,9 @@
 
   onMount(() => {
     try {
-      map = new Map({
-        container,
-        style: 'https://tiles.openfreemap.org/styles/liberty',
-        center: [19.1, 52.1],
-        zoom: 5,
-      });
-      map.addControl(new NavigationControl(), 'top-right');
+      map = createMap(container);
       map.on('load', () => {
         mapLoaded = true;
-        setPolishLanguage(map);
         map.addSource('points', {
           type: 'geojson',
           data: {

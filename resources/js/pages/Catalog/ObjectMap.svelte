@@ -1,15 +1,8 @@
 <script>
   import MapPinned from '@lucide/svelte/icons/map-pinned';
-  import {
-    LngLatBounds,
-    Map,
-    Marker,
-    NavigationControl,
-    Popup,
-  } from 'maplibre-gl';
+  import { LngLatBounds, Marker, Popup } from 'maplibre-gl';
   import { onMount } from 'svelte';
-  import 'maplibre-gl/dist/maplibre-gl.css';
-  import { setPolishLanguage } from '@/lib/map-language';
+  import { createMap } from '@/lib/maplibre';
 
   let {
     lat,
@@ -67,18 +60,9 @@
           ? geometry.coordinates
           : [19.1, 52.1];
 
-      map = new Map({
-        container,
-        style: 'https://tiles.openfreemap.org/styles/liberty',
-        center,
-        zoom: hasCoordinates ? 13 : 6,
-      });
-
-      map.addControl(new NavigationControl(), 'top-right');
+      map = createMap(container, center, hasCoordinates ? 13 : 6);
 
       map.on('load', () => {
-        setPolishLanguage(map);
-
         if (geometry && ['Polygon', 'MultiPolygon'].includes(geometry.type)) {
           map.addSource('object-area', {
             type: 'geojson',
