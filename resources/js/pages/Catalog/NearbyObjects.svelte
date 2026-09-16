@@ -1,6 +1,6 @@
 <script>
   import { Link } from '@inertiajs/svelte';
-  import MapPin from 'lucide-svelte/icons/map-pin';
+  import MapPin from '@lucide/svelte/icons/map-pin';
   import UNESCOIcon from '@/components/UNESCOIcon.svelte';
   import { index as catalogIndex } from '@/routes/catalog';
 

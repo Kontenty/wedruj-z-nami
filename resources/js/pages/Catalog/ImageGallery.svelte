@@ -1,8 +1,8 @@
 <script>
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-  import ChevronRight from 'lucide-svelte/icons/chevron-right';
-  import Images from 'lucide-svelte/icons/images';
-  import X from 'lucide-svelte/icons/x';
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import Images from '@lucide/svelte/icons/images';
+  import X from '@lucide/svelte/icons/x';
 
   let { images, title } = $props();
   let lightboxOpen = $state(false);

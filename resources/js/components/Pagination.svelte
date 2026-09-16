@@ -1,5 +1,5 @@
 <script>
-  import { ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 
   let { currentPage, lastPage, onPageChange } = $props();
 

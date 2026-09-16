@@ -1,5 +1,5 @@
 <script>
-  import maplibreGl from 'maplibre-gl';
+  import { LngLatBounds, Map, NavigationControl, Popup } from 'maplibre-gl';
   import { mount, onMount, unmount } from 'svelte';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { setPolishLanguage } from '@/lib/map-language';
@@ -92,7 +92,7 @@
       return null;
     }
 
-    const bounds = new maplibreGl.LngLatBounds();
+    const bounds = new LngLatBounds();
 
     for (const feature of pointFeatures) {
       bounds.extend(feature.geometry.coordinates);
@@ -129,7 +129,7 @@
       props: { object, onClose: closePopup },
     });
 
-    popup = new maplibreGl.Popup({
+    popup = new Popup({
       closeButton: false,
       className: 'wzn-map-popup',
     })
@@ -187,13 +187,13 @@
 
   onMount(() => {
     try {
-      map = new maplibreGl.Map({
+      map = new Map({
         container,
         style: 'https://tiles.openfreemap.org/styles/liberty',
         center: [19.1, 52.1],
         zoom: 5,
       });
-      map.addControl(new maplibreGl.NavigationControl(), 'top-right');
+      map.addControl(new NavigationControl(), 'top-right');
       map.on('load', () => {
         mapLoaded = true;
         setPolishLanguage(map);

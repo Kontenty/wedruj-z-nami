@@ -1,6 +1,12 @@
 <script>
-  import MapPinned from 'lucide-svelte/icons/map-pinned';
-  import maplibregl from 'maplibre-gl';
+  import MapPinned from '@lucide/svelte/icons/map-pinned';
+  import {
+    LngLatBounds,
+    Map,
+    Marker,
+    NavigationControl,
+    Popup,
+  } from 'maplibre-gl';
   import { onMount } from 'svelte';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { setPolishLanguage } from '@/lib/map-language';
@@ -61,14 +67,14 @@
           ? geometry.coordinates
           : [19.1, 52.1];
 
-      map = new maplibregl.Map({
+      map = new Map({
         container,
         style: 'https://tiles.openfreemap.org/styles/liberty',
         center,
         zoom: hasCoordinates ? 13 : 6,
       });
 
-      map.addControl(new maplibregl.NavigationControl(), 'top-right');
+      map.addControl(new NavigationControl(), 'top-right');
 
       map.on('load', () => {
         setPolishLanguage(map);
@@ -91,7 +97,7 @@
             paint: { 'line-color': '#136a27', 'line-width': 2 },
           });
 
-          const bounds = new maplibregl.LngLatBounds();
+          const bounds = new LngLatBounds();
           extendBounds(bounds, geometry.coordinates);
 
           if (!bounds.isEmpty()) {
@@ -111,9 +117,9 @@
           return;
         }
 
-        new maplibregl.Marker({ color: '#136a27' })
+        new Marker({ color: '#136a27' })
           .setLngLat(pointCoordinates)
-          .setPopup(new maplibregl.Popup().setHTML(`<strong>${title}</strong>`))
+          .setPopup(new Popup().setHTML(`<strong>${title}</strong>`))
           .addTo(map);
       });
 
@@ -165,7 +171,7 @@
   {:else}
     <div
       bind:this={container}
-      class="h-72 w-full sm:h-80 lg:h-[25rem]"
+      class="h-72 w-full sm:h-80 lg:h-100"
       aria-label={`Mapa obiektu ${title}`}
     ></div>
   {/if}

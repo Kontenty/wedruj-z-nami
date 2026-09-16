@@ -1,9 +1,9 @@
 <script>
   import { Link } from '@inertiajs/svelte';
-  import ArrowUpRight from 'lucide-svelte/icons/arrow-up-right';
-  import Info from 'lucide-svelte/icons/info';
-  import MapPin from 'lucide-svelte/icons/map-pin';
-  import X from 'lucide-svelte/icons/x';
+  import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
+  import Info from '@lucide/svelte/icons/info';
+  import MapPin from '@lucide/svelte/icons/map-pin';
+  import X from '@lucide/svelte/icons/x';
   import { show as catalogShow } from '@/routes/catalog';
 
   let { object, onClose } = $props();

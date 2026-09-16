@@ -1,6 +1,6 @@
 <script>
-  import ExternalLink from 'lucide-svelte/icons/external-link';
-  import Info from 'lucide-svelte/icons/info';
+  import ExternalLink from '@lucide/svelte/icons/external-link';
+  import Info from '@lucide/svelte/icons/info';
 
   let { openingHours, ticketPrices, accessibility, website } = $props();
 

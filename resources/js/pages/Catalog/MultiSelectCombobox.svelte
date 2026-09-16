@@ -1,6 +1,6 @@
 <script>
-  import ChevronDown from 'lucide-svelte/icons/chevron-down';
-  import ChevronUp from 'lucide-svelte/icons/chevron-up';
+  import ChevronDown from '@lucide/svelte/icons/chevron-down';
+  import ChevronUp from '@lucide/svelte/icons/chevron-up';
 
   let {
     label,

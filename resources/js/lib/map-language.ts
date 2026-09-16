@@ -1,4 +1,4 @@
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { ExpressionSpecification, Map as MaplibreMap } from 'maplibre-gl';
 
 export const POLISH_TEXT_LAYERS = [
   'waterway_line_label',
@@ -24,7 +24,7 @@ export const POLISH_TEXT_LAYERS = [
 ] as const;
 
 export function setPolishLanguage(map: MaplibreMap): void {
-  const textField = [
+  const textField: ExpressionSpecification = [
     'case',
     ['has', 'name:pl'],
     ['get', 'name:pl'],

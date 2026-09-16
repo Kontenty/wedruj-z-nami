@@ -1,9 +1,9 @@
 <script>
   import { Link } from '@inertiajs/svelte';
-  import ChevronRight from 'lucide-svelte/icons/chevron-right';
-  import MapPin from 'lucide-svelte/icons/map-pin';
-  import Printer from 'lucide-svelte/icons/printer';
-  import X from 'lucide-svelte/icons/x';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import MapPin from '@lucide/svelte/icons/map-pin';
+  import Printer from '@lucide/svelte/icons/printer';
+  import X from '@lucide/svelte/icons/x';
   import UNESCOIcon from '@/components/UNESCOIcon.svelte';
   import { index as catalogIndex } from '@/routes/catalog';
   import ImageGallery from './ImageGallery.svelte';
