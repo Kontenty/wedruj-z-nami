@@ -81,14 +81,18 @@
                     </picture>
                 </div>
                 <div class="p-4">
+                    @if($object->locality?->name || $object->locality?->voivodeship)
+                    <p class="mb-2 flex items-center gap-1 text-sm font-semibold text-emerald-800">
+                        <svg aria-hidden="true" class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 5.25-7.5 10.5-7.5 10.5S4.5 15.75 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        {{ $object->locality?->name }}@if($object->locality?->name && $object->locality?->voivodeship), @endif{{ $object->locality?->voivodeship?->name }}
+                    </p>
+                    @endif
                     <h3 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">
                         {{ $object->title }}
                     </h3>
-                    @if($object->locality?->voivodeship)
-                    <p class="mt-1 text-sm text-gray-500">
-                        {{ $object->locality->voivodeship->name }}
-                    </p>
-                    @endif
                 </div>
             </a>
             @endforeach
