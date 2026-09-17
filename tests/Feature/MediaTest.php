@@ -280,11 +280,11 @@ test('media collections reject unsupported mime types', function () {
     $object = SightseeingObject::factory()->create();
     $article = Article::factory()->create();
 
-    expect(fn() => $object
+    expect(fn () => $object
         ->addMedia(UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'))
         ->toMediaCollection('images'))
         ->toThrow(FileUnacceptableForCollection::class)
-        ->and(fn() => $article
+        ->and(fn () => $article
             ->addMedia(UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'))
             ->toMediaCollection('cover'))
         ->toThrow(FileUnacceptableForCollection::class);
@@ -296,11 +296,11 @@ test('media collections reject oversized files', function () {
     $object = SightseeingObject::factory()->create();
     $article = Article::factory()->create();
 
-    expect(fn() => $object
+    expect(fn () => $object
         ->addMedia(UploadedFile::fake()->create('too-large-object.jpg', 10 * 1024 + 1, 'image/jpeg'))
         ->toMediaCollection('images'))
         ->toThrow(FileUnacceptableForCollection::class)
-        ->and(fn() => $article
+        ->and(fn () => $article
             ->addMedia(UploadedFile::fake()->create('too-large-cover.jpg', 5 * 1024 + 1, 'image/jpeg'))
             ->toMediaCollection('cover'))
         ->toThrow(FileUnacceptableForCollection::class);
@@ -336,12 +336,12 @@ test('sightseeing object image reordering rejects invalid id lists', function ()
         ->addMedia(UploadedFile::fake()->image('cover.jpg'))
         ->toMediaCollection('cover');
 
-    expect(fn() => $object->reorderImages([$first->id]))
+    expect(fn () => $object->reorderImages([$first->id]))
         ->toThrow(InvalidArgumentException::class)
-        ->and(fn() => $object->reorderImages([$first->id, $first->id]))
+        ->and(fn () => $object->reorderImages([$first->id, $first->id]))
         ->toThrow(InvalidArgumentException::class)
-        ->and(fn() => $object->reorderImages([$first->id, $foreignObjectImage->id]))
+        ->and(fn () => $object->reorderImages([$first->id, $foreignObjectImage->id]))
         ->toThrow(InvalidArgumentException::class)
-        ->and(fn() => $object->reorderImages([$second->id, $articleCover->id]))
+        ->and(fn () => $object->reorderImages([$second->id, $articleCover->id]))
         ->toThrow(InvalidArgumentException::class);
 });
