@@ -7,6 +7,9 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  build: {
+    chunkSizeWarningLimit: 1100,
+  },
   plugins: [
     laravel({
       input: [
