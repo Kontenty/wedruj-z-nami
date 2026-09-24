@@ -38,3 +38,6 @@ openspec
 .pi
 graphify-out
 temp
+
+/deploy-helper.php
+/deploy-helper-*.php
