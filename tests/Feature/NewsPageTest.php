@@ -32,11 +32,15 @@ test('news index paginates results', function () {
 });
 
 test('news index shows latest objects section', function () {
-    $object = SightseeingObject::factory()->published()->create();
+    $publishedAt = now()->subDays(5)->startOfDay();
+    $object = SightseeingObject::factory()->published()->create([
+        'published_at' => $publishedAt,
+    ]);
 
     $this->get('/aktualnosci')
         ->assertSee('Najnowsze obiekty')
         ->assertSee($object->title)
+        ->assertSee($publishedAt->format('d.m.Y'))
         ->assertSee('href="'.route('catalog.show', $object).'"', false);
 });
 

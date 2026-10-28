@@ -3,8 +3,15 @@
   import MapPin from '@lucide/svelte/icons/map-pin';
   import UNESCOIcon from '@/components/UNESCOIcon.svelte';
   import { show as catalogShow } from '@/routes/catalog';
+  import { show as collectionShow } from '@/routes/catalog/collection';
 
   let { object, selected = false, onHover } = $props();
+  const isCollection = $derived(object.type === 'collection');
+  const href = $derived(
+    isCollection
+      ? collectionShow.url(object.slug)
+      : catalogShow.url(object.slug),
+  );
   const locationLabel = $derived(
     [object.locality?.name, object.locality?.voivodeship?.name]
       .filter(Boolean)
@@ -13,13 +20,13 @@
 </script>
 
 <Link
-  href={catalogShow.url(object.slug)}
-  id={`object-card-${object.id}`}
+  {href}
+  id={`catalog-card-${object.type}-${object.id}`}
   class="group glass-hover glow-level-1 block overflow-hidden rounded-3xl border bg-white transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 {selected
     ? 'border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-200'
     : 'border-stone-200'}"
-  onmouseenter={() => onHover?.(object.id)}
-  onmouseleave={() => onHover?.(null)}
+  onmouseenter={() => !isCollection && onHover?.(object.id)}
+  onmouseleave={() => !isCollection && onHover?.(null)}
 >
   <div class="flex items-stretch gap-3 p-3 sm:gap-4 sm:p-4">
     <div
@@ -41,10 +48,16 @@
       ></div>
     </div>
 
-    <div class="flex flex-col ftitlmin-w-0 flex-1">
+    <div class="flex min-w-0 flex-1 flex-col">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          {#if locationLabel}
+          {#if isCollection}
+            <p
+              class="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-amber-800"
+            >
+              Kolekcja tematyczna
+            </p>
+          {:else if locationLabel}
             <p
               class="mb-2 flex items-center gap-1 text-sm font-semibold text-emerald-800"
             >
@@ -57,6 +70,11 @@
           >
             {object.title}
           </h3>
+          {#if isCollection && object.description}
+            <p class="mt-2 line-clamp-2 text-sm leading-5 text-stone-600">
+              {object.description}
+            </p>
+          {/if}
         </div>
 
         {#if object.is_unesco}
@@ -74,7 +92,8 @@
         <span
           class="inline-flex items-center gap-2 text-sm text-emerald-700 transition-colors group-hover:text-emerald-800"
         >
-          Zobacz szczegóły <span aria-hidden="true">→</span>
+          {isCollection ? 'Odkryj kolekcję' : 'Zobacz szczegóły'}
+          <span aria-hidden="true">→</span>
         </span>
       </div>
     </div>

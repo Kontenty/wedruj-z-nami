@@ -107,11 +107,6 @@
                     </picture>
                 </div>
                 <div class="flex h-full flex-col gap-4 p-5">
-                    <div class="flex flex-wrap gap-2 text-xs font-medium text-stone-500">
-                        @foreach($object->objectTypes->take(2) as $objectType)
-                        <span class="rounded-full bg-stone-100 px-3 py-1">{{ $objectType->name }}</span>
-                        @endforeach
-                    </div>
                     @if($object->locality?->name || $object->locality?->voivodeship)
                     <p class="flex items-center gap-1 text-sm font-semibold text-emerald-800">
                         <svg aria-hidden="true" class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

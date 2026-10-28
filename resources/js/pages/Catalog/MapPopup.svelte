@@ -1,7 +1,6 @@
 <script>
   import { Link } from '@inertiajs/svelte';
   import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-  import Info from '@lucide/svelte/icons/info';
   import MapPin from '@lucide/svelte/icons/map-pin';
   import X from '@lucide/svelte/icons/x';
   import { show as catalogShow } from '@/routes/catalog';
@@ -17,9 +16,6 @@
     [object.locality?.name, object.locality?.voivodeship?.name]
       .filter(Boolean)
       .join(', '),
-  );
-  const infoLabel = $derived(
-    object.objectTypes?.[0]?.name || 'Obiekt turystyczny',
   );
 </script>
 
@@ -67,15 +63,6 @@
   </div>
 
   <div class="space-y-3 p-4">
-    <div class="flex items-center gap-2">
-      <span
-        class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800"
-      >
-        <Info class="size-3.5 shrink-0" />
-        <span class="truncate font-heading">{infoLabel}</span>
-      </span>
-    </div>
-
     <div class="space-y-2">
       <h3 class="text-base font-semibold leading-tight text-stone-900">
         {object.title}

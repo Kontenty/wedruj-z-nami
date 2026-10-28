@@ -81,6 +81,11 @@
                     </picture>
                 </div>
                 <div class="p-4">
+                    @if($object->published_at)
+                    <time class="mb-2 block text-sm text-gray-500" datetime="{{ $object->published_at->format('Y-m-d') }}">
+                        {{ $object->published_at->format('d.m.Y') }}
+                    </time>
+                    @endif
                     @if($object->locality?->name || $object->locality?->voivodeship)
                     <p class="mb-2 flex items-center gap-1 text-sm font-semibold text-emerald-800">
                         <svg aria-hidden="true" class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

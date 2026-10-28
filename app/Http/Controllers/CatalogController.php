@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CatalogEntryResource;
+use App\Http\Resources\CollectionDetailResource;
 use App\Http\Resources\ObjectDetailResource;
 use App\Http\Resources\ObjectResource;
 use App\Http\Resources\ObjectTypeResource;
+use App\Models\ObjectCollection;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,10 +37,59 @@ class CatalogController extends Controller
             })
             ->unesco($request->boolean('unesco'));
 
-        $objects = (clone $query)
-            ->orderByDesc('published_at')
+        $collectionQuery = ObjectCollection::query()
+            ->select('id')
+            ->selectRaw("'collection' as type")
+            ->selectRaw('created_at as sort_date')
+            ->when($voivodeships !== [], fn (Builder $query) => $query->whereHas(
+                'sightseeingObjects.locality.voivodeship',
+                fn (Builder $query) => $query->whereIn('slug', $voivodeships),
+            ))
+            ->when($objectTypes !== [], fn (Builder $query) => $query->whereHas(
+                'objectTypes',
+                fn (Builder $query) => $query->whereIn('object_types.id', $objectTypes),
+            ))
+            ->when($request->boolean('unesco'), fn (Builder $query) => $query->whereHas(
+                'sightseeingObjects',
+                fn (Builder $query) => $query->where('is_unesco', true),
+            ));
+
+        $catalogEntries = DB::query()
+            ->fromSub(
+                (clone $query)
+                    ->select('sightseeing_objects.id')
+                    ->selectRaw("'object' as type")
+                    ->selectRaw('published_at as sort_date')
+                    ->toBase()
+                    ->unionAll($collectionQuery->toBase()),
+                'catalog_entries',
+            )
+            ->orderByDesc('sort_date')
+            ->orderBy('type')
+            ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString();
+
+        $entries = $catalogEntries->getCollection();
+        $objects = SightseeingObject::query()
+            ->with(['locality.voivodeship', 'objectTypes'])
+            ->whereIn('id', $entries->where('type', 'object')->pluck('id'))
+            ->get()
+            ->keyBy('id');
+        $collections = ObjectCollection::query()
+            ->with([
+                'objectTypes',
+                'sightseeingObjects' => fn (BelongsToMany $query) => $query
+                    ->with('media')
+                    ->limit(1),
+            ])
+            ->whereIn('id', $entries->where('type', 'collection')->pluck('id'))
+            ->get()
+            ->keyBy('id');
+
+        $catalogEntries->setCollection($entries->map(fn (object $entry): SightseeingObject|ObjectCollection => $entry->type === 'object'
+                ? $objects->get($entry->id)
+                : $collections->get($entry->id)));
 
         $mapObjects = (clone $query)
             ->addSelect('sightseeing_objects.*')
@@ -50,7 +104,7 @@ class CatalogController extends Controller
             ->get();
 
         return Inertia::render('Catalog/Index', [
-            'objects' => ObjectResource::collection($objects),
+            'objects' => CatalogEntryResource::collection($catalogEntries),
             'mapObjects' => ObjectResource::collection($mapObjects),
             'filters' => [
                 'q' => $request->query('q'),
@@ -89,6 +143,16 @@ class CatalogController extends Controller
             'images' => $object->image_items,
             'geojson' => $object->geojson,
             'nearby' => ObjectResource::collection($nearby),
+        ]);
+    }
+
+    public function showCollection(ObjectCollection $collection): Response
+    {
+        $collection->load(['sightseeingObjects' => fn (BelongsToMany $query) => $query
+            ->with(['locality.voivodeship', 'objectTypes', 'media'])]);
+
+        return Inertia::render('Catalog/Collection', [
+            'collection' => new CollectionDetailResource($collection),
         ]);
     }
 }

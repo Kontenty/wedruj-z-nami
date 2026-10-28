@@ -36,10 +36,10 @@
   </div>
 {:else}
   <div class="object-grid">
-    {#each items as object (object.id)}
+    {#each items as object (`${object.type}-${object.id}`)}
       <ObjectCard
         {object}
-        selected={selectedObjectId === object.id}
+        selected={object.type === 'object' && selectedObjectId === object.id}
         {onHover}
       />
     {/each}

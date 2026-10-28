@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Locality;
+use App\Models\ObjectCollection;
 use App\Models\ObjectType;
 use App\Models\SightseeingObject;
 use App\Models\Voivodeship;
@@ -25,6 +26,33 @@ it('renders the object detail page for a published object', function () {
 
 it('returns 404 for a nonexistent slug', function () {
     $this->get('/katalog/nonexistent-slug')
+        ->assertNotFound();
+});
+
+it('renders collection details and ordered members linked to object detail routes', function () {
+    $firstObject = SightseeingObject::factory()->published()->create(['title' => 'Pierwszy obiekt']);
+    $secondObject = SightseeingObject::factory()->published()->create(['title' => 'Drugi obiekt']);
+    $collection = ObjectCollection::factory()->create([
+        'name' => 'Kolekcja szlaków',
+        'description' => 'Opis kolekcji.',
+    ]);
+    $collection->sightseeingObjects()->attach($secondObject, ['position' => 1]);
+    $collection->sightseeingObjects()->attach($firstObject, ['position' => 2]);
+
+    $this->get(route('catalog.collection.show', $collection->slug))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Catalog/Collection')
+            ->where('collection.name', 'Kolekcja szlaków')
+            ->where('collection.description', '<p>Opis kolekcji.</p>')
+            ->where('collection.sightseeingObjects.0.title', 'Drugi obiekt')
+            ->where('collection.sightseeingObjects.0.url', route('catalog.show', $secondObject->slug))
+            ->where('collection.sightseeingObjects.1.title', 'Pierwszy obiekt')
+            ->where('collection.sightseeingObjects.1.url', route('catalog.show', $firstObject->slug)));
+});
+
+it('returns 404 for a nonexistent collection slug', function () {
+    $this->get('/katalog/kolekcje/nonexistent-slug')
         ->assertNotFound();
 });
 
@@ -71,6 +99,16 @@ it('renders markdown description as HTML', function () {
     $this->get("/katalog/{$object->slug}")
         ->assertInertia(fn (Assert $page) => $page
             ->where('object.description', '<p>Tekst <strong>pogrubiony</strong> i <a href="https://example.com">link</a>.</p>'));
+});
+
+it('renders collection markdown description as HTML', function () {
+    $collection = ObjectCollection::factory()->create([
+        'description' => 'Tekst **pogrubiony** i [link](https://example.com).',
+    ]);
+
+    $this->get(route('catalog.collection.show', $collection->slug))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('collection.description', '<p>Tekst <strong>pogrubiony</strong> i <a href="https://example.com">link</a>.</p>'));
 });
 
 it('includes voivodeship data', function () {

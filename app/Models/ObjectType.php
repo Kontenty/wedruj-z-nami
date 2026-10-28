@@ -19,4 +19,9 @@ class ObjectType extends Model
     {
         return $this->belongsToMany(SightseeingObject::class, 'object_object_type');
     }
+
+    public function objectCollections(): BelongsToMany
+    {
+        return $this->belongsToMany(ObjectCollection::class, 'object_collection_object_type');
+    }
 }
