@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { Link } from '@inertiajs/svelte';
+  import { Link, page } from '@inertiajs/svelte';
   import type { Snippet } from 'svelte';
   import { Toaster } from '@/components/ui/sonner';
   import { index as catalogIndex } from '@/routes/catalog';
+  import { dashboard as cmsDashboard } from '@/routes/filament/admin/pages';
 
   let {
     children,
@@ -10,6 +11,7 @@
     children?: Snippet;
   } = $props();
 
+  const auth = $derived(page.props.auth);
   let mobileMenuOpen = $state(false);
 </script>
 
@@ -52,6 +54,13 @@
             class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >Aktualności</a
           >
+          {#if auth.user}
+            <a
+              href={cmsDashboard.url()}
+              class="text-gray-600 transition-colors hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+              >Panel CMS</a
+            >
+          {/if}
         </nav>
 
         <button
@@ -100,6 +109,13 @@
             class="block py-1 text-gray-600 hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >Aktualności</a
           >
+          {#if auth.user}
+            <a
+              href={cmsDashboard.url()}
+              class="block py-1 text-gray-600 hover:text-gray-900 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+              >Panel CMS</a
+            >
+          {/if}
         </nav>
       </div>
     {/if}
